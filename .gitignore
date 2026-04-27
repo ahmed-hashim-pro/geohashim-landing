@@ -34,6 +34,11 @@ log.txt
 npm-debug.log
 yarn-error.log
 
+# Amplify Gen 2
+/amplify_outputs.json
+/.amplify
+amplify/.amplify
+
 # IDEs and editors
 .idea/
 .project
