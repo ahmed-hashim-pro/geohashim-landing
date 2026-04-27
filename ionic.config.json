@@ -1,0 +1,7 @@
+{
+  "name": "geohashim-landing",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
