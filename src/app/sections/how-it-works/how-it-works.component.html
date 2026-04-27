@@ -1,0 +1,25 @@
+<section id="how-it-works" class="bg-zinc-50 py-20 sm:py-28 scroll-mt-20 dark:bg-zinc-900/40">
+  <div class="container-page">
+    <div class="mx-auto max-w-3xl text-center">
+      <h2 class="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+        {{ content.heading }}
+      </h2>
+      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+    </div>
+
+    <ol class="mt-14 grid gap-6 md:grid-cols-3" role="list">
+      @for (step of content.steps; track step.title; let i = $index) {
+        <li class="surface-card relative flex flex-col gap-3 p-6">
+          <span class="absolute -top-3 left-6 inline-flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white dark:bg-white dark:text-zinc-900">
+            {{ i + 1 }}
+          </span>
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+            <ion-icon [name]="step.icon" aria-hidden="true" class="text-xl"></ion-icon>
+          </span>
+          <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{{ step.title }}</h3>
+          <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ step.body }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+</section>

@@ -1,0 +1,22 @@
+<footer class="mt-24 border-t border-zinc-200 dark:border-zinc-800">
+  <div class="container-page flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ site.footer.copyright }}</p>
+    <nav aria-label="Footer" class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+      @for (link of site.footer.links; track link.label) {
+        @if (isInternal(link.href)) {
+          <a
+            [routerLink]="link.href"
+            class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >{{ link.label }}</a>
+        } @else {
+          <a
+            [href]="link.href"
+            rel="noopener"
+            target="_blank"
+            class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >{{ link.label }}</a>
+        }
+      }
+    </nav>
+  </div>
+</footer>

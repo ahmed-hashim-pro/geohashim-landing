@@ -1,0 +1,59 @@
+<section id="about" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="grid gap-10 lg:grid-cols-12 lg:gap-16">
+    <div class="lg:col-span-5">
+      <div class="surface-card relative overflow-hidden p-8">
+        <div
+          class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-indigo-100 via-fuchsia-100 to-rose-100 opacity-60 dark:from-indigo-950 dark:via-fuchsia-950 dark:to-rose-950 dark:opacity-40"
+          aria-hidden="true"
+        ></div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 text-2xl font-semibold text-white shadow-lg">
+            AH
+          </div>
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ content.eyebrow }}</p>
+            <h2 class="font-display text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {{ content.name }}
+            </h2>
+          </div>
+        </div>
+
+        <ul class="mt-8 space-y-4" role="list">
+          @for (bullet of content.bullets; track bullet.text) {
+            <li class="flex gap-3 text-sm text-zinc-700 dark:text-zinc-300">
+              <span class="mt-0.5 inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-white text-zinc-700 shadow-sm dark:bg-zinc-800 dark:text-zinc-200">
+                <ion-icon [name]="bullet.icon" aria-hidden="true"></ion-icon>
+              </span>
+              <span>{{ bullet.text }}</span>
+            </li>
+          }
+        </ul>
+
+        <div class="mt-8 flex flex-wrap gap-2">
+          @for (cta of content.ctas; track cta.label) {
+            <a
+              [href]="cta.href"
+              [attr.target]="cta.external ? '_blank' : null"
+              [attr.rel]="cta.external ? 'noopener' : null"
+              class="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              {{ cta.label }}
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7">
+      <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+        {{ content.headline }}
+      </h2>
+      <div class="mt-6 space-y-4 text-lg leading-relaxed text-zinc-600 dark:text-zinc-300">
+        @for (paragraph of content.body; track paragraph) {
+          <p>{{ paragraph }}</p>
+        }
+      </div>
+    </div>
+  </div>
+</section>

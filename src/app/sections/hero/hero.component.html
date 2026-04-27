@@ -1,0 +1,119 @@
+<section class="relative overflow-hidden">
+  <div
+    class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-white to-white dark:from-indigo-950/40 dark:via-zinc-950 dark:to-zinc-950"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="pointer-events-none absolute -top-32 left-1/2 -z-10 h-[480px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-300/40 via-fuchsia-300/30 to-rose-300/40 blur-3xl dark:from-indigo-500/20 dark:via-fuchsia-500/10 dark:to-rose-500/20"
+    aria-hidden="true"
+  ></div>
+
+  <div class="container-page py-20 sm:py-28">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white/70 px-4 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-300">
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+        {{ hero.eyebrow }}
+      </p>
+
+      <h1 class="text-4xl font-semibold leading-tight tracking-tight text-zinc-900 sm:text-6xl dark:text-zinc-50">
+        {{ hero.headline }}<span class="gradient-text">{{ hero.headlineAccent }}</span>
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
+        {{ hero.subhead }}
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+        @for (cta of hero.ctas; track cta.label) {
+          <a
+            [href]="cta.href"
+            [attr.target]="cta.external ? '_blank' : null"
+            [attr.rel]="cta.external ? 'noopener' : null"
+            [class]="cta.variant === 'primary'
+              ? 'inline-flex items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-zinc-900/10 transition-transform hover:-translate-y-px dark:bg-white dark:text-zinc-900'
+              : 'inline-flex items-center justify-center rounded-full border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900'"
+          >
+            {{ cta.label }}
+          </a>
+        }
+      </div>
+    </div>
+
+    <div class="mx-auto mt-16 max-w-5xl">
+      <div class="surface-card overflow-hidden shadow-2xl shadow-zinc-900/10 dark:shadow-black/40">
+        <div
+          role="img"
+          [attr.aria-label]="hero.mockAlt"
+          class="relative aspect-[16/9] w-full bg-gradient-to-br from-zinc-100 via-white to-indigo-100 dark:from-zinc-900 dark:via-zinc-900 dark:to-indigo-950"
+        >
+          <div class="absolute inset-x-8 top-6 flex items-center gap-2">
+            <span class="h-3 w-3 rounded-full bg-rose-400"></span>
+            <span class="h-3 w-3 rounded-full bg-amber-400"></span>
+            <span class="h-3 w-3 rounded-full bg-emerald-400"></span>
+            <span class="ml-3 truncate text-xs text-zinc-500">feed.geohashim.com / AI Studio</span>
+          </div>
+
+          <div class="absolute inset-x-8 top-16 bottom-6 grid grid-cols-12 gap-4">
+            <div class="col-span-4 rounded-xl border border-zinc-200/70 bg-white/80 p-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Model</p>
+              <div class="mt-2 flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-800">
+                <span class="h-5 w-5 rounded-md bg-gradient-to-br from-amber-500 to-rose-500"></span>
+                <span class="text-xs font-medium text-zinc-800 dark:text-zinc-100">Claude Sonnet 4.6</span>
+                <span class="ml-auto text-[10px] text-zinc-500">$0.04/run</span>
+              </div>
+              <p class="mt-4 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Providers</p>
+              <div class="mt-2 flex flex-wrap gap-1">
+                @for (p of ['Anthropic','OpenAI','Google','xAI','DeepSeek','Mistral','Groq']; track p) {
+                  <span class="rounded-full border border-zinc-200 px-2 py-0.5 text-[10px] text-zinc-700 dark:border-zinc-700 dark:text-zinc-200">{{ p }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="col-span-5 rounded-xl border border-zinc-200/70 bg-white/80 p-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Editorial voice</p>
+              <div class="mt-2 grid grid-cols-2 gap-2">
+                <div class="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
+                  <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Voice</p>
+                  <p class="text-xs font-medium text-zinc-800 dark:text-zinc-100">Journalistic</p>
+                </div>
+                <div class="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
+                  <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Reading level</p>
+                  <p class="text-xs font-medium text-zinc-800 dark:text-zinc-100">General</p>
+                </div>
+                <div class="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
+                  <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Words</p>
+                  <p class="text-xs font-medium text-zinc-800 dark:text-zinc-100">~ 900</p>
+                </div>
+                <div class="rounded-lg bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
+                  <p class="text-[10px] text-zinc-500 dark:text-zinc-400">Min quality</p>
+                  <p class="text-xs font-medium text-zinc-800 dark:text-zinc-100">72</p>
+                </div>
+              </div>
+              <p class="mt-3 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Today's run</p>
+              <ul class="mt-2 space-y-1 text-[11px]">
+                <li class="flex items-center justify-between"><span class="text-zinc-700 dark:text-zinc-200">Scraped</span><span class="font-mono text-zinc-900 dark:text-zinc-50">42</span></li>
+                <li class="flex items-center justify-between"><span class="text-zinc-700 dark:text-zinc-200">Drafted</span><span class="font-mono text-zinc-900 dark:text-zinc-50">7</span></li>
+                <li class="flex items-center justify-between"><span class="text-zinc-700 dark:text-zinc-200">Published</span><span class="font-mono text-emerald-600 dark:text-emerald-400">5</span></li>
+              </ul>
+            </div>
+
+            <div class="col-span-3 rounded-xl border border-zinc-200/70 bg-white/80 p-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+              <p class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Schedule</p>
+              <div class="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                <p class="text-xs font-semibold">Weekdays · 09:00</p>
+                <p class="mt-0.5 text-[10px] opacity-80">Next run in 14h</p>
+              </div>
+              <p class="mt-3 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Sources</p>
+              <ul class="mt-2 space-y-1 text-[11px] text-zinc-700 dark:text-zinc-200">
+                <li class="truncate">arstechnica.com/feed</li>
+                <li class="truncate">theverge.com/rss</li>
+                <li class="truncate">stratechery.com/feed</li>
+                <li class="text-zinc-400 dark:text-zinc-500">+ 6 more</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

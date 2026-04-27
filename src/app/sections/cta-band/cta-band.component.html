@@ -1,0 +1,15 @@
+<section class="container-page py-20 sm:py-24">
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-fuchsia-600 to-rose-500 p-10 text-center text-white shadow-xl sm:p-16">
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_60%)]" aria-hidden="true"></div>
+    <h2 class="font-display text-3xl font-semibold tracking-tight sm:text-5xl">{{ content.headline }}</h2>
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-white/90">{{ content.subhead }}</p>
+    <a
+      [href]="content.cta.href"
+      [attr.target]="content.cta.external ? '_blank' : null"
+      [attr.rel]="content.cta.external ? 'noopener' : null"
+      class="mt-8 inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-lg transition-transform hover:-translate-y-px"
+    >
+      {{ content.cta.label }}
+    </a>
+  </div>
+</section>

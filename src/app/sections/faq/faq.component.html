@@ -1,0 +1,22 @@
+<section id="faq" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="mx-auto max-w-3xl">
+    <h2 class="text-center text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+      {{ content.heading }}
+    </h2>
+
+    <ion-accordion-group class="mt-10 block surface-card overflow-hidden">
+      @for (item of content.items; track item.q; let last = $last) {
+        <ion-accordion [value]="item.q">
+          <ion-item slot="header" lines="full" class="--bg: transparent">
+            <ion-label class="!whitespace-normal py-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
+              {{ item.q }}
+            </ion-label>
+          </ion-item>
+          <div slot="content" class="px-4 pb-5 pt-1 text-sm text-zinc-600 dark:text-zinc-300">
+            {{ item.a }}
+          </div>
+        </ion-accordion>
+      }
+    </ion-accordion-group>
+  </div>
+</section>
