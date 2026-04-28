@@ -1,6 +1,15 @@
-<section class="relative overflow-hidden">
+<section
+  class="relative overflow-hidden"
+  appMouseOrb
+  style="--orb-x: 50%; --orb-y: 30%;"
+>
   <div
     class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-indigo-50 via-white to-white dark:from-indigo-950/40 dark:via-zinc-950 dark:to-zinc-950"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="pointer-events-none absolute inset-0 -z-10 transition-opacity duration-300"
+    style="background: radial-gradient(600px circle at var(--orb-x) var(--orb-y), rgba(99,102,241,0.18), transparent 60%);"
     aria-hidden="true"
   ></div>
   <div

@@ -8,6 +8,7 @@ import { HeroComponent } from '../../sections/hero/hero.component';
 import { StatsComponent } from '../../sections/stats/stats.component';
 import { AboutComponent } from '../../sections/about/about.component';
 import { ProjectsComponent } from '../../sections/projects/projects.component';
+import { PlaygroundComponent } from '../../sections/playground/playground.component';
 import { FeaturesComponent } from '../../sections/features/features.component';
 import { HowItWorksComponent } from '../../sections/how-it-works/how-it-works.component';
 import { TestimonialComponent } from '../../sections/testimonial/testimonial.component';
@@ -28,6 +29,7 @@ import { SITE } from '../../content';
     StatsComponent,
     AboutComponent,
     ProjectsComponent,
+    PlaygroundComponent,
     FeaturesComponent,
     HowItWorksComponent,
     TestimonialComponent,

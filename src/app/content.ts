@@ -158,8 +158,8 @@ export const SITE: SiteContent = {
   },
   nav: [
     { label: 'Projects', href: '#projects' },
+    { label: 'Playground', href: '#playground' },
     { label: 'About', href: '#about' },
-    { label: 'My Stream', href: '#features' },
     { label: 'FAQ', href: '#faq' },
   ],
   primaryCta: {
