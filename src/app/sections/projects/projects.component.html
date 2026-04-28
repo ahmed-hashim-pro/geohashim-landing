@@ -1,0 +1,76 @@
+<section id="projects" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      What I'm shipping
+    </p>
+    <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+      {{ content.heading }}
+    </h2>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+  </div>
+
+  <ul class="mt-14 grid gap-6 lg:grid-cols-3" role="list">
+    @for (project of content.items; track project.id) {
+      <li class="group relative">
+        <div class="surface-card relative h-full overflow-hidden p-6 transition-transform duration-300 group-hover:-translate-y-1">
+          <div
+            class="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-gradient-to-br opacity-20 blur-2xl transition-opacity group-hover:opacity-40"
+            [class]="'pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-gradient-to-br opacity-20 blur-2xl transition-opacity group-hover:opacity-40 ' + project.gradient"
+            aria-hidden="true"
+          ></div>
+
+          <div class="flex items-center justify-between">
+            <span
+              class="inline-flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-white shadow-lg"
+              [class]="'inline-flex h-12 w-12 items-center justify-center rounded-2xl text-xl text-white shadow-lg ' + project.iconBg"
+            >
+              <ion-icon [name]="project.icon" aria-hidden="true"></ion-icon>
+            </span>
+            <span
+              class="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
+            >
+              {{ project.badge }}
+            </span>
+          </div>
+
+          <h3 class="mt-5 font-display text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+            {{ project.name }}
+          </h3>
+          <p class="mt-1 text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ project.tagline }}</p>
+
+          <p class="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{{ project.description }}</p>
+
+          <ul class="mt-5 space-y-2" role="list">
+            @for (highlight of project.highlights; track highlight) {
+              <li class="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-200">
+                <ion-icon name="checkmark-circle" aria-hidden="true" class="mt-0.5 flex-none text-base text-emerald-500"></ion-icon>
+                <span>{{ highlight }}</span>
+              </li>
+            }
+          </ul>
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            @for (cta of project.ctas; track cta.label; let first = $first) {
+              <a
+                [href]="cta.href"
+                [attr.target]="cta.external ? '_blank' : null"
+                [attr.rel]="cta.external ? 'noopener' : null"
+                [class]="cta.variant === 'primary'
+                  ? 'inline-flex items-center gap-1.5 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-transform hover:-translate-y-px dark:bg-white dark:text-zinc-900'
+                  : 'inline-flex items-center gap-1.5 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800'"
+              >
+                @if (project.category === 'mobile' && first) {
+                  <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
+                }
+                {{ cta.label }}
+                @if (cta.variant === 'primary' && project.category !== 'mobile') {
+                  <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+                }
+              </a>
+            }
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+</section>
