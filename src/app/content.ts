@@ -45,6 +45,36 @@ export interface Stat {
   label: string;
 }
 
+export interface PipelineNode {
+  id: string;
+  label: string;
+  sublabel: string;
+  icon: string;
+  detail: string;
+  control?: { label: string; value: string };
+  gradient: string;
+}
+
+export interface VoiceSample {
+  id: string;
+  label: string;
+  description: string;
+  prose: string;
+  meta: string;
+}
+
+export interface ProviderCard {
+  id: string;
+  name: string;
+  models: string[];
+  status: 'direct' | 'byok';
+  color: string;
+  best: string;
+  cost: number; // 1..5 (5 = expensive)
+  speed: number; // 1..5 (5 = fastest)
+  quality: number; // 1..5 (5 = best)
+}
+
 export interface Project {
   id: string;
   badge: string;
@@ -99,6 +129,9 @@ export interface SiteContent {
     ctas: Cta[];
   };
   projects: { heading: string; subhead: string; items: Project[] };
+  pipeline: { heading: string; subhead: string; nodes: PipelineNode[]; legend: string };
+  voices: { heading: string; subhead: string; topic: string; samples: VoiceSample[] };
+  providers: { heading: string; subhead: string; cards: ProviderCard[] };
   features: { heading: string; subhead: string; items: Feature[] };
   howItWorks: { heading: string; subhead: string; steps: Step[] };
   testimonial: Testimonial;
@@ -158,9 +191,10 @@ export const SITE: SiteContent = {
   },
   nav: [
     { label: 'Projects', href: '#projects' },
+    { label: 'How it works', href: '#pipeline' },
+    { label: 'Voices', href: '#voices' },
+    { label: 'Models', href: '#providers' },
     { label: 'Playground', href: '#playground' },
-    { label: 'About', href: '#about' },
-    { label: 'FAQ', href: '#faq' },
   ],
   primaryCta: {
     label: 'Open My Stream',
@@ -272,6 +306,128 @@ export const SITE: SiteContent = {
         icon: 'phone-portrait-outline',
         iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
       },
+    ],
+  },
+  pipeline: {
+    heading: 'Inside My Stream — the pipeline, end to end.',
+    subhead:
+      'Every published article walks the same five stages. You configure each stage once per workspace; the schedule does the rest.',
+    legend: 'Hover any stage to see what it does. The dots flowing between stages are real units of work — sources, scored items, drafts.',
+    nodes: [
+      {
+        id: 'sources',
+        label: 'Sources',
+        sublabel: 'RSS · topics · feeds',
+        icon: 'link-outline',
+        detail: 'You point My Stream at RSS feeds, topic strings, and (soon) custom HTML scrapers. Each workspace has its own list.',
+        control: { label: 'You configure', value: 'Feeds + topics' },
+        gradient: 'from-zinc-400 to-zinc-600',
+      },
+      {
+        id: 'scrape',
+        label: 'Scrape',
+        sublabel: 'Lambda',
+        icon: 'cloud-download-outline',
+        detail: 'A Lambda fans out, fetches each source, normalises the HTML, and queues candidate items.',
+        gradient: 'from-sky-500 to-cyan-500',
+      },
+      {
+        id: 'score',
+        label: 'Score',
+        sublabel: 'Model picks one',
+        icon: 'analytics-outline',
+        detail: 'The picked model rates every item against your editorial rubric. The threshold is per-workspace; the model offsets auto-correct so cheaper models do not silently fail.',
+        control: { label: 'You pick', value: 'Model · threshold' },
+        gradient: 'from-indigo-500 to-fuchsia-500',
+      },
+      {
+        id: 'draft',
+        label: 'Draft',
+        sublabel: 'Voice + length',
+        icon: 'create-outline',
+        detail: 'Survivors of the score gate are drafted in the voice you defined: voice, reading level, target word count, target keywords, citation rules, custom prompt additions.',
+        control: { label: 'You define', value: 'Voice · style' },
+        gradient: 'from-fuchsia-500 to-rose-500',
+      },
+      {
+        id: 'publish',
+        label: 'Publish',
+        sublabel: 'Stream + share',
+        icon: 'newspaper-outline',
+        detail: 'You review the queue, edit if you want, then publish to your stream. Every post gets a permalink, an OG card, and a share-button row.',
+        control: { label: 'You ship', value: 'Review + publish' },
+        gradient: 'from-emerald-500 to-teal-500',
+      },
+    ],
+  },
+  voices: {
+    heading: 'One topic. Six voices. Same source.',
+    subhead:
+      'The drafter respects an editorial voice you define per workspace. Click a voice to see the same source rewritten — this is exactly the prompt shape My Stream uses.',
+    topic: 'AI safety in 2026',
+    samples: [
+      {
+        id: 'journalistic',
+        label: 'Journalistic',
+        description: 'Reuters-style. Lead, context, sourced quotes.',
+        meta: 'Reading level: General · ~900 words',
+        prose:
+          'AI safety moved from back-office concern to front-page issue this year, with a wave of frontier-lab disclosures forcing every team that ships an LLM-backed product to revisit its deployment guardrails. Independent analysts say the shift is less about model capability and more about the pace at which safety teams are being asked to certify production releases.',
+      },
+      {
+        id: 'casual',
+        label: 'Casual',
+        description: 'Friendly, contractions, second-person.',
+        meta: 'Reading level: General · ~800 words',
+        prose:
+          "If you've shipped anything with an LLM in it this year, you've probably already had The Conversation about AI safety — even if you didn't call it that. The vibe shift is real: it's not about whether the model can do the thing, it's about whether your launch checklist actually catches the weird edge cases before users do.",
+      },
+      {
+        id: 'formal',
+        label: 'Formal',
+        description: 'Long sentences, no contractions, third-person.',
+        meta: 'Reading level: Technical · ~1100 words',
+        prose:
+          'Recent developments in artificial intelligence safety have prompted a renewed scrutiny of deployment practices across both research and industry. Practitioners are observing a categorical shift in the locus of risk: not the underlying model capability, but the operational discipline applied during integration into customer-facing systems.',
+      },
+      {
+        id: 'academic',
+        label: 'Academic',
+        description: 'Citations, hedged claims, methodology.',
+        meta: 'Reading level: Expert · ~1300 words',
+        prose:
+          'Empirical evidence accumulated over the past twelve months suggests that the marginal risk attributable to frontier model deployment is increasingly mediated by integration-layer controls, rather than by base-model capability (cf. Hashim, 2026). We argue that a methodologically rigorous safety assessment must therefore foreground the operational substrate, with particular attention to provenance, threshold gating, and post-hoc auditability.',
+      },
+      {
+        id: 'opinion',
+        label: 'Opinion',
+        description: 'First-person, claims, takes.',
+        meta: 'Reading level: General · ~700 words',
+        prose:
+          "I'll say what most builders won't: 90% of AI safety in 2026 is just shipping discipline with extra steps. The model isn't the problem. The deployment is. And if you're still pretending your three-line eval suite covers it, you're going to have a bad week the first time a customer prompt-injects through your input field.",
+      },
+      {
+        id: 'conversational',
+        label: 'Conversational',
+        description: 'Like a friend explaining over coffee.',
+        meta: 'Reading level: General · ~750 words',
+        prose:
+          "Okay, so here's the thing about AI safety in 2026. A year ago everyone was arguing about model size. Now? It's all about what happens after the model — the routing, the validation, the boring middle layer that nobody wanted to write. Turns out that boring layer is most of the actual safety work.",
+      },
+    ],
+  },
+  providers: {
+    heading: 'Seven providers. One pipeline. Your choice per workspace.',
+    subhead:
+      'Anthropic runs out of the box. The other six plug in via bring-your-own-key — costs land on your provider bill, the prompt stays the same.',
+    cards: [
+      { id: 'anthropic', name: 'Anthropic',  models: ['Opus 4.7', 'Sonnet 4.6', 'Haiku 4.5'], status: 'direct', color: 'from-amber-500 to-rose-500',     best: 'Best default — runs without keys.',          cost: 4, speed: 4, quality: 5 },
+      { id: 'openai',    name: 'OpenAI',     models: ['GPT-5', 'GPT-5 mini', 'o3', 'o4-mini'], status: 'byok',  color: 'from-emerald-500 to-cyan-500',   best: 'Reasoning-tier picks excel at analysis.',     cost: 3, speed: 4, quality: 5 },
+      { id: 'google',    name: 'Google',     models: ['Gemini 2.5 Pro', '2.5 Flash', '2.0 Flash'], status: 'byok', color: 'from-sky-500 to-indigo-500', best: 'Cheapest tier with a usable context window.', cost: 2, speed: 5, quality: 4 },
+      { id: 'xai',       name: 'xAI',        models: ['Grok 4', 'Grok 4 fast'],               status: 'byok',  color: 'from-zinc-500 to-zinc-700',     best: 'Strong on current-events grounding.',         cost: 3, speed: 4, quality: 4 },
+      { id: 'deepseek',  name: 'DeepSeek',   models: ['DeepSeek-R1', 'DeepSeek V3'],          status: 'byok',  color: 'from-blue-500 to-violet-500',   best: 'Reasoning at a fraction of the cost.',        cost: 1, speed: 3, quality: 4 },
+      { id: 'mistral',   name: 'Mistral',    models: ['Mistral Large', 'Codestral'],          status: 'byok',  color: 'from-orange-500 to-red-500',    best: 'EU-hosted option for compliance.',            cost: 2, speed: 4, quality: 4 },
+      { id: 'groq',      name: 'Groq',       models: ['Llama 3.1 70B (Groq)'],                status: 'byok',  color: 'from-lime-500 to-emerald-500',  best: 'Wildest token throughput on the market.',     cost: 1, speed: 5, quality: 3 },
     ],
   },
   features: {
