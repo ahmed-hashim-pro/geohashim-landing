@@ -40,11 +40,38 @@ export interface AboutBullet {
   text: string;
 }
 
+export interface Stat {
+  value: string;
+  label: string;
+}
+
+export interface Project {
+  id: string;
+  badge: string;
+  name: string;
+  tagline: string;
+  description: string;
+  highlights: string[];
+  ctas: Cta[];
+  url: string;
+  category: 'web' | 'mobile';
+  gradient: string;
+  icon: string;
+  iconBg: string;
+}
+
 export type RoutePath = '/' | '/privacy' | '/terms';
 
 export interface SiteContent {
   brand: { name: string; wordmark: string; tagline: string };
-  urls: { product: string; github: string; linkedin: string; canonical: string };
+  urls: {
+    product: string;
+    mushaf: string;
+    quranAndroid: string;
+    github: string;
+    linkedin: string;
+    canonical: string;
+  };
   seo: {
     defaultTitle: string;
     defaultDescription: string;
@@ -61,14 +88,17 @@ export interface SiteContent {
     ctas: [Cta, Cta];
     mockAlt: string;
   };
+  stats: Stat[];
   about: {
     eyebrow: string;
     name: string;
     headline: string;
     body: string[];
     bullets: AboutBullet[];
+    techStack: string[];
     ctas: Cta[];
   };
+  projects: { heading: string; subhead: string; items: Project[] };
   features: { heading: string; subhead: string; items: Feature[] };
   howItWorks: { heading: string; subhead: string; steps: Step[] };
   testimonial: Testimonial;
@@ -85,30 +115,36 @@ export interface SiteContent {
 }
 
 const PRODUCT_URL = 'https://feed.geohashim.com';
+const MUSHAF_URL = 'https://mushaf.geohashim.com';
+const QURAN_ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran';
+const GITHUB_URL = 'https://github.com/ahmed-hashim-pro';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/';
 const CANONICAL = 'https://geohashim.com';
 
 export const SITE: SiteContent = {
   brand: {
     name: 'geohashim',
     wordmark: 'geohashim',
-    tagline: 'Ahmed Hashim — and the AI publishing tool he built.',
+    tagline: 'Ahmed Hashim — building AI tools and apps from idea to ship.',
   },
   urls: {
     product: PRODUCT_URL,
-    github: 'https://github.com/ahmed-hashim-pro',
-    linkedin: 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/',
+    mushaf: MUSHAF_URL,
+    quranAndroid: QURAN_ANDROID_URL,
+    github: GITHUB_URL,
+    linkedin: LINKEDIN_URL,
     canonical: CANONICAL,
   },
   seo: {
-    defaultTitle: 'geohashim — Ahmed Hashim & My Stream, an AI publishing platform',
+    defaultTitle: 'geohashim — Ahmed Hashim · AI tools, web, and mobile apps',
     defaultDescription:
-      'Ahmed Hashim builds My Stream — an AI publishing platform that scrapes, scores, and drafts articles using Claude, GPT, Gemini and more, on the editorial voice you define.',
-    ogImage: '/assets/og-image.png',
+      'Ahmed Hashim builds shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app. Software at the intersection of AI, editorial workflow, and Islamic resources.',
+    ogImage: '/og-image.svg',
     routes: {
       '/': {
-        title: 'geohashim — Ahmed Hashim & My Stream, an AI publishing platform',
+        title: 'geohashim — Ahmed Hashim · AI tools, web, and mobile apps',
         description:
-          'Ahmed Hashim builds My Stream — an AI publishing platform that scrapes, scores, and drafts articles using Claude, GPT, Gemini and more, on the editorial voice you define.',
+          'Ahmed Hashim builds shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app.',
       },
       '/privacy': {
         title: 'Privacy Policy — geohashim',
@@ -116,14 +152,14 @@ export const SITE: SiteContent = {
       },
       '/terms': {
         title: 'Terms of Service — geohashim',
-        description: 'The terms that govern your use of geohashim and My Stream.',
+        description: 'The terms that govern your use of geohashim and its products.',
       },
     },
   },
   nav: [
+    { label: 'Projects', href: '#projects' },
     { label: 'About', href: '#about' },
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how-it-works' },
+    { label: 'My Stream', href: '#features' },
     { label: 'FAQ', href: '#faq' },
   ],
   primaryCta: {
@@ -135,36 +171,111 @@ export const SITE: SiteContent = {
   hero: {
     eyebrow: 'Hi, I\'m Ahmed Hashim',
     headline: 'I build ',
-    headlineAccent: 'My Stream — an AI publishing platform.',
+    headlineAccent: 'AI tools and apps that ship.',
     subhead:
-      'My Stream scrapes the sources you trust, scores what matters, and drafts publishable articles in your editorial voice — using Claude, GPT, Gemini, Grok, DeepSeek, Mistral, or Groq. You set the rules; the pipeline runs on a schedule.',
+      'My flagship is My Stream — an AI publishing platform that drafts articles in your editorial voice using Claude, GPT, Gemini, and four more providers. I also build digital Mushaf and Quran apps used on web and Android. All shipped, all maintained, all here.',
     ctas: [
       { label: 'Open My Stream', href: PRODUCT_URL, external: true, variant: 'primary' },
-      { label: 'See how it works', href: '#how-it-works', variant: 'ghost' },
+      { label: 'See all projects', href: '#projects', variant: 'ghost' },
     ],
     mockAlt: 'Preview of the My Stream AI Studio showing model picker, editorial voice controls, and a scheduled automation run.',
   },
+  stats: [
+    { value: '3', label: 'shipped products' },
+    { value: '7', label: 'AI providers integrated' },
+    { value: 'iOS · Android · Web', label: 'platforms' },
+    { value: '10+', label: 'languages supported' },
+  ],
   about: {
     eyebrow: 'About',
     name: 'Ahmed Hashim',
-    headline: 'I ship products that turn AI into something useful.',
+    headline: 'Software engineer. Builder. Solo shipper.',
     body: [
-      'I\'m a software engineer working at the intersection of editorial workflow and applied AI. My Stream is the product I keep coming back to — a tool that lets a small team behave like a real publication, with the model, the voice, and the schedule all under their control.',
-      'Outside of My Stream I build with Angular, Ionic, AWS, and the Anthropic + OpenAI stacks. I also keep an open-source presence and write occasionally about what I\'m learning.',
+      'I\'m a software engineer who likes the whole pipeline — from a half-formed idea to a shipped, maintained product. My current focus is applied AI for publishing workflows, but I also keep a long-running line of work in Islamic resources: a digital Mushaf and a Quran Android app that have been in users\' hands for years.',
+      'Most of what I build is shipped solo. I\'m comfortable owning the stack end-to-end: Angular and Ionic on the front, AWS and Firebase on the back, with whichever AI provider fits the job. I write occasionally about what I\'m learning, and I\'m open to consulting on AI-first editorial tooling.',
     ],
     bullets: [
-      { icon: 'sparkles-outline', text: 'Building My Stream — an AI editorial pipeline used by independent publishers.' },
-      { icon: 'code-slash-outline', text: 'Angular, Ionic, AWS Amplify Gen 2, Anthropic SDK, OpenAI SDK.' },
-      { icon: 'globe-outline', text: 'Multi-language by default; built for teams who don\'t publish only in English.' },
-      { icon: 'person-circle-outline', text: 'Working solo, shipping in public, open to consulting on AI publishing pipelines.' },
+      { icon: 'sparkles-outline', text: 'Building AI editorial pipelines used by independent publishers.' },
+      { icon: 'book-outline', text: 'Long-running line of work on Islamic resources — Mushaf and Quran apps.' },
+      { icon: 'globe-outline', text: 'Multi-language by default; English isn\'t the only audience.' },
+      { icon: 'rocket-outline', text: 'Working solo, shipping in public, available for consulting on AI publishing.' },
+    ],
+    techStack: [
+      'Angular',
+      'Ionic',
+      'Capacitor',
+      'AWS Amplify',
+      'Firebase',
+      'Anthropic',
+      'OpenAI',
+      'Stripe',
+      'TypeScript',
     ],
     ctas: [
-      { label: 'GitHub', href: 'https://github.com/ahmed-hashim-pro', external: true, variant: 'ghost' },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/', external: true, variant: 'ghost' },
+      { label: 'GitHub', href: GITHUB_URL, external: true, variant: 'ghost' },
+      { label: 'LinkedIn', href: LINKEDIN_URL, external: true, variant: 'ghost' },
+    ],
+  },
+  projects: {
+    heading: 'Projects',
+    subhead: 'Three products I build and maintain — one flagship, and a long-running line of Islamic apps.',
+    items: [
+      {
+        id: 'mystream',
+        badge: 'Flagship',
+        name: 'My Stream',
+        tagline: 'AI publishing platform',
+        description:
+          'Scrape sources, score with quality thresholds, and draft articles in your editorial voice. Multi-model (Claude, GPT, Gemini, Grok, DeepSeek, Mistral, Groq), workspaces, scheduling, BYOK.',
+        highlights: ['7 AI providers', 'BYOK keys', 'Editorial voice controls', 'Scheduled automation'],
+        ctas: [
+          { label: 'Open My Stream', href: PRODUCT_URL, external: true, variant: 'primary' },
+          { label: 'How it works', href: '#how-it-works', variant: 'ghost' },
+        ],
+        url: PRODUCT_URL,
+        category: 'web',
+        gradient: 'from-indigo-500 via-fuchsia-500 to-rose-500',
+        icon: 'sparkles-outline',
+        iconBg: 'bg-gradient-to-br from-indigo-500 to-fuchsia-500',
+      },
+      {
+        id: 'mushaf',
+        badge: 'Web',
+        name: 'Mushaf',
+        tagline: 'A clean digital Quran reader',
+        description:
+          'A focused, distraction-free Mushaf for the web at mushaf.geohashim.com. Built for fast page navigation, comfortable reading typography, and a layout that respects the printed Mushaf.',
+        highlights: ['Distraction-free reading', 'Page-accurate layout', 'Mobile-first', 'Free, no ads'],
+        ctas: [
+          { label: 'Open Mushaf', href: MUSHAF_URL, external: true, variant: 'primary' },
+        ],
+        url: MUSHAF_URL,
+        category: 'web',
+        gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+        icon: 'book-outline',
+        iconBg: 'bg-gradient-to-br from-emerald-500 to-teal-500',
+      },
+      {
+        id: 'online-quran',
+        badge: 'Android',
+        name: 'Online Quran',
+        tagline: 'A Quran reader for Android',
+        description:
+          'My long-running Quran app for Android, available on Google Play. Reciter audio, bookmarking, and offline reading — for everyday use.',
+        highlights: ['Recitation audio', 'Bookmarks', 'Offline reading', 'Years on the Play Store'],
+        ctas: [
+          { label: 'Get it on Google Play', href: QURAN_ANDROID_URL, external: true, variant: 'primary' },
+        ],
+        url: QURAN_ANDROID_URL,
+        category: 'mobile',
+        gradient: 'from-amber-500 via-orange-500 to-rose-500',
+        icon: 'phone-portrait-outline',
+        iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
+      },
     ],
   },
   features: {
-    heading: 'What My Stream actually does.',
+    heading: 'My Stream — what the flagship actually does.',
     subhead:
       'An end-to-end editorial pipeline — scrape, analyze, score, draft, publish — wired to whichever frontier model fits your budget.',
     items: [
@@ -244,35 +355,38 @@ export const SITE: SiteContent = {
         a: 'No. Each model has a per-model qualityScoreOffset baked into the catalog, so the effective threshold auto-adjusts. Switching from Sonnet to Haiku does not silently reject every draft.',
       },
       {
-        q: 'Can I write in a language other than English?',
-        a: 'Yes. The drafter prompt is voice-driven, and the platform UI itself ships with @ngx-translate. Multi-language was a day-one requirement.',
+        q: 'What is Mushaf?',
+        a: 'A focused, ad-free digital Quran reader at mushaf.geohashim.com. Optimised for clean reading typography and a layout that mirrors the printed Mushaf page-for-page.',
       },
       {
-        q: 'Is there a mobile app?',
-        a: 'My Stream ships a Capacitor-based mobile build alongside the web app — same workspace, same feed, same schedule.',
+        q: 'Where can I get the Online Quran app?',
+        a: 'On Google Play — search for "Online Quran" or use the link in the Projects section. It runs offline once installed.',
       },
       {
-        q: 'What does it cost?',
-        a: 'My Stream itself runs on a Stripe-billed subscription (early-access pricing today). Model usage is either covered by Anthropic credits (default) or your own provider keys (BYOK).',
+        q: 'Can I write or read in a language other than English?',
+        a: 'Yes. My Stream\'s drafter is voice-driven and the UI ships with @ngx-translate. The Quran apps are Arabic-first by definition.',
       },
       {
-        q: 'Who builds geohashim and My Stream?',
-        a: 'Ahmed Hashim — the brand, the product, and every commit. Working solo, shipping in public.',
+        q: 'Who builds geohashim?',
+        a: 'Ahmed Hashim — the brand, the products, every commit. Working solo, shipping in public.',
       },
     ],
   },
   ctaBand: {
-    headline: 'Want a publishing pipeline that respects your voice?',
-    subhead: 'Open My Stream, point it at your sources, pick a model, and watch the first run go.',
+    headline: 'Three products. One person. Pick the one that helps you today.',
+    subhead: 'My Stream for AI publishing. Mushaf for the web. Online Quran for Android. All linked above.',
     cta: { label: 'Open My Stream', href: PRODUCT_URL, external: true, variant: 'primary' },
   },
   footer: {
     copyright: `© ${new Date().getFullYear()} Ahmed Hashim. All rights reserved.`,
     links: [
+      { label: 'My Stream', href: PRODUCT_URL, external: true },
+      { label: 'Mushaf', href: MUSHAF_URL, external: true },
+      { label: 'Online Quran', href: QURAN_ANDROID_URL, external: true },
       { label: 'Privacy', href: '/privacy' },
       { label: 'Terms', href: '/terms' },
-      { label: 'GitHub', href: 'https://github.com/ahmed-hashim-pro', external: true },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/', external: true },
+      { label: 'GitHub', href: GITHUB_URL, external: true },
+      { label: 'LinkedIn', href: LINKEDIN_URL, external: true },
     ],
   },
   legal: {
@@ -281,11 +395,11 @@ export const SITE: SiteContent = {
       sections: [
         {
           heading: 'Overview',
-          body: 'This is placeholder copy for the geohashim privacy policy. Replace it with reviewed legal text before launch. The product (My Stream) ships a more detailed in-product policy at feed.geohashim.com.',
+          body: 'This is placeholder copy for the geohashim privacy policy. Replace it with reviewed legal text before launch. Each product (My Stream, Mushaf, Online Quran) ships its own in-product policy where applicable.',
         },
         {
           heading: 'What we collect',
-          body: 'On geohashim.com we collect no personal data. The product at feed.geohashim.com collects the information you provide at signup and the content you choose to post.',
+          body: 'On geohashim.com we collect no personal data. The products at feed.geohashim.com, mushaf.geohashim.com, and the Online Quran Android app each describe their own data handling in-product.',
         },
         {
           heading: 'AI providers and your keys',
@@ -293,7 +407,7 @@ export const SITE: SiteContent = {
         },
         {
           heading: 'Your choices',
-          body: 'You can export, edit, or delete your data inside My Stream at any time from your workspace settings.',
+          body: 'You can export, edit, or delete your data inside any of the products at any time from their settings.',
         },
         {
           heading: 'Contact',
@@ -310,7 +424,7 @@ export const SITE: SiteContent = {
         },
         {
           heading: 'Use of the service',
-          body: 'You agree to use My Stream within applicable laws and to respect the licensing of the sources you scrape and the AI providers you call.',
+          body: 'You agree to use the geohashim products within applicable laws and to respect the licensing of the sources you scrape and the AI providers you call.',
         },
         {
           heading: 'Your content',
