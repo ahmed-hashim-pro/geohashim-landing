@@ -1,0 +1,85 @@
+<section id="voices" class="bg-zinc-50 py-20 sm:py-28 scroll-mt-20 dark:bg-zinc-900/40">
+  <div class="container-page">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        Editorial voice
+      </p>
+      <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+        {{ content.heading }}
+      </h2>
+      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+    </div>
+
+    <div class="mx-auto mt-12 max-w-5xl">
+      <div class="surface-card overflow-hidden p-6 sm:p-8">
+        <div class="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+          <span class="inline-flex items-center gap-2">
+            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            Topic
+          </span>
+          <span class="rounded-full bg-zinc-100 px-3 py-1 font-mono dark:bg-zinc-800">{{ content.topic }}</span>
+        </div>
+
+        <div role="tablist" aria-label="Editorial voice" class="mt-5 flex flex-wrap gap-2">
+          @for (sample of content.samples; track sample.id) {
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="activeId() === sample.id"
+              (click)="setVoice(sample.id)"
+              [class]="activeId() === sample.id
+                ? 'inline-flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm dark:bg-white dark:text-zinc-900'
+                : 'inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800'"
+            >
+              {{ sample.label }}
+            </button>
+          }
+        </div>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-12">
+          <aside class="lg:col-span-4 surface-card border-zinc-200 p-5 dark:border-zinc-800">
+            <p class="text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Voice profile
+            </p>
+            <h3 class="mt-1 font-display text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+              {{ active().label }}
+            </h3>
+            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ active().description }}</p>
+            <div class="mt-4 space-y-1.5 border-t border-zinc-200 pt-4 text-xs dark:border-zinc-800">
+              <p class="text-zinc-500 dark:text-zinc-400">{{ active().meta }}</p>
+              <p class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+                Drafted in this voice automatically
+              </p>
+            </div>
+          </aside>
+
+          <article class="lg:col-span-8 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div class="flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+              Draft preview
+            </div>
+            <h4 class="mt-2 font-display text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {{ content.topic }}
+            </h4>
+            <p
+              class="prose-block mt-4 text-base leading-relaxed text-zinc-700 transition-opacity duration-300 dark:text-zinc-200"
+              [attr.data-voice]="active().id"
+              [class.font-display]="active().id === 'formal' || active().id === 'academic'"
+            >
+              {{ active().prose }}
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2 text-[10px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              <span class="rounded-full bg-zinc-100 px-2 py-1 dark:bg-zinc-800">voice: {{ active().id }}</span>
+              <span class="rounded-full bg-zinc-100 px-2 py-1 dark:bg-zinc-800">{{ active().meta }}</span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <p class="mx-auto mt-6 max-w-2xl text-center text-xs text-zinc-500 dark:text-zinc-400">
+        Same source. Same topic. The drafter swaps voice, reading level, and length per workspace.
+      </p>
+    </div>
+  </div>
+</section>

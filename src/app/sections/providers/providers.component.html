@@ -1,0 +1,91 @@
+<section id="providers" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      Multi-model
+    </p>
+    <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+      {{ content.heading }}
+    </h2>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+  </div>
+
+  <ul class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    @for (card of content.cards; track card.id) {
+      <li>
+        <div class="surface-card relative h-full overflow-hidden p-6 transition hover:-translate-y-0.5">
+          <div
+            [class]="'pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br opacity-25 blur-2xl ' + card.color"
+            aria-hidden="true"
+          ></div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span
+                [class]="'inline-flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br ' + card.color"
+                aria-hidden="true"
+              >
+                <span class="font-semibold text-sm">{{ card.name.charAt(0) }}</span>
+              </span>
+              <div>
+                <h3 class="font-display text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ card.name }}</h3>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400">{{ card.models.length }} model{{ card.models.length === 1 ? '' : 's' }}</p>
+              </div>
+            </div>
+            @if (card.status === 'direct') {
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+                Direct
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                <ion-icon name="key-outline" aria-hidden="true"></ion-icon>
+                BYOK
+              </span>
+            }
+          </div>
+
+          <p class="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{{ card.best }}</p>
+
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            @for (model of card.models; track model) {
+              <span class="rounded-full border border-zinc-200 bg-white px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                {{ model }}
+              </span>
+            }
+          </div>
+
+          <dl class="mt-5 space-y-2.5 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            @for (m of metricRows; track m.key) {
+              <div class="flex items-center gap-3 text-[11px]">
+                <dt class="flex w-16 items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
+                  <ion-icon [name]="m.icon" aria-hidden="true"></ion-icon>
+                  {{ m.label }}
+                </dt>
+                <dd class="flex flex-1 items-center gap-1">
+                  @for (filled of bars(m.key === 'cost' ? card.cost : m.key === 'speed' ? card.speed : card.quality); track $index) {
+                    <span
+                      [class]="filled
+                        ? (m.key === 'cost'
+                            ? 'h-1.5 flex-1 rounded-full bg-rose-500/80'
+                            : m.key === 'speed'
+                              ? 'h-1.5 flex-1 rounded-full bg-amber-500/80'
+                              : 'h-1.5 flex-1 rounded-full bg-emerald-500/80')
+                        : 'h-1.5 flex-1 rounded-full bg-zinc-200 dark:bg-zinc-800'"
+                    ></span>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <div class="mx-auto mt-10 max-w-3xl rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-5 text-center text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-300">
+    <p>
+      <span class="font-semibold text-zinc-900 dark:text-zinc-50">BYOK = Bring Your Own Key.</span>
+      Drop a provider key into a workspace and the same prompt routes through that provider — costs land on your bill, not ours.
+    </p>
+  </div>
+</section>

@@ -1,0 +1,88 @@
+<section id="pipeline" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      Architecture
+    </p>
+    <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+      {{ content.heading }}
+    </h2>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+  </div>
+
+  <div class="mx-auto mt-12 max-w-6xl">
+    <div class="surface-card relative overflow-hidden p-6 sm:p-10">
+      <div class="pointer-events-none absolute inset-0 -z-10 opacity-30" aria-hidden="true">
+        <div class="absolute -left-32 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-to-br from-indigo-400 to-fuchsia-400 blur-3xl"></div>
+        <div class="absolute -right-32 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 blur-3xl"></div>
+      </div>
+
+      <ol class="pipeline-flow relative grid gap-6 lg:grid-cols-5 lg:gap-3" role="list">
+        @for (node of content.nodes; track node.id; let i = $index; let last = $last) {
+          <li
+            class="group relative"
+            (pointerenter)="hovered.set(node.id)"
+            (pointerleave)="hovered.set(null)"
+          >
+            <div
+              [class]="hovered() === node.id
+                ? 'rounded-2xl border-2 border-indigo-500 bg-white p-5 shadow-lg shadow-indigo-500/10 transition dark:bg-zinc-900'
+                : 'rounded-2xl border border-zinc-200 bg-white p-5 transition hover:-translate-y-0.5 dark:border-zinc-800 dark:bg-zinc-900'"
+            >
+              <span
+                [class]="'inline-flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-md bg-gradient-to-br ' + node.gradient"
+              >
+                <ion-icon [name]="node.icon" aria-hidden="true" class="text-xl"></ion-icon>
+              </span>
+              <p class="mt-4 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Stage {{ i + 1 }}
+              </p>
+              <h3 class="mt-1 font-display text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                {{ node.label }}
+              </h3>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ node.sublabel }}</p>
+
+              @if (node.control) {
+                <div class="mt-4 rounded-lg border border-dashed border-indigo-300 bg-indigo-50 px-2.5 py-1.5 text-[11px] dark:border-indigo-700 dark:bg-indigo-950/40">
+                  <p class="font-medium uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                    {{ node.control.label }}
+                  </p>
+                  <p class="mt-0.5 font-medium text-indigo-900 dark:text-indigo-100">
+                    {{ node.control.value }}
+                  </p>
+                </div>
+              }
+            </div>
+
+            @if (!last) {
+              <div class="pipeline-connector pointer-events-none hidden lg:block" aria-hidden="true">
+                <span class="pipeline-dot"></span>
+                <span class="pipeline-dot pipeline-dot-2"></span>
+                <span class="pipeline-dot pipeline-dot-3"></span>
+              </div>
+              <div class="pointer-events-none my-2 flex justify-center lg:hidden" aria-hidden="true">
+                <span class="block h-6 w-px bg-gradient-to-b from-zinc-300 to-transparent dark:from-zinc-700"></span>
+              </div>
+            }
+          </li>
+        }
+      </ol>
+
+      <div class="mt-10 grid gap-4 lg:grid-cols-5">
+        @for (node of content.nodes; track 'd-' + node.id) {
+          <p
+            class="text-xs leading-relaxed text-zinc-600 transition-opacity dark:text-zinc-300"
+            [class.opacity-100]="hovered() === node.id || hovered() === null"
+            [class.opacity-30]="hovered() !== null && hovered() !== node.id"
+          >
+            <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ node.label }}.</span>
+            {{ node.detail }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <p class="mx-auto mt-6 max-w-2xl text-center text-xs text-zinc-500 dark:text-zinc-400">
+      {{ content.legend }}
+    </p>
+  </div>
+</section>

@@ -8,9 +8,11 @@ import { HeroComponent } from '../../sections/hero/hero.component';
 import { StatsComponent } from '../../sections/stats/stats.component';
 import { AboutComponent } from '../../sections/about/about.component';
 import { ProjectsComponent } from '../../sections/projects/projects.component';
+import { PipelineComponent } from '../../sections/pipeline/pipeline.component';
+import { VoicesComponent } from '../../sections/voices/voices.component';
+import { ProvidersComponent } from '../../sections/providers/providers.component';
 import { PlaygroundComponent } from '../../sections/playground/playground.component';
 import { FeaturesComponent } from '../../sections/features/features.component';
-import { HowItWorksComponent } from '../../sections/how-it-works/how-it-works.component';
 import { TestimonialComponent } from '../../sections/testimonial/testimonial.component';
 import { FaqComponent } from '../../sections/faq/faq.component';
 import { CtaBandComponent } from '../../sections/cta-band/cta-band.component';
@@ -29,9 +31,11 @@ import { SITE } from '../../content';
     StatsComponent,
     AboutComponent,
     ProjectsComponent,
+    PipelineComponent,
+    VoicesComponent,
+    ProvidersComponent,
     PlaygroundComponent,
     FeaturesComponent,
-    HowItWorksComponent,
     TestimonialComponent,
     FaqComponent,
     CtaBandComponent,
