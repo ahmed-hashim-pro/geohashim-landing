@@ -70,6 +70,8 @@ const SAMPLE_PROSE = (topic: string) =>
 export class PlaygroundComponent {
   protected readonly models = MODELS;
   protected readonly stages = STAGES;
+  // Bound [icon] data: a static name="" resolves during hydration, before addIcons() runs, and stays blank.
+  protected readonly icons = { play: playOutline, refresh: refreshOutline, check: checkmarkCircle, sparkles: sparklesOutline };
 
   protected readonly topic = signal('AI safety in 2026');
   protected readonly modelId = signal<string>('sonnet');

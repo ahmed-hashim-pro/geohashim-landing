@@ -14,6 +14,8 @@ import { SITE } from '../../content';
 })
 export class VoicesComponent {
   protected readonly content = SITE.voices;
+  // Bound [icon] data: a static name="" resolves during hydration, before addIcons() runs, and stays blank.
+  protected readonly icons = { document: documentTextOutline, sparkles: sparklesOutline };
   protected readonly activeId = signal<string>(this.content.samples[0].id);
 
   protected readonly active = computed(

@@ -43,7 +43,7 @@
           <ul class="mt-5 space-y-2" role="list">
             @for (highlight of project.highlights; track highlight) {
               <li class="flex items-start gap-2 text-sm text-zinc-700 dark:text-zinc-200">
-                <ion-icon name="checkmark-circle" aria-hidden="true" class="mt-0.5 flex-none text-base text-emerald-500"></ion-icon>
+                <ion-icon [icon]="icons.check" aria-hidden="true" class="mt-0.5 flex-none text-base text-emerald-500"></ion-icon>
                 <span>{{ highlight }}</span>
               </li>
             }
@@ -60,11 +60,11 @@
                   : 'inline-flex items-center gap-1.5 rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800'"
               >
                 @if (project.category === 'mobile' && first) {
-                  <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
+                  <ion-icon [icon]="icons.google" aria-hidden="true"></ion-icon>
                 }
                 {{ cta.label }}
                 @if (cta.variant === 'primary' && project.category !== 'mobile') {
-                  <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+                  <ion-icon [icon]="icons.arrow" aria-hidden="true"></ion-icon>
                 }
               </a>
             }

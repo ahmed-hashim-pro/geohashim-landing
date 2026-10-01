@@ -31,7 +31,8 @@
               { "glob": "robots.txt", "input": "src", "output": "/" },
               { "glob": "favicon.ico", "input": "src", "output": "/" },
               { "glob": "favicon.svg", "input": "src", "output": "/" },
-              { "glob": "og-image.svg", "input": "src", "output": "/" }
+              { "glob": "og-image.svg", "input": "src", "output": "/" },
+              { "glob": "og-image.png", "input": "src", "output": "/" }
             ],
             "styles": [
               "src/styles/tailwind.css",

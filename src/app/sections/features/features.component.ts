@@ -9,6 +9,11 @@ import {
   rocketOutline,
   phonePortraitOutline,
   shieldCheckmarkOutline,
+  gitBranchOutline,
+  keyOutline,
+  colorPaletteOutline,
+  analyticsOutline,
+  timeOutline,
 } from 'ionicons/icons';
 
 import { SITE } from '../../content';
@@ -30,6 +35,11 @@ export class FeaturesComponent {
       rocketOutline,
       phonePortraitOutline,
       shieldCheckmarkOutline,
+      gitBranchOutline,
+      keyOutline,
+      colorPaletteOutline,
+      analyticsOutline,
+      timeOutline,
     });
   }
 }

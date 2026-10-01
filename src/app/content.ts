@@ -164,7 +164,7 @@ const MUSHAF_URL = 'https://mushaf.geohashim.com';
 const QURAN_ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran';
 const GITHUB_URL = 'https://github.com/ahmed-hashim-pro';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/';
-const CANONICAL = 'https://geohashim.com';
+const CANONICAL = 'https://landing.geohashim.com';
 
 export const SITE: SiteContent = {
   brand: {
@@ -184,7 +184,7 @@ export const SITE: SiteContent = {
     defaultTitle: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',
     defaultDescription:
       'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Builds AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath. Open-source repositories on GitHub, and three shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app.',
-    ogImage: '/og-image.svg',
+    ogImage: '/og-image.png',
     routes: {
       '/': {
         title: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',

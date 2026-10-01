@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source">
+<!-- Source for og-image.png (1200x630), which the social tags use because LinkedIn and X don't render SVG previews. Re-export the PNG after editing. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Ahmed Hashim, software architect. AI agent tooling with hard safety boundaries. Open source: triage-graph, sqlguard-mcp, atlas-graph-db.">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0b0d12"/>
@@ -9,20 +10,13 @@
       <stop offset="55%" stop-color="#d946ef"/>
       <stop offset="100%" stop-color="#f43f5e"/>
     </linearGradient>
-    <linearGradient id="card1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="100%" stop-color="#d946ef"/>
+    <linearGradient id="brandText" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="55%" stop-color="#e879f9"/>
+      <stop offset="100%" stop-color="#fb7185"/>
     </linearGradient>
-    <linearGradient id="card2" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#10b981"/>
-      <stop offset="100%" stop-color="#06b6d4"/>
-    </linearGradient>
-    <linearGradient id="card3" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#f43f5e"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.6">
-      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.4"/>
+    <radialGradient id="glow" cx="0.3" cy="0.3" r="0.7">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.35"/>
       <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
     </radialGradient>
   </defs>
@@ -30,40 +24,44 @@
   <rect width="1200" height="630" fill="url(#bg)"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <g transform="translate(72, 72)">
-    <rect width="48" height="48" rx="12" fill="url(#brand)"/>
-    <text x="24" y="33" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, Inter, sans-serif" font-weight="700" font-size="28" fill="#ffffff" letter-spacing="-1">g</text>
-    <text x="64" y="32" font-family="ui-sans-serif, system-ui, -apple-system, Inter, sans-serif" font-weight="600" font-size="22" fill="#e5e7eb">geohashim</text>
+  <g transform="translate(72, 64)">
+    <rect width="44" height="44" rx="11" fill="url(#brand)"/>
+    <text x="60" y="30" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-weight="600" font-size="22" fill="#e4e4e7">geohashim</text>
   </g>
 
-  <g transform="translate(72, 180)">
-    <text font-family="'Space Grotesk', ui-sans-serif, Inter, sans-serif" font-weight="700" font-size="64" fill="#ffffff" letter-spacing="-2">
-      <tspan x="0" y="0">I'm Ahmed Hashim.</tspan>
-      <tspan x="0" y="80" fill="url(#brand)">I build AI tools and apps</tspan>
-      <tspan x="0" y="160" fill="#ffffff">that ship.</tspan>
-    </text>
+  <g transform="translate(72, 196)" font-family="'Space Grotesk', Inter, ui-sans-serif, sans-serif" font-weight="700" letter-spacing="-2">
+    <text x="0" y="0" font-size="76" fill="#ffffff">Ahmed Hashim</text>
+    <text x="0" y="84" font-size="76" fill="url(#brandText)">Software architect</text>
   </g>
 
-  <g transform="translate(72, 470)">
-    <g transform="translate(0, 0)">
-      <rect width="320" height="100" rx="16" fill="#1a1d24" stroke="#2a2d34"/>
-      <rect x="16" y="20" width="44" height="44" rx="10" fill="url(#card1)"/>
-      <text x="76" y="45" font-family="ui-sans-serif, Inter, sans-serif" font-weight="600" font-size="18" fill="#ffffff">My Stream</text>
-      <text x="76" y="68" font-family="ui-sans-serif, Inter, sans-serif" font-size="14" fill="#a1a1aa">AI publishing platform</text>
+  <g transform="translate(72, 350)" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+    <text x="0" y="0" font-size="28" font-weight="500" fill="#f4f4f5">AI agent tooling with hard safety boundaries.</text>
+    <text x="0" y="40" font-size="22" fill="#a1a1aa">11 years · TypeScript/Node.js · Python · Go · AWS</text>
+  </g>
+
+  <g transform="translate(72, 446)" font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+    <g>
+      <rect width="330" height="96" rx="16" fill="#16181e" stroke="#2a2d34"/>
+      <rect x="20" y="24" width="8" height="48" rx="4" fill="url(#brand)"/>
+      <text x="44" y="44" font-size="20" font-weight="600" fill="#ffffff">triage-graph</text>
+      <text x="44" y="70" font-size="15" fill="#a1a1aa">Multi-agent triage, approval gate</text>
     </g>
-    <g transform="translate(348, 0)">
-      <rect width="320" height="100" rx="16" fill="#1a1d24" stroke="#2a2d34"/>
-      <rect x="16" y="20" width="44" height="44" rx="10" fill="url(#card2)"/>
-      <text x="76" y="45" font-family="ui-sans-serif, Inter, sans-serif" font-weight="600" font-size="18" fill="#ffffff">Mushaf</text>
-      <text x="76" y="68" font-family="ui-sans-serif, Inter, sans-serif" font-size="14" fill="#a1a1aa">Digital Quran reader</text>
+    <g transform="translate(351, 0)">
+      <rect width="330" height="96" rx="16" fill="#16181e" stroke="#2a2d34"/>
+      <rect x="20" y="24" width="8" height="48" rx="4" fill="url(#brand)"/>
+      <text x="44" y="44" font-size="20" font-weight="600" fill="#ffffff">sqlguard-mcp</text>
+      <text x="44" y="70" font-size="15" fill="#a1a1aa">MCP server, human-approved writes</text>
     </g>
-    <g transform="translate(696, 0)">
-      <rect width="320" height="100" rx="16" fill="#1a1d24" stroke="#2a2d34"/>
-      <rect x="16" y="20" width="44" height="44" rx="10" fill="url(#card3)"/>
-      <text x="76" y="45" font-family="ui-sans-serif, Inter, sans-serif" font-weight="600" font-size="18" fill="#ffffff">Online Quran</text>
-      <text x="76" y="68" font-family="ui-sans-serif, Inter, sans-serif" font-size="14" fill="#a1a1aa">Android app</text>
+    <g transform="translate(702, 0)">
+      <rect width="330" height="96" rx="16" fill="#16181e" stroke="#2a2d34"/>
+      <rect x="20" y="24" width="8" height="48" rx="4" fill="url(#brand)"/>
+      <text x="44" y="44" font-size="20" font-weight="600" fill="#ffffff">atlas-graph-db</text>
+      <text x="44" y="70" font-size="15" fill="#a1a1aa">Graph database built from scratch</text>
     </g>
   </g>
 
-  <text x="1128" y="608" text-anchor="end" font-family="ui-sans-serif, Inter, sans-serif" font-size="14" fill="#71717a">geohashim.com</text>
+  <g font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="16" fill="#71717a">
+    <text x="72" y="590">Open source on GitHub · Shipped: My Stream, Mushaf, Online Quran</text>
+    <text x="1128" y="590" text-anchor="end">landing.geohashim.com</text>
+  </g>
 </svg>
