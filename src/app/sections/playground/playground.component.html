@@ -82,7 +82,7 @@
                 <span class="h-3 w-3 animate-spin rounded-full border-2 border-current border-r-transparent"></span>
                 Running…
               } @else {
-                <ion-icon name="play-outline" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.play" aria-hidden="true"></ion-icon>
                 Run pipeline
               }
             </button>
@@ -92,7 +92,7 @@
                 (click)="reset()"
                 class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
-                <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.refresh" aria-hidden="true"></ion-icon>
                 Reset
               </button>
             }
@@ -119,7 +119,7 @@
                           : 'inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'"
                     >
                       @if (stageStatus()[stage.id] === 'done') {
-                        <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+                        <ion-icon [icon]="icons.check" aria-hidden="true"></ion-icon>
                       } @else if (stageStatus()[stage.id] === 'running') {
                         <span class="h-3 w-3 animate-spin rounded-full border-2 border-current border-r-transparent"></span>
                       } @else {
@@ -155,7 +155,7 @@
               <p class="text-sm text-zinc-500 dark:text-zinc-400">Working through <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ stages[currentStage()]?.label }}</span>…</p>
             } @else {
               <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.sparkles" aria-hidden="true"></ion-icon>
                 <span>Drafted by {{ selectedModel().short }} · ~900 words · quality <span class="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{{ draftQuality() }}</span></span>
               </div>
               <h3 class="mt-2 font-display text-lg font-semibold text-zinc-900 dark:text-zinc-50">{{ topic() }}</h3>

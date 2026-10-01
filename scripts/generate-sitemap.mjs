@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const SITE = 'https://geohashim.com';
+const SITE = 'https://landing.geohashim.com';
 const OUT = resolve(process.cwd(), 'www', 'sitemap.xml');
 const today = new Date().toISOString().slice(0, 10);
 

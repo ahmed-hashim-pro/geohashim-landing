@@ -33,12 +33,12 @@
             </div>
             @if (card.status === 'direct') {
               <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.check" aria-hidden="true"></ion-icon>
                 Direct
               </span>
             } @else {
               <span class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                <ion-icon name="key-outline" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.key" aria-hidden="true"></ion-icon>
                 BYOK
               </span>
             }

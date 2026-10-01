@@ -14,7 +14,7 @@
       <div class="surface-card overflow-hidden p-6 sm:p-8">
         <div class="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
           <span class="inline-flex items-center gap-2">
-            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+            <ion-icon [icon]="icons.document" aria-hidden="true"></ion-icon>
             Topic
           </span>
           <span class="rounded-full bg-zinc-100 px-3 py-1 font-mono dark:bg-zinc-800">{{ content.topic }}</span>
@@ -48,7 +48,7 @@
             <div class="mt-4 space-y-1.5 border-t border-zinc-200 pt-4 text-xs dark:border-zinc-800">
               <p class="text-zinc-500 dark:text-zinc-400">{{ active().meta }}</p>
               <p class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+                <ion-icon [icon]="icons.sparkles" aria-hidden="true"></ion-icon>
                 Drafted in this voice automatically
               </p>
             </div>

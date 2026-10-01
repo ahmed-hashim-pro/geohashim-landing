@@ -14,6 +14,8 @@ import { SITE } from '../../content';
 })
 export class ProvidersComponent {
   protected readonly content = SITE.providers;
+  // Bound [icon] data: a static name="" resolves during hydration, before addIcons() runs, and stays blank.
+  protected readonly icons = { check: checkmarkCircle, key: keyOutline };
   protected readonly metricRows = [
     { key: 'cost' as const, label: 'Cost', icon: 'cash-outline', invert: true },
     { key: 'speed' as const, label: 'Speed', icon: 'flash-outline', invert: false },
