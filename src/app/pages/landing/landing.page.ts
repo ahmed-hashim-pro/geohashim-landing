@@ -14,7 +14,6 @@ import { VoicesComponent } from '../../sections/voices/voices.component';
 import { ProvidersComponent } from '../../sections/providers/providers.component';
 import { PlaygroundComponent } from '../../sections/playground/playground.component';
 import { FeaturesComponent } from '../../sections/features/features.component';
-import { TestimonialComponent } from '../../sections/testimonial/testimonial.component';
 import { FaqComponent } from '../../sections/faq/faq.component';
 import { CtaBandComponent } from '../../sections/cta-band/cta-band.component';
 import { SeoService } from '../../core/seo.service';
@@ -38,7 +37,6 @@ import { SITE } from '../../content';
     ProvidersComponent,
     PlaygroundComponent,
     FeaturesComponent,
-    TestimonialComponent,
     FaqComponent,
     CtaBandComponent,
   ],
@@ -80,7 +78,7 @@ export class LandingPage implements OnInit {
       name: 'My Stream',
       url: SITE.urls.product,
       applicationCategory: 'BusinessApplication',
-      operatingSystem: 'Web, iOS, Android',
+      operatingSystem: 'Web',
       description:
         'AI publishing platform that scrapes, scores, and drafts articles using Claude, GPT, Gemini, Grok, DeepSeek, Mistral, or Groq.',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },

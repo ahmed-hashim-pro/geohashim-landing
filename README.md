@@ -111,7 +111,7 @@ src/
     app.routes.server.ts    Prerender config
     core/                   SeoService, ThemeService
     layout/                 site-header, site-footer
-    sections/               hero, features, how-it-works, testimonial, faq, cta-band
+    sections/               hero, features, how-it-works, faq, cta-band
     pages/                  landing, privacy, terms, not-found
   styles/tailwind.css       @tailwind directives + custom @layer utilities
   robots.txt                Static, copied to www/ at build time
