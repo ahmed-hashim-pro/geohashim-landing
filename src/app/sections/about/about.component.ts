@@ -7,6 +7,8 @@ import {
   codeSlashOutline,
   globeOutline,
   personCircleOutline,
+  briefcaseOutline,
+  shieldCheckmarkOutline,
 } from 'ionicons/icons';
 
 import { SITE } from '../../content';
@@ -21,6 +23,13 @@ export class AboutComponent {
   protected readonly content = SITE.about;
 
   constructor() {
-    addIcons({ sparklesOutline, codeSlashOutline, globeOutline, personCircleOutline });
+    addIcons({
+      sparklesOutline,
+      codeSlashOutline,
+      globeOutline,
+      personCircleOutline,
+      briefcaseOutline,
+      shieldCheckmarkOutline,
+    });
   }
 }
