@@ -8,6 +8,7 @@ import { HeroComponent } from '../../sections/hero/hero.component';
 import { StatsComponent } from '../../sections/stats/stats.component';
 import { AboutComponent } from '../../sections/about/about.component';
 import { ProjectsComponent } from '../../sections/projects/projects.component';
+import { OpenSourceComponent } from '../../sections/open-source/open-source.component';
 import { PipelineComponent } from '../../sections/pipeline/pipeline.component';
 import { VoicesComponent } from '../../sections/voices/voices.component';
 import { ProvidersComponent } from '../../sections/providers/providers.component';
@@ -31,6 +32,7 @@ import { SITE } from '../../content';
     StatsComponent,
     AboutComponent,
     ProjectsComponent,
+    OpenSourceComponent,
     PipelineComponent,
     VoicesComponent,
     ProvidersComponent,
@@ -62,7 +64,7 @@ export class LandingPage implements OnInit {
       '@type': 'Person',
       name: 'Ahmed Hashim',
       url: SITE.urls.canonical,
-      jobTitle: 'Software engineer',
+      jobTitle: 'Software architect',
       sameAs: [
         SITE.urls.github,
         SITE.urls.linkedin,

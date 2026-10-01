@@ -90,6 +90,16 @@ export interface Project {
   iconBg: string;
 }
 
+export interface OpenSourceRepo {
+  name: string;
+  summary: string;
+  language: string;
+  stack: string[];
+  tests: number;
+  url: string;
+  featured?: boolean;
+}
+
 export type RoutePath = '/' | '/privacy' | '/terms';
 
 export interface SiteContent {
@@ -114,6 +124,7 @@ export interface SiteContent {
     eyebrow: string;
     headline: string;
     headlineAccent: string;
+    engineering: string;
     subhead: string;
     ctas: [Cta, Cta];
     mockAlt: string;
@@ -129,6 +140,7 @@ export interface SiteContent {
     ctas: Cta[];
   };
   projects: { heading: string; subhead: string; items: Project[] };
+  openSource: { eyebrow: string; heading: string; subhead: string; profileCta: Cta; items: OpenSourceRepo[] };
   pipeline: { heading: string; subhead: string; nodes: PipelineNode[]; legend: string };
   voices: { heading: string; subhead: string; topic: string; samples: VoiceSample[] };
   providers: { heading: string; subhead: string; cards: ProviderCard[] };
@@ -169,15 +181,15 @@ export const SITE: SiteContent = {
     canonical: CANONICAL,
   },
   seo: {
-    defaultTitle: 'geohashim — Ahmed Hashim · AI tools, web, and mobile apps',
+    defaultTitle: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',
     defaultDescription:
-      'Ahmed Hashim builds shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app. Software at the intersection of AI, editorial workflow, and Islamic resources.',
+      'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Builds AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath. Open-source repositories on GitHub, and three shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app.',
     ogImage: '/og-image.svg',
     routes: {
       '/': {
-        title: 'geohashim — Ahmed Hashim · AI tools, web, and mobile apps',
+        title: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',
         description:
-          'Ahmed Hashim builds shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app.',
+          'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. AI agent tooling with hard safety boundaries, open-source repositories, and shipped products: My Stream, Mushaf, Online Quran.',
       },
       '/privacy': {
         title: 'Privacy Policy — geohashim',
@@ -191,6 +203,7 @@ export const SITE: SiteContent = {
   },
   nav: [
     { label: 'Projects', href: '#projects' },
+    { label: 'Open source', href: '#open-source' },
     { label: 'How it works', href: '#pipeline' },
     { label: 'Voices', href: '#voices' },
     { label: 'Models', href: '#providers' },
@@ -206,6 +219,8 @@ export const SITE: SiteContent = {
     eyebrow: 'Hi, I\'m Ahmed Hashim',
     headline: 'I build ',
     headlineAccent: 'AI tools and apps that ship.',
+    engineering:
+      'Software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. I build AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath.',
     subhead:
       'My flagship is My Stream — an AI publishing platform that drafts articles in your editorial voice using Claude, GPT, Gemini, and four more providers. I also build digital Mushaf and Quran apps used on web and Android. All shipped, all maintained, all here.',
     ctas: [
@@ -223,27 +238,35 @@ export const SITE: SiteContent = {
   about: {
     eyebrow: 'About',
     name: 'Ahmed Hashim',
-    headline: 'Software engineer. Builder. Solo shipper.',
+    headline: 'Software architect. Builder. Solo shipper.',
     body: [
-      'I\'m a software engineer who likes the whole pipeline — from a half-formed idea to a shipped, maintained product. My current focus is applied AI for publishing workflows, but I also keep a long-running line of work in Islamic resources: a digital Mushaf and a Quran Android app that have been in users\' hands for years.',
-      'Most of what I build is shipped solo. I\'m comfortable owning the stack end-to-end: Angular and Ionic on the front, AWS and Firebase on the back, with whichever AI provider fits the job. I write occasionally about what I\'m learning, and I\'m open to consulting on AI-first editorial tooling.',
+      'I\'m a software architect with 11 years across TypeScript/Node.js, Python, Go and AWS, currently at a drone-operations company. I build AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath it.',
+      'On my own products I like owning the whole pipeline, from a half-formed idea to a shipped, maintained product. There my focus is applied AI for publishing workflows, but I also keep a long-running line of work in Islamic resources: a digital Mushaf and a Quran Android app that have been in users\' hands for years.',
+      'Most of that product work is shipped solo. I\'m comfortable owning the stack end-to-end: Angular and Ionic on the front, AWS and Firebase on the back, with whichever AI provider fits the job. I write occasionally about what I\'m learning, and I\'m open to senior engineering and architecture roles (remote).',
     ],
     bullets: [
+      { icon: 'briefcase-outline', text: 'Software architect, 11 years. Currently at a drone-operations company.' },
+      { icon: 'shield-checkmark-outline', text: 'Building AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath.' },
       { icon: 'sparkles-outline', text: 'Building AI editorial pipelines used by independent publishers.' },
       { icon: 'book-outline', text: 'Long-running line of work on Islamic resources — Mushaf and Quran apps.' },
       { icon: 'globe-outline', text: 'Multi-language by default; English isn\'t the only audience.' },
-      { icon: 'rocket-outline', text: 'Working solo, shipping in public, available for consulting on AI publishing.' },
+      { icon: 'rocket-outline', text: 'Shipping in public. Open to senior engineering and architecture roles (remote).' },
     ],
     techStack: [
+      'TypeScript',
+      'Node.js',
+      'Python',
+      'Go',
       'Angular',
       'Ionic',
       'Capacitor',
       'AWS Amplify',
       'Firebase',
+      'LangGraph',
+      'MCP',
       'Anthropic',
       'OpenAI',
       'Stripe',
-      'TypeScript',
     ],
     ctas: [
       { label: 'GitHub', href: GITHUB_URL, external: true, variant: 'ghost' },
@@ -305,6 +328,92 @@ export const SITE: SiteContent = {
         gradient: 'from-amber-500 via-orange-500 to-rose-500',
         icon: 'phone-portrait-outline',
         iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
+      },
+    ],
+  },
+  // Test counts come from running each repo's suite and match its latest CI run.
+  // Re-check them when a repo changes; several READMEs quote older counts.
+  openSource: {
+    eyebrow: 'Engineering work',
+    heading: 'Open source',
+    subhead:
+      'Public repositories on GitHub: agent tooling with hard safety boundaries, and the systems work underneath it.',
+    profileCta: { label: 'All repositories on GitHub', href: GITHUB_URL, external: true, variant: 'ghost' },
+    items: [
+      {
+        name: 'triage-graph',
+        summary:
+          'Multi-agent incident triage on LangGraph with a human approval gate enforced in code, plus a CrewAI port and a written comparison of the two.',
+        language: 'Python',
+        stack: ['LangGraph', 'CrewAI', 'Pydantic'],
+        tests: 133,
+        url: `${GITHUB_URL}/triage-graph`,
+        featured: true,
+      },
+      {
+        name: 'sqlguard-mcp',
+        summary:
+          'An MCP server that lets an agent query a SQLite database and refuses any write until a human approves that exact statement.',
+        language: 'Go',
+        stack: ['MCP Go SDK', 'SQLite', 'Helm'],
+        tests: 138,
+        url: `${GITHUB_URL}/sqlguard-mcp`,
+        featured: true,
+      },
+      {
+        name: 'atlas-graph-db',
+        summary:
+          'A graph database written from scratch in TypeScript, with a write-ahead log, crash recovery, atomic transactions and a Cypher-like query language (AQL).',
+        language: 'TypeScript',
+        stack: ['Node.js', 'Fastify', 'Angular'],
+        tests: 686,
+        url: `${GITHUB_URL}/atlas-graph-db`,
+        featured: true,
+      },
+      {
+        name: 'llm-contract-router',
+        summary:
+          'Routes requests across LLM providers behind one interface, validates each answer against your schema, and re-prompts with the constraint that failed.',
+        language: 'TypeScript',
+        stack: ['Node.js', 'Anthropic', 'OpenAI', 'Zero runtime deps'],
+        tests: 105,
+        url: `${GITHUB_URL}/llm-contract-router`,
+      },
+      {
+        name: 'noisefloor',
+        summary:
+          'A regression harness for non-deterministic systems that measures run-to-run noise before calling a change a regression.',
+        language: 'Python',
+        stack: ['Pydantic', 'PyYAML'],
+        tests: 202,
+        url: `${GITHUB_URL}/noisefloor`,
+      },
+      {
+        name: 'runon',
+        summary:
+          'Runs plain shell-script programs on your machine, one server, or a named group of servers over your own SSH, and is published on PyPI.',
+        language: 'Python',
+        stack: ['SSH', 'PyPI', 'Stdlib only on 3.11+'],
+        tests: 419,
+        url: `${GITHUB_URL}/runon`,
+      },
+      {
+        name: 'rag-knowledge-agent',
+        summary:
+          'A command-line retrieval agent that answers from a folder of documents with citations, and refuses without calling the model when no evidence clears its confidence floor.',
+        language: 'Python',
+        stack: ['Claude', 'ChromaDB', 'Pydantic'],
+        tests: 109,
+        url: `${GITHUB_URL}/rag-knowledge-agent`,
+      },
+      {
+        name: 'local-network-mcp',
+        summary:
+          'An MCP server for local network, system and SSH tasks, where shell commands, remote commands and process kills stay denied until the operator opts in.',
+        language: 'Python',
+        stack: ['MCP', 'Paramiko', 'psutil'],
+        tests: 62,
+        url: `${GITHUB_URL}/local-network-mcp`,
       },
     ],
   },
@@ -422,12 +531,12 @@ export const SITE: SiteContent = {
       'Anthropic runs out of the box. The other six plug in via bring-your-own-key — costs land on your provider bill, the prompt stays the same.',
     cards: [
       { id: 'anthropic', name: 'Anthropic',  models: ['Opus 4.7', 'Sonnet 4.6', 'Haiku 4.5'], status: 'direct', color: 'from-amber-500 to-rose-500',     best: 'Best default — runs without keys.',          cost: 4, speed: 4, quality: 5 },
-      { id: 'openai',    name: 'OpenAI',     models: ['GPT-5', 'GPT-5 mini', 'o3', 'o4-mini'], status: 'byok',  color: 'from-emerald-500 to-cyan-500',   best: 'Reasoning-tier picks excel at analysis.',     cost: 3, speed: 4, quality: 5 },
+      { id: 'openai',    name: 'OpenAI',     models: ['GPT-5', 'GPT-5 mini', 'o1', 'o1-mini'], status: 'byok',  color: 'from-emerald-500 to-cyan-500',   best: 'Reasoning-tier picks excel at analysis.',     cost: 3, speed: 4, quality: 5 },
       { id: 'google',    name: 'Google',     models: ['Gemini 2.5 Pro', '2.5 Flash', '2.0 Flash'], status: 'byok', color: 'from-sky-500 to-indigo-500', best: 'Cheapest tier with a usable context window.', cost: 2, speed: 5, quality: 4 },
-      { id: 'xai',       name: 'xAI',        models: ['Grok 4', 'Grok 4 fast'],               status: 'byok',  color: 'from-zinc-500 to-zinc-700',     best: 'Strong on current-events grounding.',         cost: 3, speed: 4, quality: 4 },
+      { id: 'xai',       name: 'xAI',        models: ['Grok 3', 'Grok 2'],                    status: 'byok',  color: 'from-zinc-500 to-zinc-700',     best: 'Strong on current-events grounding.',         cost: 3, speed: 4, quality: 4 },
       { id: 'deepseek',  name: 'DeepSeek',   models: ['DeepSeek-R1', 'DeepSeek V3'],          status: 'byok',  color: 'from-blue-500 to-violet-500',   best: 'Reasoning at a fraction of the cost.',        cost: 1, speed: 3, quality: 4 },
       { id: 'mistral',   name: 'Mistral',    models: ['Mistral Large', 'Codestral'],          status: 'byok',  color: 'from-orange-500 to-red-500',    best: 'EU-hosted option for compliance.',            cost: 2, speed: 4, quality: 4 },
-      { id: 'groq',      name: 'Groq',       models: ['Llama 3.1 70B (Groq)'],                status: 'byok',  color: 'from-lime-500 to-emerald-500',  best: 'Wildest token throughput on the market.',     cost: 1, speed: 5, quality: 3 },
+      { id: 'groq',      name: 'Groq',       models: ['Llama 3.3 70B', 'Llama 3.1 8B', 'Mixtral 8x7B'], status: 'byok',  color: 'from-lime-500 to-emerald-500',  best: 'Wildest token throughput on the market.',     cost: 1, speed: 5, quality: 3 },
     ],
   },
   features: {

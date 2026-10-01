@@ -1,0 +1,77 @@
+<section id="open-source" class="container-page py-20 sm:py-28 scroll-mt-20">
+  <div class="mx-auto max-w-3xl text-center">
+    <p class="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      {{ content.eyebrow }}
+    </p>
+    <h2 class="font-display text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-50">
+      {{ content.heading }}
+    </h2>
+    <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300">{{ content.subhead }}</p>
+  </div>
+
+  <ul class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" role="list">
+    @for (repo of content.items; track repo.name) {
+      <li class="group relative">
+        <div class="surface-card relative flex h-full flex-col overflow-hidden p-6 transition-transform duration-300 group-hover:-translate-y-1">
+          @if (repo.featured) {
+            <div
+              class="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 opacity-20 blur-2xl transition-opacity group-hover:opacity-40"
+              aria-hidden="true"
+            ></div>
+          }
+
+          <div class="flex items-center justify-between">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900 text-lg text-white shadow-lg dark:bg-white dark:text-zinc-900">
+              <ion-icon [icon]="icons.github" aria-hidden="true"></ion-icon>
+            </span>
+            <span class="inline-flex items-center rounded-full border border-zinc-200 bg-white/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-700 backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200">
+              {{ repo.language }}
+            </span>
+          </div>
+
+          <h3 class="mt-5 font-display text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            {{ repo.name }}
+          </h3>
+          <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{{ repo.summary }}</p>
+
+          <ul class="mt-4 flex flex-wrap gap-1.5" role="list">
+            @for (tech of repo.stack; track tech) {
+              <li class="rounded-full border border-zinc-200 bg-white px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                {{ tech }}
+              </li>
+            }
+          </ul>
+
+          <div class="mt-auto flex items-center justify-between gap-3 pt-6 text-sm">
+            <span class="inline-flex items-center gap-1.5 text-zinc-700 dark:text-zinc-200">
+              <ion-icon [icon]="icons.check" aria-hidden="true" class="text-base text-emerald-500"></ion-icon>
+              {{ repo.tests }} tests
+            </span>
+            <a
+              [href]="repo.url"
+              target="_blank"
+              rel="noopener"
+              [attr.aria-label]="repo.name + ' on GitHub'"
+              class="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 px-3.5 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            >
+              GitHub
+              <ion-icon [icon]="icons.arrow" aria-hidden="true"></ion-icon>
+            </a>
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <div class="mt-10 flex justify-center">
+    <a
+      [href]="content.profileCta.href"
+      target="_blank"
+      rel="noopener"
+      class="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 px-6 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
+    >
+      <ion-icon [icon]="icons.github" aria-hidden="true"></ion-icon>
+      {{ content.profileCta.label }}
+    </a>
+  </div>
+</section>
