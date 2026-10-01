@@ -28,13 +28,6 @@ export interface FaqItem {
   a: string;
 }
 
-export interface Testimonial {
-  quote: string;
-  name: string;
-  role: string;
-  initials: string;
-}
-
 export interface AboutBullet {
   icon: string;
   text: string;
@@ -146,7 +139,6 @@ export interface SiteContent {
   providers: { heading: string; subhead: string; cards: ProviderCard[] };
   features: { heading: string; subhead: string; items: Feature[] };
   howItWorks: { heading: string; subhead: string; steps: Step[] };
-  testimonial: Testimonial;
   faq: { heading: string; items: FaqItem[] };
   ctaBand: { headline: string; subhead: string; cta: Cta };
   footer: {
@@ -232,7 +224,7 @@ export const SITE: SiteContent = {
   stats: [
     { value: '3', label: 'shipped products' },
     { value: '7', label: 'AI providers integrated' },
-    { value: 'iOS · Android · Web', label: 'platforms' },
+    { value: 'Android · Web', label: 'platforms' },
     { value: '10+', label: 'languages supported' },
   ],
   about: {
@@ -247,7 +239,7 @@ export const SITE: SiteContent = {
     bullets: [
       { icon: 'briefcase-outline', text: 'Software architect, 11 years. Currently at a drone-operations company.' },
       { icon: 'shield-checkmark-outline', text: 'Building AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath.' },
-      { icon: 'sparkles-outline', text: 'Building AI editorial pipelines used by independent publishers.' },
+      { icon: 'sparkles-outline', text: 'Building My Stream, an AI editorial pipeline for publishers.' },
       { icon: 'book-outline', text: 'Long-running line of work on Islamic resources — Mushaf and Quran apps.' },
       { icon: 'globe-outline', text: 'Multi-language by default; English isn\'t the only audience.' },
       { icon: 'rocket-outline', text: 'Shipping in public. Open to senior engineering and architecture roles (remote).' },
@@ -596,13 +588,6 @@ export const SITE: SiteContent = {
         body: 'The pipeline scrapes, scores, drafts, and queues. You review, edit if needed, and publish to your stream.',
       },
     ],
-  },
-  testimonial: {
-    quote:
-      'I get a daily queue of properly-sourced drafts in our voice. The bit that used to take a writer four hours now takes me twenty minutes of editing.',
-    name: 'A. Reader',
-    role: 'Early access user',
-    initials: 'AR',
   },
   faq: {
     heading: 'Frequently asked',
