@@ -150,13 +150,19 @@ main { position: relative; z-index: 1; display: block; }
 .runway-edge { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; z-index: -1; }
 .runway-edge svg { height: 14px; }
 .edge-paint { fill: var(--edge-paint); stroke: var(--paint-edge); }
+/* Only the side-by-side layout leaves open concrete for the markings; stacked, they would run through the copy. */
+.g-paint { display: none; opacity: .5; }
+.taxi-edge { fill: none; stroke: var(--paint-edge); stroke-width: 9; opacity: .35; }
+.taxi-line { fill: none; stroke: var(--yellow); stroke-width: 5; }
+.taxi-dash { stroke-dasharray: 26 18; }
 
 .hero-inner { padding-top: clamp(64px, 6vw, 84px); }
 .hero-title {
   grid-column: 1 / -1; margin: 0;
-  font-weight: 800; font-size: var(--fs-hero); line-height: .98; letter-spacing: -.012em;
+  font-weight: 400; font-size: var(--fs-hero); line-height: .98; letter-spacing: -.012em;
   font-variation-settings: "wdth" 125; overflow-wrap: break-word;
 }
+.hero-title .nm { font-weight: 800; }
 .hero-title .ln { display: inline; }
 @media (min-width: 900px) {
   .hero-title { font-size: min(5.25rem, 5.5vw); }
@@ -261,6 +267,7 @@ html:not(.js) .scenes { display: grid; gap: 28px; }
 @media (min-width: 1300px) {
   .hero-intro { grid-column: 1 / span 4; }
   .gate { grid-column: 5 / span 8; }
+  .g-paint { display: block; }
 }
 
 /* The route: taxi line on the ground, flight route in the air */
