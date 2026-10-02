@@ -35,9 +35,9 @@
               { "glob": "og-image.png", "input": "src", "output": "/" }
             ],
             "styles": [
-              "src/styles/tailwind.css",
-              "src/global.scss",
-              "src/theme/variables.scss"
+              "src/styles/site/site-a.css",
+              "src/styles/site/site-b.css",
+              "src/styles/site/pages.css"
             ],
             "scripts": [],
             "browser": "src/main.ts",
@@ -114,9 +114,9 @@
               { "glob": "**/*", "input": "src/assets", "output": "assets" }
             ],
             "styles": [
-              "src/styles/tailwind.css",
-              "src/global.scss",
-              "src/theme/variables.scss"
+              "src/styles/site/site-a.css",
+              "src/styles/site/site-b.css",
+              "src/styles/site/pages.css"
             ],
             "scripts": []
           },

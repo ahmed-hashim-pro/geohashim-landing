@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'footer[app-site-footer]',
+  selector: 'section[app-work]',
   standalone: true,
-  templateUrl: './site-footer.component.html',
+  templateUrl: './work.component.html',
   preserveWhitespaces: true,
 })
-export class SiteFooterComponent {}
+export class WorkComponent {}

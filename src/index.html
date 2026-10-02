@@ -2,28 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source</title>
-  <meta name="description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. AI agent tooling with hard safety boundaries, open-source repositories, and shipped products: My Stream, Mushaf, Online Quran." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ahmed Hashim · Software architect: cloud, web and mobile, data and AI systems</title>
+  <meta name="description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Cloud and release infrastructure, web and mobile products, data systems and AI agent tooling, with open-source repositories and shipped products." />
 
   <base href="/" />
 
-  <meta name="color-scheme" content="light dark" />
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="msapplication-tap-highlight" content="no" />
-
-  <link rel="canonical" href="https://landing.geohashim.com/" />
+  <link rel="canonical" href="https://landing.geohashim.com" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="/assets/icon/favicon.png" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
-  <link rel="mask-icon" href="/favicon.svg" color="#6366f1" />
 
-  <meta property="og:title" content="geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source" />
-  <meta property="og:description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. AI agent tooling with hard safety boundaries, open-source repositories, and shipped products: My Stream, Mushaf, Online Quran." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://landing.geohashim.com/" />
+  <meta property="og:url" content="https://landing.geohashim.com" />
+  <meta property="og:title" content="Ahmed Hashim, software architect: cloud, web and mobile, data and AI systems" />
+  <meta property="og:description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Cloud and release infrastructure, web and mobile products, data systems and AI agent tooling, with open-source repositories and shipped products." />
   <meta property="og:site_name" content="geohashim" />
   <meta property="og:image" content="https://landing.geohashim.com/og-image.png" />
   <meta property="og:image:type" content="image/png" />
@@ -31,29 +24,30 @@
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Ahmed Hashim, software architect. AI agent tooling with hard safety boundaries. Open source: triage-graph, sqlguard-mcp, atlas-graph-db." />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source" />
-  <meta name="twitter:description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. AI agent tooling with hard safety boundaries, open-source repositories, and shipped products: My Stream, Mushaf, Online Quran." />
+  <meta name="twitter:title" content="Ahmed Hashim, software architect: cloud, web and mobile, data and AI systems" />
+  <meta name="twitter:description" content="Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Cloud and release infrastructure, web and mobile products, data systems and AI agent tooling, with open-source repositories and shipped products." />
   <meta name="twitter:image" content="https://landing.geohashim.com/og-image.png" />
   <meta name="twitter:image:alt" content="Ahmed Hashim, software architect. AI agent tooling with hard safety boundaries. Open source: triage-graph, sqlguard-mcp, atlas-graph-db." />
-
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#DCDFDB" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1E2328" media="(prefers-color-scheme: dark)" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=JetBrains+Mono:wght@400;500&display=swap" />
 
+  <!-- Before first paint, as in the mockup: marks JS as available and applies the saved or system theme. -->
   <script>
-    (function () {
-      try {
-        var stored = localStorage.getItem('geohashim:theme');
-        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var isDark = stored === 'dark' || ((stored === 'system' || !stored) && prefersDark);
-        if (isDark) {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.add('ion-palette-dark');
-        }
-      } catch (e) {}
+    (() => {
+      'use strict';
+      const root = document.documentElement;
+      root.classList.add('js');
+      const KEY = 'geohashim-theme';
+      let chosen = null;
+      try { chosen = localStorage.getItem(KEY); } catch (e) { chosen = null; }
+      if (chosen !== 'light' && chosen !== 'dark') chosen = null;
+      const darkMQ = matchMedia('(prefers-color-scheme: dark)');
+      root.setAttribute('data-theme', chosen || (darkMQ.matches ? 'dark' : 'light'));
     })();
   </script>
 
@@ -61,7 +55,7 @@
   <!-- <script defer data-domain="geohashim.com" src="https://plausible.io/js/script.js"></script> -->
 </head>
 
-<body>
+<body id="top">
   <app-root></app-root>
 </body>
 </html>

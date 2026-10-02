@@ -109,7 +109,7 @@ export interface SiteContent {
     defaultTitle: string;
     defaultDescription: string;
     ogImage: string;
-    routes: Record<RoutePath, { title: string; description: string }>;
+    routes: Record<RoutePath, { title: string; ogTitle?: string; description: string }>;
   };
   nav: NavLink[];
   primaryCta: Cta;
@@ -173,22 +173,23 @@ export const SITE: SiteContent = {
     canonical: CANONICAL,
   },
   seo: {
-    defaultTitle: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',
+    defaultTitle: 'Ahmed Hashim · Software architect: cloud, web and mobile, data and AI systems',
     defaultDescription:
-      'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Builds AI agent tooling with hard safety boundaries, plus the cloud and release infrastructure underneath. Open-source repositories on GitHub, and three shipped products: My Stream (AI publishing platform), Mushaf (digital Quran reader), and the Online Quran Android app.',
+      'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Cloud and release infrastructure, web and mobile products, data systems and AI agent tooling, with open-source repositories and shipped products.',
     ogImage: '/og-image.png',
     routes: {
       '/': {
-        title: 'geohashim · Ahmed Hashim · Software architect, AI agent tooling and open source',
+        title: 'Ahmed Hashim · Software architect: cloud, web and mobile, data and AI systems',
+        ogTitle: 'Ahmed Hashim, software architect: cloud, web and mobile, data and AI systems',
         description:
-          'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. AI agent tooling with hard safety boundaries, open-source repositories, and shipped products: My Stream, Mushaf, Online Quran.',
+          'Ahmed Hashim, software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. Cloud and release infrastructure, web and mobile products, data systems and AI agent tooling, with open-source repositories and shipped products.',
       },
       '/privacy': {
-        title: 'Privacy Policy — geohashim',
+        title: 'Privacy policy · Ahmed Hashim',
         description: 'How geohashim collects, stores, and uses your information.',
       },
       '/terms': {
-        title: 'Terms of Service — geohashim',
+        title: 'Terms of service · Ahmed Hashim',
         description: 'The terms that govern your use of geohashim and its products.',
       },
     },

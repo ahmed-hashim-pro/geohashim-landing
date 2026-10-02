@@ -1,0 +1,229 @@
+    <div class="g-layer g-concrete" aria-hidden="true">
+      <svg focusable="false">
+        <rect class="ground" width="100%" height="100%"/>
+        <rect class="grain" width="100%" height="100%"/>
+        <rect width="100%" height="100%" fill="url(#joints)"/>
+      </svg>
+    </div>
+    <div class="hero-mark" aria-hidden="true">
+      <svg focusable="false">
+        <rect class="paint" x="-4" y=".75" width="110%" height="6.5" stroke-width="1.5"/>
+        <rect class="paint" x="-4" y="13.75" width="110%" height="6.5" stroke-width="1.5"/>
+        <rect y="26" width="100%" height="8" fill="url(#dash-top)"/>
+        <rect y="39" width="100%" height="8" fill="url(#dash-top)"/>
+      </svg>
+    </div>
+    <div class="runway-edge" aria-hidden="true">
+      <svg focusable="false"><rect class="edge-paint" x="-4" y=".75" width="110%" height="12.5" stroke-width="1.5"/></svg>
+    </div>
+
+    <div class="wrap hero-inner">
+      <div class="grid">
+        <h1 class="hero-title" id="hero-title"><span class="ln">Ahmed Hashim builds</span> <span class="ln">software that holds</span> <span class="ln">the line.</span></h1>
+      </div>
+      <div class="grid hero-row">
+        <div class="hero-intro">
+          <p class="lede">Software architect with 11 years across TypeScript/Node.js, Python, Go and AWS. I build cloud and release infrastructure, web and mobile products, data systems, and AI agent tooling with hard safety boundaries.</p>
+          <p class="now">Currently a software architect at a drone-operations company.</p>
+          <p class="avail">Open to senior engineering and architecture roles (remote).</p>
+          <p class="ctas">
+            <a class="btn btn-ink" href="#work">See my work</a>
+            <a class="btn" href="https://github.com/ahmed-hashim-pro">View GitHub profile</a>
+          </p>
+        </div>
+
+        <div class="gate" role="group" aria-labelledby="gate-title">
+          <h2 class="gate-title" id="gate-title">Nothing crosses the line unchecked</h2>
+          <div class="tabs-wrap">
+            <div class="tabs" role="tablist" aria-labelledby="gate-title">
+              <button class="tab" type="button" role="tab" id="tab-write" aria-controls="sc-write" aria-selected="true">Agent write<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg><span class="vh">, </span>AI systems</span></button>
+              <button class="tab" type="button" role="tab" id="tab-commit" aria-controls="sc-commit" aria-selected="false">Database commit<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-data"/></svg><span class="vh">, </span>Data systems</span></button>
+              <button class="tab" type="button" role="tab" id="tab-release" aria-controls="sc-release" aria-selected="false">Release<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-tower"/></svg><span class="vh">, </span>Cloud and release infrastructure</span></button>
+              <button class="tab" type="button" role="tab" id="tab-tests" aria-controls="sc-tests" aria-selected="false">Test result<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg><span class="vh">, </span>Testing and developer tooling</span></button>
+              <button class="tab" type="button" role="tab" id="tab-draft" aria-controls="sc-draft" aria-selected="false">Article draft<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-apt"/></svg><span class="vh">, </span>Web and mobile products</span></button>
+              <button class="tab" type="button" role="tab" id="tab-answer" aria-controls="sc-answer" aria-selected="false">Model answer<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg><span class="vh">, </span>AI systems</span></button>
+              <button class="tab" type="button" role="tab" id="tab-incident" aria-controls="sc-incident" aria-selected="false">Incident action<span class="tab-area"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg><span class="vh">, </span>AI systems</span></button>
+            </div>
+          </div>
+
+          <div class="scenes">
+
+          <div class="scene" id="sc-write" data-scene="write" role="tabpanel" aria-labelledby="tab-write">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <label class="card-label" for="stmt">Proposed by the agent</label>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <textarea id="stmt" rows="3" readonly spellcheck="false" autocomplete="off" autocapitalize="off">UPDATE accounts
+SET plan = 'pro'
+WHERE id = 42;</textarea>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true">
+                <svg focusable="false"><rect class="paint" x="-4" y="1" width="110%" height="8" stroke-width="2"/><rect class="paint" x="-4" y="17" width="110%" height="8" stroke-width="2"/></svg>
+                <div class="hl-dashed"><span class="half half-l"><svg focusable="false"><rect width="100%" height="26" fill="url(#dash-demo)"/></svg></span><span class="half half-r"><svg focusable="false"><rect width="100%" height="26" fill="url(#dash-demo)"/></svg></span></div>
+              </div>
+              <div class="slot slot-run"><p>Past the line, the statement runs against the SQLite database.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: writes need a human to approve this exact statement.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Approve this statement</button>
+                <button type="button" class="btn" data-act="refuse" data-when="held">Refuse</button>
+                <button type="button" class="btn btn-ink" data-act="change" data-when="crossed" hidden>Change the statement</button>
+                <button type="button" class="btn" data-act="reset" data-when="refused" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of how <a href="https://github.com/ahmed-hashim-pro/sqlguard-mcp">sqlguard-mcp</a> gates writes. In the real tool the approval happens out of band with <code>sqlguard approve &lt;token&gt;</code>.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-commit" data-scene="commit" role="tabpanel" aria-labelledby="tab-commit">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Transaction</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text">A batch of writes</p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, the transaction is applied.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: a commit is applied only after it is written to the write-ahead log.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Write it to the log</button>
+                <button type="button" class="btn" data-act="reset" data-when="crossed" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of how <a href="https://github.com/ahmed-hashim-pro/atlas-graph-db">atlas-graph-db</a> commits. Its engine appends each transaction to a write-ahead log, synced to disk by default, before applying it, and recovers by replaying the log.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-release" data-scene="release" role="tabpanel" aria-labelledby="tab-release">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Release</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text">runon 0.14.0, ready to publish to PyPI</p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, the release is published to PyPI.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: a release publishes only after its tests pass.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Run the tests</button>
+                <button type="button" class="btn" data-act="reset" data-when="crossed" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of <a href="https://github.com/ahmed-hashim-pro/runon">runon</a>'s release workflow: it runs the tests, then publishes to PyPI through Trusted Publishing.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-tests" data-scene="tests" role="tabpanel" aria-labelledby="tab-tests">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Test run</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text">A new run, compared with the baseline</p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, the result is reported.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: a difference counts as a regression only if it clears the run-to-run noise.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Measure the noise</button>
+                <button type="button" class="btn" data-act="reset" data-when="crossed" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of how <a href="https://github.com/ahmed-hashim-pro/noisefloor">noisefloor</a> judges a change: it runs your target several times, measures the spread, and reports each case as regressed, broke, improved or unchanged.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-draft" data-scene="draft" role="tabpanel" aria-labelledby="tab-draft">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Candidate</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text">A candidate article from your sources</p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, it is drafted in your editorial voice.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: it is drafted only if it clears your workspace's quality threshold, adjusted for the model you picked.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Score it</button>
+                <button type="button" class="btn" data-act="reset" data-when="crossed" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of My Stream's score gate. <a href="#my-stream">Try the whole pipeline</a> in the Products section.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-answer" data-scene="answer" role="tabpanel" aria-labelledby="tab-answer">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Question</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text">How do I submit an expense report for travel?</p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, the model answers with citations.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: it answers only if retrieved evidence clears its confidence floor.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="decline" data-when="held">Look for evidence</button>
+                <button type="button" class="btn" data-act="reset" data-when="declined" hidden>Start over</button>
+              </div>
+              <p class="caption">From <a href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent">rag-knowledge-agent</a>'s README: a question its sample documents can't answer is refused before any model call.</p>
+            </div>
+          </div>
+
+          <div class="scene" id="sc-incident" data-scene="incident" role="tabpanel" aria-labelledby="tab-incident">
+            <div class="apron" data-state="held">
+              <div class="slot">
+                <div class="card">
+                  <div class="card-top">
+                    <p class="card-label">Proposed by the triage agents</p>
+                    <span class="chip" aria-hidden="true">Held</span>
+                  </div>
+                  <p class="card-text"><span><code>scale_up</code> on checkout-api</span></p>
+                </div>
+              </div>
+              <div class="hl" aria-hidden="true"></div>
+              <div class="slot slot-run"><p>Past the line, the action runs through a dry-run adapter.</p></div>
+            </div>
+            <div class="gate-side">
+              <p class="status" role="status" aria-live="polite" data-state="held">Held: the remediation waits for a human to approve, edit or reject it.</p>
+              <div class="actions">
+                <button type="button" class="btn btn-ink" data-act="cross" data-when="held">Approve</button>
+                <button type="button" class="btn" data-act="refuse" data-when="held">Reject</button>
+                <button type="button" class="btn" data-act="reset" data-when="crossed refused" hidden>Start over</button>
+              </div>
+              <p class="caption">Demo of <a href="https://github.com/ahmed-hashim-pro/triage-graph">triage-graph</a>'s approval gate. It runs on fixture incidents with a dry-run adapter.</p>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
