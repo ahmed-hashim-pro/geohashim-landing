@@ -1,0 +1,156 @@
+    <div class="wrap">
+      <div class="panel sec-head">
+        <h2 id="products-title">Products</h2>
+        <p>Products I ship, mostly solo: a web app for AI publishing workflows, a Quran reader on the web, and a long-running Quran app for Android.</p>
+      </div>
+
+      <article class="panel prod prod-main" id="my-stream" aria-labelledby="p-mystream">
+        <header class="prod-head">
+          <svg class="apt" aria-hidden="true" focusable="false"><use href="#s-apt"/></svg>
+          <div>
+            <h3 id="p-mystream">My Stream</h3>
+            <p class="prod-where">feed.geohashim.com</p>
+          </div>
+          <p class="prod-kind">Web app</p>
+        </header>
+        <div class="prod-body">
+          <p>An AI publishing platform. Scrape sources, score them against a quality threshold, and draft articles in your editorial voice. Workspaces and scheduled automation.</p>
+          <p>It's an Angular and Ionic web app, with its backend on AWS: Amplify, Lambda, an AppSync GraphQL API, Cognito sign-in and Stripe billing.</p>
+          <h4 id="ms-title">How it works</h4>
+          <div class="ms" role="group" aria-labelledby="ms-title">
+            <div class="ms-controls">
+              <div class="ms-f ms-model">
+                <label class="ms-l" for="ms-model">Model</label>
+                <span class="ms-select"><select id="ms-model" aria-describedby="ms-key">
+                  <optgroup label="Anthropic, built in">
+                    <option value="opus" data-off="5">Claude Opus 4.7 (+5)</option>
+                    <option value="sonnet" data-off="0" selected>Claude Sonnet 4.6 (0, default)</option>
+                    <option value="haiku" data-off="-10">Claude Haiku 4.5 (−10)</option>
+                  </optgroup>
+                  <optgroup label="OpenAI, your key">
+                    <option value="gpt5" data-off="5">GPT-5 (+5)</option>
+                    <option value="gpt5mini" data-off="-5">GPT-5 mini (−5)</option>
+                  </optgroup>
+                  <optgroup label="Google, your key">
+                    <option value="gempro" data-off="0">Gemini 2.5 Pro (0)</option>
+                    <option value="gemflash" data-off="-10">Gemini 2.5 Flash (−10)</option>
+                  </optgroup>
+                  <optgroup label="xAI, your key">
+                    <option value="grok3" data-off="-5">Grok 3 (−5)</option>
+                  </optgroup>
+                  <optgroup label="DeepSeek, your key">
+                    <option value="r1" data-off="0">DeepSeek R1 (0)</option>
+                    <option value="v3" data-off="-5">DeepSeek V3 (−5)</option>
+                  </optgroup>
+                  <optgroup label="Mistral, your key">
+                    <option value="mlarge" data-off="-5">Mistral Large (−5)</option>
+                  </optgroup>
+                  <optgroup label="Groq, your key">
+                    <option value="llama" data-off="-10">Llama 3.3 70B (−10)</option>
+                  </optgroup>
+                </select></span>
+                <p class="ms-key" id="ms-key"><span class="ms-badge" id="ms-badge">Built in</span> Anthropic runs out of the box, the rest with your own keys.</p>
+              </div>
+              <div class="ms-f ms-thr">
+                <label class="ms-l" for="ms-thr">Your threshold <span class="ms-val" id="ms-thr-val" aria-hidden="true">70</span></label>
+                <input type="range" id="ms-thr" min="20" max="95" step="1" value="70">
+                <p class="ms-ends" aria-hidden="true"><span>20</span><span>95</span></p>
+              </div>
+              <div class="ms-f ms-eff">
+                <p class="ms-l" id="ms-eff-l">Effective threshold</p>
+                <p class="ms-eff-row"><output id="ms-eff" aria-labelledby="ms-eff-l">70</output><code id="ms-calc">clamp(70 + 0, 20, 95)</code></p>
+                <p class="ms-formula"><code id="ms-rule">effective = clamp(threshold + model offset, 20, 95)</code></p>
+                <p class="ms-why">Cheaper models score lower on the same rubric, so My Stream adjusts the threshold per model and they aren't silently rejected.</p>
+                <p class="ms-adj"><input type="checkbox" id="ms-adj" checked aria-describedby="ms-adj-d"><label for="ms-adj">Per-model adjustment</label></p>
+                <p class="ms-hint" id="ms-adj-d">Turn it off to see the problem it solves: a cheaper model scores lower on the same rubric and most items get rejected.</p>
+              </div>
+              <fieldset class="ms-f ms-voice">
+                <legend class="ms-l">Editorial voice</legend>
+                <div class="seg">
+                  <input type="radio" name="ms-voice" id="v-journalistic" value="journalistic" checked><label for="v-journalistic">Journalistic</label>
+                  <input type="radio" name="ms-voice" id="v-casual" value="casual"><label for="v-casual">Casual</label>
+                  <input type="radio" name="ms-voice" id="v-formal" value="formal"><label for="v-formal">Formal</label>
+                  <input type="radio" name="ms-voice" id="v-academic" value="academic"><label for="v-academic">Academic</label>
+                  <input type="radio" name="ms-voice" id="v-conversational" value="conversational"><label for="v-conversational">Conversational</label>
+                </div>
+              </fieldset>
+              <fieldset class="ms-f ms-sched">
+                <legend class="ms-l">Schedule</legend>
+                <div class="seg">
+                  <input type="radio" name="ms-sched" id="s-daily" value="daily" checked><label for="s-daily">Daily</label>
+                  <input type="radio" name="ms-sched" id="s-weekdays" value="weekdays"><label for="s-weekdays">Weekdays</label>
+                  <input type="radio" name="ms-sched" id="s-demand" value="demand"><label for="s-demand">On demand</label>
+                </div>
+                <p class="ms-hint">The product supports running daily, on weekdays or on demand. Here, the button starts the run.</p>
+              </fieldset>
+            </div>
+            <div class="ms-run">
+              <button type="button" class="btn btn-ink" id="ms-go">Run the pipeline</button>
+              <p><strong>Simulated run with made-up items.</strong> Each dot is an item with a random base score, shifted by the model's offset: <span class="ms-h">the higher it flies, the higher it scored. Items below the magenta line peel off at the Score gate.</span><span class="ms-v">the further right it flies, the higher it scored. Items left of the magenta line peel off at the Score gate.</span> The stages and the threshold formula are the real ones.</p>
+            </div>
+            <div class="ms-flight">
+              <canvas class="ms-canvas" aria-hidden="true"></canvas>
+              <ol class="ms-stages">
+                <li class="ms-stage"><p class="step-name">Sources</p><p>You point it at RSS feeds and topics, per workspace.</p></li>
+                <li class="ms-stage"><p class="step-name">Scrape</p><p>A Lambda fetches each source and queues candidate items.</p></li>
+                <li class="ms-stage"><p class="step-name">Score</p><p>The model you pick rates each item against your editorial rubric and a quality threshold, adjusted per model so cheaper models aren't silently rejected.</p></li>
+                <li class="ms-stage"><p class="step-name">Draft</p><p>Items that pass are drafted in your editorial voice: voice, reading level, word count, keywords and citation rules.</p></li>
+                <li class="ms-stage"><p class="step-name">Publish</p><p>You review the queue, edit if you want, and publish.</p></li>
+              </ol>
+            </div>
+            <div class="ms-out">
+              <div class="ms-draft">
+                <p class="ms-l">Example paragraph in this voice</p>
+                <div class="ms-texts">
+                  <p class="ms-text on" data-voice="journalistic"><span class="ms-full">Houseplants need less water and more light as winter sets in. Moving pots closer to a bright window, while keeping leaves clear of cold glass, helps most common varieties through the darker months. Watering can wait until the top of the soil feels dry.</span><span class="ms-typed" aria-hidden="true"></span></p>
+                  <p class="ms-text" data-voice="casual"><span class="ms-full">Your plants are probably a bit sleepy right now, and that's fine. Give them the brightest window you've got, keep them off the cold glass, and go easy on the watering. They'll perk up again once spring rolls around.</span><span class="ms-typed" aria-hidden="true"></span></p>
+                  <p class="ms-text" data-voice="formal"><span class="ms-full">During the winter months, houseplants require less frequent watering and greater access to natural light. Pots should be positioned near a bright window, away from direct contact with cold glass, and the soil should be allowed to dry between waterings.</span><span class="ms-typed" aria-hidden="true"></span></p>
+                  <p class="ms-text" data-voice="academic"><span class="ms-full">Shorter days in winter slow the growth of most houseplants, which in turn lowers their water requirements. Care routines should therefore prioritize light over watering frequency: plants placed near bright windows, but away from cold glass, are less likely to suffer leaf damage during this period.</span><span class="ms-typed" aria-hidden="true"></span></p>
+                  <p class="ms-text" data-voice="conversational"><span class="ms-full">So, your plants look a little tired lately? That's normal for this time of year. With shorter days they grow slowly, so they need less water than you'd think. Move them somewhere bright, keep them away from the cold glass, and check the soil before you water.</span><span class="ms-typed" aria-hidden="true"></span></p>
+                </div>
+              </div>
+              <div class="ms-tally">
+                <p class="ms-l">This simulated run</p>
+                <dl class="ms-counts">
+                  <div><dt>In</dt><dd id="ms-n-in">0</dd></div>
+                  <div><dt>Scored</dt><dd id="ms-n-scored">0</dd></div>
+                  <div><dt>Drafted</dt><dd id="ms-n-drafted">0</dd></div>
+                  <div class="q"><dt>Queued for your review</dt><dd id="ms-n-queued">0</dd></div>
+                </dl>
+                <p class="ms-live">In the product, run progress streams live over GraphQL subscriptions.</p>
+                <p class="vh" id="ms-summary" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+          <p class="providers">Works with 7 AI providers: Anthropic, OpenAI, Google, xAI, DeepSeek, Mistral and Groq. Anthropic runs out of the box, the rest with your own keys.</p>
+          <p class="btn-row"><a class="btn btn-ink" href="https://feed.geohashim.com">Open My Stream</a></p>
+        </div>
+      </article>
+
+      <div class="prod-pair">
+        <article class="panel prod" aria-labelledby="p-mushaf">
+          <header class="prod-head">
+            <svg class="apt" aria-hidden="true" focusable="false"><use href="#s-apt"/></svg>
+            <div>
+              <h3 id="p-mushaf">Mushaf</h3>
+              <p class="prod-where">mushaf.geohashim.com</p>
+            </div>
+            <p class="prod-kind">Web app</p>
+          </header>
+          <p>A focused, ad-free digital Quran reader for the web, built for fast page navigation, comfortable reading typography and a layout that respects the printed Mushaf.</p>
+          <p class="btn-row"><a class="btn" href="https://mushaf.geohashim.com">Open Mushaf</a></p>
+        </article>
+        <article class="panel prod" aria-labelledby="p-quran">
+          <header class="prod-head">
+            <svg class="apt" aria-hidden="true" focusable="false"><use href="#s-apt"/></svg>
+            <div>
+              <h3 id="p-quran">Online Quran</h3>
+              <p class="prod-where">On Google Play</p>
+            </div>
+            <p class="prod-kind">Android app</p>
+          </header>
+          <p>My long-running Quran app for Android, with reciter audio, bookmarks and offline reading. It has been in users' hands for years.</p>
+          <p class="btn-row"><a class="btn" href="https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran">Get it on Google Play</a></p>
+        </article>
+      </div>
+    </div>

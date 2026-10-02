@@ -5,6 +5,8 @@ import { SITE } from '../content';
 
 export interface SeoInput {
   title: string;
+  /** Title for social cards when it should differ from the page title. */
+  ogTitle?: string;
   description: string;
   path: string;
 }
@@ -22,17 +24,18 @@ export class SeoService {
     const ogImage = `${SITE.urls.canonical}${SITE.seo.ogImage}`;
 
     this.title.setTitle(input.title);
+    const socialTitle = input.ogTitle ?? input.title;
 
     const tags: { name?: string; property?: string; content: string }[] = [
       { name: 'description', content: input.description },
-      { property: 'og:title', content: input.title },
+      { property: 'og:title', content: socialTitle },
       { property: 'og:description', content: input.description },
       { property: 'og:type', content: 'website' },
       { property: 'og:url', content: url },
       { property: 'og:site_name', content: SITE.brand.name },
       { property: 'og:image', content: ogImage },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: input.title },
+      { name: 'twitter:title', content: socialTitle },
       { name: 'twitter:description', content: input.description },
       { name: 'twitter:image', content: ogImage },
     ];
