@@ -92,6 +92,7 @@ export function initLanding() {
   routeSvg.appendChild(probe);
 
   const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  const SETTLE = 900;
   const rand = mulberry(1854);
   const repos = $$('.repo').map((li, k) => {
     const n = +li.dataset.n;
@@ -101,7 +102,7 @@ export function initLanding() {
       wp: li.querySelector('.wp'), panel: li.querySelector('.repo-panel'), ring: li.querySelector('.ring'),
       canvas, ctx: canvas.getContext('2d'),
       ux: new Float32Array(n), uy: new Float32Array(n), lx: new Float32Array(n), ly: new Float32Array(n), dl: new Float32Array(n),
-      state: 0, t0: 0, on: false, s: 1, R: 0, half: 0, rIn: 0, rOut: 0, ext: 0, L: Infinity, size: 0, dpr: 0, ringKey: '', vars: ''
+      t: 0, T: 0, dir: -1, last: 0, on: false, s: 1, R: 0, half: 0, rIn: 0, rOut: 0, ext: 0, L: Infinity, size: 0, dpr: 0, ringKey: '', vars: ''
     };
     const span = Math.sqrt(n);
     for (let j = 0; j < n; j++) {
@@ -112,6 +113,7 @@ export function initLanding() {
       r.lx[j] = lr * Math.cos(la);
       r.ly[j] = lr * Math.sin(la);
       r.dl[j] = j / n * 520 + rand() * 180;
+      r.T = Math.max(r.T, r.dl[j] + SETTLE);
     }
     return r;
   });
@@ -123,7 +125,6 @@ export function initLanding() {
   };
   readColors();
 
-  const SETTLE = 900;
   let mobile = false;
 
   function drawRepo(r, now) {
@@ -138,12 +139,11 @@ export function initLanding() {
     ctx.fillStyle = r.on ? colors.deep : colors.pass;
     const dotR = s * (mobile ? .47 : .4);
     const LEVELS = 6;
-    let busy = false;
+    // A clock instead of a start time, so scrolling back up rewinds the gather from wherever it is.
+    r.t = clamp(r.t + r.dir * Math.max(0, now - r.last), 0, r.T);
+    r.last = now;
     const progress = j => {
-      if (r.state === 2) return 1;
-      if (r.state === 0) return 0;
-      const t = (now - r.t0 - r.dl[j]) / SETTLE;
-      if (t < 1) busy = true;
+      const t = (r.t - r.dl[j]) / SETTLE;
       return t <= 0 ? 0 : t >= 1 ? 1 : ease(t);
     };
     const ps = new Float32Array(n);
@@ -166,8 +166,7 @@ export function initLanding() {
       ctx.fill();
     }
     ctx.globalAlpha = 1;
-    if (r.state === 1 && !busy) r.state = 2;
-    return r.state === 1;
+    return r.dir > 0 ? r.t < r.T : r.t > 0;
   }
 
   const animating = new Set();
@@ -380,8 +379,11 @@ export function initLanding() {
     strokes.forEach(p => { p.style.strokeDashoffset = off; });
     route.marks.forEach(m => m.g.classList.toggle('on', len >= m.L - 1));
     repos.forEach(r => {
-      if (r.state !== 0 || len < r.L - 2) return;
-      if (reduce.matches || firstDraw) { r.state = 2; drawRepo(r, now); } else { r.state = 1; r.t0 = now; kick(r); }
+      const dir = len >= r.L - 2 ? 1 : -1;
+      if (dir === r.dir) return;
+      r.dir = dir;
+      r.last = now;
+      if (reduce.matches || firstDraw) { r.t = dir > 0 ? r.T : 0; drawRepo(r, now); } else kick(r);
     });
     firstDraw = false;
     if (reduce.matches || len >= total - 1) { head.setAttribute('visibility', 'hidden'); return; }
@@ -461,7 +463,7 @@ export function initLanding() {
   if ('ResizeObserver' in window) scope.observe(new ResizeObserver(requestLayout)).observe(mainEl);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!scope.disposed) requestLayout(); });
   watch(reduce, () => {
-    if (reduce.matches) repos.forEach(r => { if (r.state === 1) r.state = 2; });
+    if (reduce.matches) repos.forEach(r => { r.t = r.dir > 0 ? r.T : 0; });
     ms.reduce();
     requestLayout();
   });
