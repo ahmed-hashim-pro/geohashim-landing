@@ -1,0 +1,236 @@
+    <div class="wrap">
+      <div class="os-top">
+        <div class="compass" aria-hidden="true">
+          <svg viewBox="-180 -180 360 360" focusable="false">
+            <circle class="rose-ring" r="150"/>
+            <circle class="rose-tick" r="145.5" pathLength="360"/>
+            <circle class="rose-major" r="142" pathLength="360"/>
+            <circle class="rose-inner" r="96"/>
+            <path class="rose-north" d="M0 -176L7 -158L0 -162L-7 -158Z"/>
+          </svg>
+        </div>
+        <div class="panel os-head">
+          <h2 id="os-title">Open source</h2>
+          <p class="os-lead">Eight public repos across AI systems, data systems and developer tooling. Each waypoint is drawn with one dot per passing test: 1,854 as of October 2026.</p>
+          <p>The three ringed in magenta come first: two agent tools that stop for human approval, and a graph database built from scratch. I ran every suite on 1 October 2026, and each count matches the repo's CI.</p>
+          <ul class="key">
+            <li>
+              <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><circle class="k-ring" r="14.5"/><circle class="k-dot" r="1.5"/><circle class="k-dot" cx="3.6" r="1.5"/><circle class="k-dot" cx="-3.6" r="1.5"/><circle class="k-dot" cx="1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="-3.1" r="1.5"/></svg>
+              <span>Featured repo: a cluster inside magenta airspace.</span>
+            </li>
+            <li>
+              <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><circle class="k-dot" r="1.5"/><circle class="k-dot" cx="3.6" r="1.5"/><circle class="k-dot" cx="-3.6" r="1.5"/><circle class="k-dot" cx="1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="5.4" cy="3.1" r="1.5"/><circle class="k-dot" cx="-5.4" cy="-3.1" r="1.5"/></svg>
+              <span>Other repo: a waypoint. In both, one dot is one passing test, and every dot is the same size.</span>
+            </li>
+            <li>
+              <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><path class="k-route" d="M-20 0H20"/></svg>
+              <span>Route through all eight.</span>
+            </li>
+          </ul>
+        </div>
+        <span class="route-vor" id="route-vor" aria-hidden="true"><svg class="vor" viewBox="-14 -14 28 28" focusable="false"><path class="vor-hex" d="M-11 0L-5.5 -9.5L5.5 -9.5L11 0L5.5 9.5L-5.5 9.5Z"/><circle class="vor-dot" r="2.4"/></svg></span>
+      </div>
+
+      <div class="repos-wrap">
+        <span class="route-start-m" id="route-start-m" aria-hidden="true"><svg class="vor" viewBox="-14 -14 28 28" focusable="false"><path class="vor-hex" d="M-11 0L-5.5 -9.5L5.5 -9.5L11 0L5.5 9.5L-5.5 9.5Z"/><circle class="vor-dot" r="2.4"/></svg></span>
+        <ol class="repos">
+          <li class="repo repo--air" data-side="left" data-n="133" data-ring="Approval gate" style="--x:76%;--x-md:79%">
+            <svg class="ring" aria-hidden="true" focusable="false"></svg>
+            <a class="wp" href="#repo-triage-graph">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">triage-graph</span><span class="wp-data">Python, 133 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-triage-graph" tabindex="-1" aria-labelledby="h-triage-graph">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-triage-graph">triage-graph</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>133</strong> passing tests</p>
+              </header>
+              <p>Multi-agent incident triage on LangGraph with a human approval gate enforced in code, plus a CrewAI port and a written comparison of the two.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>LangGraph, CrewAI, Pydantic</dd>
+                <dt>Scope</dt><dd>Runs on fixture data.</dd>
+                <dt>Counted with</dt><dd><code>uv run pytest</code> <span class="note">(133 passed, 1 skipped)</span></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/triage-graph">View on GitHub<span class="vh">: triage-graph</span></a>
+            </article>
+          </li>
+
+          <li class="repo repo--air" data-side="right" data-n="138" data-ring="Writes need approval" style="--x:24%;--x-md:21%">
+            <svg class="ring" aria-hidden="true" focusable="false"></svg>
+            <a class="wp" href="#repo-sqlguard-mcp">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">sqlguard-mcp</span><span class="wp-data">Go, 138 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-sqlguard-mcp" tabindex="-1" aria-labelledby="h-sqlguard-mcp">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-sqlguard-mcp">sqlguard-mcp</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>138</strong> passing tests</p>
+              </header>
+              <p>An MCP server that lets an agent query a SQLite database and refuses any write until a human approves that exact statement.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>MCP Go SDK, SQLite, Helm</dd>
+                <dt>Approval</dt><dd>A human runs <code>sqlguard approve &lt;token&gt;</code> out of band. Each approval is single-use and bound to the exact statement. SQLite only.</dd>
+                <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> <span class="note">(65 tests plus 73 subtests)</span></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/sqlguard-mcp">View on GitHub<span class="vh">: sqlguard-mcp</span></a>
+            </article>
+          </li>
+
+          <li class="repo repo--air" data-side="left" data-n="686" data-ring="Atomic transactions" style="--x:75%;--x-md:76%">
+            <svg class="ring" aria-hidden="true" focusable="false"></svg>
+            <a class="wp" href="#repo-atlas-graph-db">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">atlas-graph-db</span><span class="wp-data">TypeScript, 686 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-atlas-graph-db" tabindex="-1" aria-labelledby="h-atlas-graph-db">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-atlas-graph-db">atlas-graph-db</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-data"/></svg>Data systems</p>
+                </div>
+                <p class="rp-count"><strong>686</strong> passing tests</p>
+              </header>
+              <p>A graph database written from scratch in TypeScript, with a write-ahead log, crash recovery, atomic transactions and a Cypher-like query language (AQL).</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>TypeScript</dd>
+                <dt>Stack</dt><dd>Node.js, Fastify, Angular</dd>
+                <dt>Counted with</dt><dd><code>pnpm test</code> <span class="note">(468 engine and server tests plus 218 web app tests)</span></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/atlas-graph-db">View on GitHub<span class="vh">: atlas-graph-db</span></a>
+            </article>
+          </li>
+
+          <li class="repo" data-side="right" data-n="105" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-llm-contract-router">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">llm-contract-router</span><span class="wp-data">TypeScript, 105 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-llm-contract-router" tabindex="-1" aria-labelledby="h-llm-contract-router">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-llm-contract-router">llm-contract-router</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>105</strong> passing tests</p>
+              </header>
+              <p>Routes requests across LLM providers behind one interface, validates each answer against your schema, and re-prompts with the constraint that failed.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>TypeScript</dd>
+                <dt>Stack</dt><dd>Node.js, Anthropic, OpenAI, zero runtime deps</dd>
+                <dt>Counted with</dt><dd><code>npm run check</code></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/llm-contract-router">View on GitHub<span class="vh">: llm-contract-router</span></a>
+            </article>
+          </li>
+
+          <li class="repo" data-side="left" data-n="202" style="--x:78%;--x-md:80%">
+            <a class="wp" href="#repo-noisefloor">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">noisefloor</span><span class="wp-data">Python, 202 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-noisefloor" tabindex="-1" aria-labelledby="h-noisefloor">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-noisefloor">noisefloor</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>202</strong> passing tests</p>
+              </header>
+              <p>A regression harness for non-deterministic systems that measures run-to-run noise before calling a change a regression.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Pydantic, PyYAML</dd>
+                <dt>Counted with</dt><dd><code>pytest</code></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/noisefloor">View on GitHub<span class="vh">: noisefloor</span></a>
+            </article>
+          </li>
+
+          <li class="repo" data-side="right" data-n="419" style="--x:24%;--x-md:21%">
+            <a class="wp" href="#repo-runon">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">runon</span><span class="wp-data">Python, 419 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-runon" tabindex="-1" aria-labelledby="h-runon">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-runon">runon</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>419</strong> passing tests</p>
+              </header>
+              <p>Runs plain shell-script programs on your machine, one server, or a named group of servers over your own SSH, and is published on PyPI.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>SSH, PyPI, stdlib only on Python 3.11+ (no runtime dependencies)</dd>
+                <dt>Counted with</dt><dd><code>pytest</code></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/runon">View on GitHub<span class="vh">: runon</span></a>
+            </article>
+          </li>
+
+          <li class="repo" data-side="left" data-n="109" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-rag-knowledge-agent">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">rag-knowledge-agent</span><span class="wp-data">Python, 109 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-rag-knowledge-agent" tabindex="-1" aria-labelledby="h-rag-knowledge-agent">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-rag-knowledge-agent">rag-knowledge-agent</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>109</strong> passing tests</p>
+              </header>
+              <p>A command-line retrieval agent that answers from a folder of documents with citations, and refuses without calling the model when no evidence clears its confidence floor.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Claude, ChromaDB, Pydantic</dd>
+                <dt>Counted with</dt><dd><code>pytest</code></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent">View on GitHub<span class="vh">: rag-knowledge-agent</span></a>
+            </article>
+          </li>
+
+          <li class="repo" data-side="right" data-n="62" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-local-network-mcp">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">local-network-mcp</span><span class="wp-data">Python, 62 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-local-network-mcp" tabindex="-1" aria-labelledby="h-local-network-mcp">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-local-network-mcp">local-network-mcp</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>62</strong> passing tests</p>
+              </header>
+              <p>An MCP server for local network, system and SSH tasks, where shell commands, remote commands and process kills stay denied until the operator opts in.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>MCP, Paramiko, psutil</dd>
+                <dt>Gated</dt><dd>3 of its 18 tools: shell, SSH command execution and process kill.</dd>
+                <dt>Counted with</dt><dd><code>pytest</code></dd>
+              </dl>
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/local-network-mcp">View on GitHub<span class="vh">: local-network-mcp</span></a>
+            </article>
+          </li>
+        </ol>
+      </div>
+    </div>

@@ -1,53 +1,50 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { IonContent } from '@ionic/angular/standalone';
+import { Component, DestroyRef, NgZone, OnInit, afterNextRender, inject } from '@angular/core';
 
 import { SiteHeaderComponent } from '../../layout/site-header/site-header.component';
 import { SiteFooterComponent } from '../../layout/site-footer/site-footer.component';
-import { HeroComponent } from '../../sections/hero/hero.component';
-import { StatsComponent } from '../../sections/stats/stats.component';
-import { AboutComponent } from '../../sections/about/about.component';
-import { ProjectsComponent } from '../../sections/projects/projects.component';
-import { OpenSourceComponent } from '../../sections/open-source/open-source.component';
-import { PipelineComponent } from '../../sections/pipeline/pipeline.component';
-import { VoicesComponent } from '../../sections/voices/voices.component';
-import { ProvidersComponent } from '../../sections/providers/providers.component';
-import { PlaygroundComponent } from '../../sections/playground/playground.component';
-import { FeaturesComponent } from '../../sections/features/features.component';
-import { FaqComponent } from '../../sections/faq/faq.component';
-import { CtaBandComponent } from '../../sections/cta-band/cta-band.component';
+import { HeroComponent } from './sections/hero.component';
+import { WorkComponent } from './sections/work.component';
+import { BuildComponent } from './sections/build.component';
+import { OpenSourceComponent } from './sections/open-source.component';
+import { ProductsComponent } from './sections/products.component';
+import { initLanding } from './runtime/landing.js';
 import { SeoService } from '../../core/seo.service';
 import { SITE } from '../../content';
 
+// The markup, styles and runtime are ported from docs/mockups/mockup-7-full-flight.html.
+// Sections use attribute selectors on the mockup's own elements so the DOM matches it exactly.
 @Component({
   selector: 'app-landing',
   standalone: true,
   imports: [
-    CommonModule,
-    IonContent,
     SiteHeaderComponent,
     SiteFooterComponent,
     HeroComponent,
-    StatsComponent,
-    AboutComponent,
-    ProjectsComponent,
+    WorkComponent,
+    BuildComponent,
     OpenSourceComponent,
-    PipelineComponent,
-    VoicesComponent,
-    ProvidersComponent,
-    PlaygroundComponent,
-    FeaturesComponent,
-    FaqComponent,
-    CtaBandComponent,
+    ProductsComponent,
   ],
   templateUrl: './landing.page.html',
+  preserveWhitespaces: true,
 })
 export class LandingPage implements OnInit {
   private readonly seo = inject(SeoService);
 
+  constructor() {
+    const zone = inject(NgZone);
+    let dispose: (() => void) | undefined;
+    // After hydration, so the runtime never edits DOM that Angular is still claiming; outside
+    // the zone, so its scroll and animation-frame work doesn't trigger change detection.
+    afterNextRender(() => {
+      dispose = zone.runOutsideAngular(() => initLanding());
+    });
+    inject(DestroyRef).onDestroy(() => dispose?.());
+  }
+
   ngOnInit(): void {
     const meta = SITE.seo.routes['/'];
-    this.seo.apply({ title: meta.title, description: meta.description, path: '/' });
+    this.seo.apply({ title: meta.title, ogTitle: meta.ogTitle, description: meta.description, path: '/' });
 
     this.seo.applyJsonLd('website', {
       '@context': 'https://schema.org',

@@ -1,0 +1,18 @@
+/* Angular's host elements sit between <body> and the page; the mockup has none, so they generate no box. */
+app-root, app-landing, app-privacy, app-terms, app-not-found { display: contents; }
+
+/* The footer's legal links sit where the mockup had its "Design mockup" note. */
+.foot .mock a + a { margin-left: 18px; }
+
+/* Privacy, terms and 404: the landing's tokens, header and footer around one legend panel. */
+.doc { padding: 56px 0 96px; }
+.doc-panel { max-width: 760px; padding: 30px 36px 36px; }
+.doc-meta { color: var(--ink-2); font-size: var(--fs-sm); }
+.doc h1 { margin: 6px 0 22px; font: 700 clamp(34px, 3.6vw, 48px)/1.05 var(--sans); font-variation-settings: "wdth" 74; }
+.doc h2 { margin: 28px 0 8px; font-size: var(--fs-md); line-height: 1.25; }
+.doc section p, .doc-panel > p { max-width: 62ch; }
+.doc-cta { margin-top: 28px; }
+@media (max-width: 599px) {
+  .doc { padding: 32px 0 64px; }
+  .doc-panel { padding: 22px 18px 26px; }
+}
