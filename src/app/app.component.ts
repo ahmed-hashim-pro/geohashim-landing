@@ -1,16 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-
-import { ThemeService } from './core/theme.service';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [RouterOutlet],
 })
-export class AppComponent {
-  constructor() {
-    inject(ThemeService);
-  }
-}
+export class AppComponent {}

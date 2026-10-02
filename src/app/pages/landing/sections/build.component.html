@@ -1,0 +1,52 @@
+    <div class="wrap">
+      <div class="panel notes">
+        <header class="lg-head">
+          <h2 id="build-title">How I build</h2>
+          <p>Principles I come back to, each quoted from the code or docs where it lives.</p>
+        </header>
+        <ul class="pr-list">
+          <li class="pr">
+            <h3>Safety rules live in code, not in prompts.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/triage-graph/blob/main/src/triage_graph/actions.py#L1"><p>“This module, not any prompt, decides what may run.”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/triage-graph/blob/main/src/triage_graph/actions.py#L1">triage-graph, src/triage_graph/actions.py</a></figcaption>
+            </figure>
+          </li>
+          <li class="pr">
+            <h3>Refuse what can't be proven safe.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/sqlguard-mcp/blob/main/README.md#L121"><p>“There is no tool that approves.”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/sqlguard-mcp/blob/main/README.md#L121">sqlguard-mcp, README.md</a></figcaption>
+            </figure>
+          </li>
+          <li class="pr">
+            <h3>Measure the noise before calling a regression.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/noisefloor/blob/main/README.md#L11-L12"><p>“runs your target N times, measures the spread, and only calls something a regression when the delta clears it.”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/noisefloor/blob/main/README.md#L11-L12">noisefloor, README.md</a></figcaption>
+            </figure>
+          </li>
+          <li class="pr">
+            <h3>When an answer breaks a rule, say which rule.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/llm-contract-router/blob/main/tests/router.test.ts#L136"><p>“tells the model what was wrong, not just that it was wrong”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/llm-contract-router/blob/main/tests/router.test.ts#L136">llm-contract-router, tests/router.test.ts</a></figcaption>
+            </figure>
+          </li>
+          <li class="pr">
+            <h3>Saying no should be cheap.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/rag-knowledge-agent/blob/main/tests/test_agent.py#L211"><p>“the confidence gate spends no tokens”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent/blob/main/tests/test_agent.py#L211">rag-knowledge-agent, tests/test_agent.py</a></figcaption>
+            </figure>
+          </li>
+          <li class="pr">
+            <h3>Grow by adding, not by changing the core.</h3>
+            <figure>
+              <blockquote cite="https://github.com/ahmed-hashim-pro/runon/blob/main/README.md#L154"><p>“Adding a capability means adding a directory. The tool never changes.”</p></blockquote>
+              <figcaption><a href="https://github.com/ahmed-hashim-pro/runon/blob/main/README.md#L154">runon, README.md</a></figcaption>
+            </figure>
+          </li>
+        </ul>
+      </div>
+    </div>
