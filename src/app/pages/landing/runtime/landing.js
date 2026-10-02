@@ -22,8 +22,9 @@ export function initLanding() {
   const heroWrap = $('.hero-inner');
   const h1 = $('#hero-title');
   const concrete = $('.g-concrete');
+  const groundPaint = $('.g-paint');
   const heroMark = $('.hero-mark');
-  const W_MAX = 125, W_MIN = 75, LAG = .7;
+  const W_MAX = 125, W_MIN = 75, LAG = .7, PAINT_LAG = .4, TITLE_LEAD = .28;
   let typeMotion = false, range = 1, heroBottom = 0, headH = 60, lastW = -1;
   const parallaxOn = () => !reduce.matches && innerWidth >= 700;
   const setWidth = v => {
@@ -34,7 +35,7 @@ export function initLanding() {
   };
   function measureHero() {
     typeMotion = !reduce.matches;
-    concrete.style.transform = '';
+    concrete.style.transform = groundPaint.style.transform = h1.style.transform = '';
     h1.style.minHeight = '';
     lastW = -1;
     setWidth(W_MAX);
@@ -425,7 +426,11 @@ export function initLanding() {
     const par = parallaxOn();
     const y = scrollY;
     if (typeMotion) setWidth(W_MAX - (W_MAX - W_MIN) * clamp(y / range, 0, 1));
-    if (par && y < heroBottom) concrete.style.transform = `translate3d(0, ${r1(y * LAG)}px, 0)`;
+    if (par && y < heroBottom) {
+      concrete.style.transform = `translate3d(0, ${r1(y * LAG)}px, 0)`;
+      groundPaint.style.transform = `translate3d(0, ${r1(y * PAINT_LAG)}px, 0)`;
+      h1.style.transform = `translate3d(0, ${r1(-y * TITLE_LEAD)}px, 0)`;
+    }
     for (const L of layers) L.el.style.transform = par ? `translate3d(0, ${r1(-((y * L.rate) % PERIOD))}px, 0)` : '';
     compass.style.transform = par ? `translate3d(0, ${r1(.18 * (y - compassAlign))}px, 0)` : '';
     header.classList.toggle('is-air', y + headH >= heroBottom - 1);
