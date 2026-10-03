@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const SITE = 'https://landing.geohashim.com';
@@ -9,6 +9,11 @@ const routes = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
   { path: '/terms', changefreq: 'yearly', priority: '0.3' },
+  ...JSON.parse(readFileSync(resolve(process.cwd(), 'scripts/project-pages/shared/projects.json'), 'utf8')).map((p) => ({
+    path: `/${p.kind === 'repo' ? 'open-source' : 'products'}/${p.slug}/`,
+    changefreq: 'monthly',
+    priority: '0.7',
+  })),
 ];
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>

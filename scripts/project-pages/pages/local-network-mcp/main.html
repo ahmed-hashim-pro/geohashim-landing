@@ -1,0 +1,386 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">local-network-mcp</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An MCP server that gives an agent 18 tools for local network, system and SSH work. Running shell commands, running remote commands and killing processes stay denied until the operator opts in.</p>
+            <p>It began as a way to let an agent diagnose a device on the LAN itself, instead of listing commands for a person to type. That raised the real design question: the model, not the operator, decides when a tool runs. So the three tools that run commands or end processes start switched off, and the switch sits in the server's environment, where no tool call can reach it.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/local-network-mcp">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/local-network-mcp#security-model">Security model</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11+</dd>
+              <dt>Protocol</dt><dd>MCP over stdio, on mcp 1.29.1</dd>
+              <dt>Tools</dt><dd>18, of which 3 are gated</dd>
+              <dt>Tests</dt><dd>62 passing, no network or credentials needed</dd>
+              <dt>SSH and processes</dt><dd>Paramiko and psutil</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="deny">Deny</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="optin">Opt in</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="read">Read</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">python network_mcp_server.py</span>
+<span class="dim">→ tools/call execute_local_command {"command": "echo hello"}</span>
+<span class="out">{
+  "success": false,
+  "policy": "default-deny",
+  "tool": "execute_local_command",</span>
+<span class="err">  "error": "execute_local_command is disabled because it can change or destroy state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \"env\" block of your MCP client config) and restart the server to enable it."</span>
+<span class="out">}</span></div>
+            </div>
+            <p class="term-cap">Captured by sending MCP JSON-RPC to the server over stdio. Each → line is the request; below it is the tool result text. The handshake is left out, and port 8765 was a listener opened for the capture.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a tool call moves through the server">
+          <div class="sign-group">
+            <p>On a server with no opt-ins</p>
+            <ol>
+              <li><a class="sign-link" href="#s-switch"><b>1</b> Switches</a></li>
+              <li><a class="sign-link" href="#s-list"><b>2</b> Tool list</a></li>
+              <li><a class="sign-link" href="#s-look"><b>3</b> Look around</a></li>
+              <li><a class="sign-link" href="#s-refuse"><b>4</b> Refuse</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the operator opted in</p>
+            <ol>
+              <li><a class="sign-link" href="#s-run"><b>5</b> Run</a></li>
+              <li><a class="sign-link" href="#s-kill"><b>6</b> Kill</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-switch" aria-labelledby="h-switch">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-switch"><span class="num" data-mark="1">1</span>Set the switches before the server starts</h2>
+          <p>The operator decides which gated tools may run, in the MCP client config that launches the server. Each tool has its own variable, and with no variable the tool stays off.</p>
+          <ul class="st-points">
+            <li><code>LNMCP_ENABLE_EXEC</code> opens <code>execute_local_command</code>, <code>LNMCP_ENABLE_SSH_EXEC</code> opens <code>ssh_execute</code>, and <code>LNMCP_ENABLE_KILL</code> opens <code>kill_process</code>.</li>
+            <li>Only <code>1</code>, <code>true</code>, <code>yes</code> or <code>on</code> count, in any case and with surrounding spaces ignored. Anything else, a typo included, leaves the tool off.</li>
+            <li>The variable is read again on every call. Nothing in a tool call writes to the server's environment, so turning a tool on means editing the config and restarting the server.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-switch" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Which values turn a tool on</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="lnm-cfg">
+                <p class="lnm-cfg-h">MCP client config <span class="tag-ill">Adapted from the README</span></p>
+                <pre class="lnm-cfg-pre" aria-label="Client config with an env block">{
+  "mcpServers": {
+    "local-network": {
+      "command": "/path/to/local-network-mcp/.venv/bin/python",
+      "args": ["/path/to/local-network-mcp/network_mcp_server.py"],
+      "env": {
+<span class="lnm-envline" id="sw-envline">        "LNMCP_ENABLE_EXEC": "1"
+</span>      }
+    }
+  }
+}</pre>
+              </div>
+              <div class="lnm-parse">
+                <p class="lnm-parse-h">13 values the tests try, for each of the three variables</p>
+                <ul class="lnm-chips" id="sw-chips"></ul>
+                <p class="lnm-readout" id="sw-readout" aria-live="polite"></p>
+              </div>
+              <div class="lnm-pair">
+                <div class="lnm-mini" id="sw-before"></div>
+                <div class="lnm-mini" id="sw-after"></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The 13 values are the test suite's own parameters, each tried against all three variables: 39 cases, all passing. The two sessions at the bottom are real <code>get_environment_variables</code> calls over stdio, filtered to <code>LNMCP</code>. The config is the README's example with the variable changed to match them.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-list" aria-labelledby="h-list">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-list"><span class="num" data-mark="2">2</span>Mark the gated tools in the tool list</h2>
+          <p>When a client connects, <code>tools/list</code> advertises all 18 tools. Each gated tool that is off carries a note naming the variable that would turn it on, so the agent knows before it spends a turn trying.</p>
+          <ul class="st-points">
+            <li>The note comes from the same check as the gate, recomputed on every listing, so the list and the gate can't disagree.</li>
+            <li>One variable removes one note. A value that doesn't count, such as <code>maybe</code>, removes none.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-list" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">18 tools, as the agent sees them</p>
+              <div class="seg" role="group" aria-label="Server started with">
+                <button type="button" data-mode="clean" aria-pressed="true">No opt-ins</button>
+                <button type="button" data-mode="exec" aria-pressed="false">LNMCP_ENABLE_EXEC=1</button>
+                <button type="button" data-mode="kill" aria-pressed="false">LNMCP_ENABLE_KILL=1</button>
+                <button type="button" data-mode="typo" aria-pressed="false">LNMCP_ENABLE_EXEC=maybe</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="lnm-tools" id="tl-groups"></div>
+              <div class="lnm-tl-foot">
+                <p class="lnm-count" id="tl-count" aria-live="polite"></p>
+                <div class="lnm-legend"><span class="key"><i class="lnm-k lnm-k-off"></i>Gated, off</span><span class="key"><i class="lnm-k lnm-k-on"></i>Gated, on</span><span class="key"><i class="lnm-k"></i>Always on</span></div>
+              </div>
+            </div>
+            <details class="data">
+              <summary>The full listing for this server, verbatim</summary>
+              <table><thead><tr><th>Tool</th><th>Description</th></tr></thead><tbody id="tl-table"></tbody></table>
+            </details>
+            <figcaption class="demo-note">Four real <code>tools/list</code> responses, one per server start, captured over stdio. Names and descriptions are verbatim; they are grouped here in the order the server lists them.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-look" aria-labelledby="h-look">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-look"><span class="num" data-mark="3">3</span>Look around without asking</h2>
+          <p>15 tools are always on: local IP, network scan, ping, port checks, SSH sessions, system and disk stats, process, connection and environment listings, directory listings and file search.</p>
+          <ul class="st-points">
+            <li><code>scan_network</code> is a TCP connect probe, not a ping. An address counts as a host only if one of ports 80, 443, 22, 445 or 8080 accepts within half a second.</li>
+            <li>Addresses are probed one at a time, five ports each, so an address with nothing behind it costs 2.5 seconds.</li>
+            <li>A machine that is up but listens on none of the five isn't reported. Here, 127.0.0.1 refused all five ports and came back as zero hosts.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-look" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>scan_network</code> on loopback, then <code>check_port</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="lnm-probe" id="pr-grid" role="img" aria-label="Five addresses probed on five ports each. 127.0.0.2 to 127.0.0.5 gave no answer on any port within 0.5 seconds; 127.0.0.1 refused every port at once. No hosts found."></div>
+              <div class="lnm-probe-foot">
+                <p class="lnm-clock"><span>Elapsed</span><b id="pr-clock">0.0 s</b><span class="tag-ill">Played at 4× speed</span></p>
+                <div class="legend-row lnm-legend"><span class="key"><i class="lnm-k lnm-k-wait"></i>No answer in 0.5 s</span><span class="key"><i class="lnm-k lnm-k-ref"></i>Refused at once</span><span class="key"><i class="lnm-k lnm-k-ok"></i>Accepted: none here</span></div>
+              </div>
+              <div class="lnm-mini" id="pr-term"></div>
+            </div>
+            <figcaption class="demo-note">Real <code>scan_network</code> and <code>check_port</code> calls over stdio on this machine's loopback, so no packet left it. Nothing listens or answers at 127.0.0.2 to 127.0.0.5. Times are the measured response times; the animation runs four times faster. Port 8765 was a listener opened for the capture.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-refuse" aria-labelledby="h-refuse">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-refuse"><span class="num" data-mark="4">4</span>Refuse at the top of each gated tool</h2>
+          <p>The check is the first thing each of the three functions does. A refusal returns before a process starts, an SSH connection opens or a signal is sent.</p>
+          <p>It comes back as an ordinary tool result that names the variable to set, so the agent can tell the operator exactly what would allow the call. What the agent can't do is set it.</p>
+          <p class="why"><code>execute_local_command</code> takes an <code>env</code> argument of its own. That argument goes to the child process, which never starts when the call is refused, so putting <code>LNMCP_ENABLE_EXEC</code> in it changes nothing. A test pins this, and the second call below shows it over the wire.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-refuse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four calls to a server with no opt-ins</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="lnm-envs" id="rf-envs"></div>
+              <div class="lnm-lanes" id="rf-lanes"></div>
+              <div class="lnm-resp" id="rf-resp"></div>
+            </div>
+            <figcaption class="demo-note">Requests, responses and response times are real, captured by sending MCP JSON-RPC over stdio. Select a call to see its full response. 192.0.2.1 is a documentation address, and the gate returns before any connection is tried. pid 11650 was a <code>sleep</code> started for the capture; it was still running after the refusal. Line numbers are from <code>network_mcp_server.py</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Everything above holds on a server started with no opt-ins. Below this line, the operator has set a variable and restarted the server.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-run" aria-labelledby="h-run-stage">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-run-stage"><span class="num" data-mark="5">5</span>Run the tool the operator turned on</h2>
+          <p>Restarted with <code>LNMCP_ENABLE_EXEC=1</code>, an <code>echo hello</code> call crosses the line. The command runs through the shell with the server's permissions, and the result carries the exit code, stdout and stderr.</p>
+          <ul class="st-points">
+            <li>Each variable opens one tool. On this server, <code>ssh_execute</code> and <code>kill_process</code> still return the refusal.</li>
+            <li>A command times out after 30 seconds unless the call sets its own timeout.</li>
+          </ul>
+          <p class="why">There is no allowlist: once on, the tool runs whatever command it is given. An allowlist mode is first on the roadmap.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-run" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three calls to a server started with <code>LNMCP_ENABLE_EXEC=1</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="lnm-envs" id="rn-envs"></div>
+              <div class="lnm-lanes" id="rn-lanes"></div>
+              <div class="lnm-resp" id="rn-resp"></div>
+            </div>
+            <figcaption class="demo-note">A real stdio capture from the same run as stage 4, after a restart with the variable set. The command was <code>echo hello</code>, with <code>cwd</code> set to <code>/</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-kill" aria-labelledby="h-kill">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-kill"><span class="num" data-mark="6">6</span>End a process when its switch is set</h2>
+          <p><code>kill_process</code> sends SIGTERM, or SIGKILL when <code>force</code> is set, then waits up to five seconds for the process to exit. It runs only when the server was started with <code>LNMCP_ENABLE_KILL</code> turned on.</p>
+          <ul class="st-points">
+            <li>The target here was a <code>sleep 300</code> started for the capture, and the same pid met three servers in turn.</li>
+            <li>A refusal never reaches psutil. The tests swap <code>psutil.Process</code> for a function that raises, and the refusal still comes back clean.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-kill" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One pid, three servers</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="lnm-proc" id="kl-proc"><i aria-hidden="true"></i><span><code>sleep 300</code>, pid 11650</span><b id="kl-state">running</b></p>
+              <div class="lnm-lanes" id="kl-lanes"></div>
+              <div class="lnm-resp" id="kl-resp"></div>
+            </div>
+            <figcaption class="demo-note">Three server starts, captured over stdio in one run. After each call the capture script checked whether pid 11650 was still alive. No other process was touched.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Timed at the client</h2>
+          <p>Every number here comes from the stdio captures on this page, measured from writing a request to reading its response, on one Mac.</p>
+        </div>
+        <div class="measured lnm-m" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>A refusal takes milliseconds</h3>
+            <p>Seven refusals across three server starts. None started a process, opened a connection or sent a signal.</p>
+            <div class="bars">
+              <div class="bar-row"><span><code>exec</code>, plain</span><span class="bar"><i style="--w:13.3%"></i></span><span>6 ms</span></div>
+              <div class="bar-row"><span><code>exec</code>, <code>env</code> argument</span><span class="bar"><i style="--w:24.4%"></i></span><span>11 ms</span></div>
+              <div class="bar-row"><span><code>ssh_execute</code></span><span class="bar"><i style="--w:37.8%"></i></span><span>17 ms</span></div>
+              <div class="bar-row"><span><code>kill_process</code></span><span class="bar"><i style="--w:100%"></i></span><span>45 ms</span></div>
+              <div class="bar-row"><span><code>ssh_execute</code>, exec on</span><span class="bar"><i style="--w:8.9%"></i></span><span>4 ms</span></div>
+              <div class="bar-row"><span><code>kill_process</code>, exec on</span><span class="bar"><i style="--w:4.4%"></i></span><span>2 ms</span></div>
+              <div class="bar-row"><span><code>exec</code>, <code>maybe</code></span><span class="bar"><i style="--w:6.7%"></i></span><span>3 ms</span></div>
+            </div>
+            <p>Once enabled, <code>echo hello</code> took 32 ms, process start included.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>An empty address costs 2.5 seconds</h3>
+            <p>Five ports, a 0.5-second timeout each, one address after another. For the four empty loopback addresses that predicts 4 × 5 × 0.5 = 10.0 seconds.</p>
+            <div class="bars">
+              <div class="bar-row"><span>127.0.0.2 to .5</span><span class="bar"><i style="--w:100%"></i></span><span>10.273 s</span></div>
+              <div class="bar-row"><span>127.0.0.1</span><span class="bar"><i style="--w:0.6%"></i></span><span>0.062 s</span></div>
+            </div>
+            <p>An address that refuses at once costs almost nothing. A scan can be narrowed with <code>start_ip</code> and <code>end_ip</code>.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Four server starts, counted</h3>
+            <p>What each start advertised, and what its gated calls did. <code>EXEC</code> and <code>KILL</code> are short for <code>LNMCP_ENABLE_EXEC</code> and <code>LNMCP_ENABLE_KILL</code>.</p>
+            <table class="lnm-count-t">
+              <thead><tr><th>Started with</th><th class="n">Marked off</th><th>Gated calls</th></tr></thead>
+              <tbody>
+                <tr><td>No opt-ins</td><td class="n">3 of 18</td><td>4 refused</td></tr>
+                <tr><td><code>EXEC=1</code></td><td class="n">2 of 18</td><td>exec ran, 2 refused</td></tr>
+                <tr><td><code>EXEC=maybe</code></td><td class="n">3 of 18</td><td>1 refused</td></tr>
+                <tr><td><code>KILL=1</code></td><td class="n">2 of 18</td><td>kill ran</td></tr>
+              </tbody>
+            </table>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">62 tests, and none of them runs a command</h2>
+          <p>All 62 are in <code>tests/test_policy.py</code>, and they assert the policy, never that a command ran. The arguments are harmless on purpose: <code>echo hello</code>, a documentation address, a pid that can't exist. If a gate ever broke, a test would fail instead of doing damage.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>What each class pins down</h3>
+            <ul>
+              <li><strong>Default deny, 50:</strong> each tool refused with no environment, and the refusal names its variable; six spellings that open each tool and seven that don't; five always-on tools never gated.</li>
+              <li><strong>The gate is real, 5:</strong> a refusal never reaches <code>subprocess.run</code>, <code>psutil.Process</code> or an SSH client; the variable is read at call time; a tool argument can't open the gate.</li>
+              <li><strong>Tool listing, 3:</strong> off tools carry their variable in the listing, turning one on clears only its note, and always-on tools are never marked.</li>
+              <li><strong>No drift, 4:</strong> every gated name is a listed, callable tool, and every listed tool has a dispatch branch.</li>
+            </ul>
+            <p>The probes check the <code>policy</code> marker rather than <code>success: false</code>, because each tool's catch-all exception handler would turn a probe's <code>AssertionError</code> into a failure result too.</p>
+            <p>CI runs ruff, pytest and a clean-runner check that all three tools start denied, on Python 3.11 and 3.12.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A command allowlist</dt><dd>Once on, <code>execute_local_command</code> runs any shell command with the server's permissions, with no sandbox. An allowlist or denylist mode is first on the roadmap.</dd></div>
+              <div><dt>An audit log</dt><dd>Tool calls aren't logged, so an enabled server can't be reviewed afterwards. A log of every call is on the roadmap.</dd></div>
+              <div><dt>Time and output caps per tool</dt><dd>Commands default to a 30-second timeout, and output size isn't capped. Per-tool limits are on the roadmap.</dd></div>
+              <div><dt>The mcp 2.x API</dt><dd>2.x removed the low-level decorators this server is built on, so it stays pinned to mcp 1.29.1 until a port.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/local-network-mcp.git
+cd local-network-mcp
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+
+<span class="c"># Prints the policy and exits.</span>
+python -c "import network_mcp_server as s; print({t: s.is_tool_enabled(t) for t in s.DESTRUCTIVE_TOOLS})"
+
+<span class="c"># Register with Claude Code. The gated tools stay off.</span>
+claude mcp add local-network -- /path/to/local-network-mcp/.venv/bin/python \
+  /path/to/local-network-mcp/network_mcp_server.py
+
+<span class="c"># The tests need no network and no credentials.</span>
+pip install -e ".[dev]"
+pytest</pre>
+            <p>It isn't on PyPI, so install from a clone. To opt in, add an <code>env</code> block to the server's entry in your MCP client config, for example <code>"LNMCP_ENABLE_SSH_EXEC": "1"</code>, and restart the server. Add only the ones you want.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

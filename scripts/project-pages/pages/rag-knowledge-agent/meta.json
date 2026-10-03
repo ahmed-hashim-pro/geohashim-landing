@@ -1,0 +1,9 @@
+{
+  "title": "rag-knowledge-agent · Ahmed Hashim",
+  "description": "A command-line retrieval agent that cites every claim and refuses without calling the model when nothing in the documents supports an answer. How it works end to end, with the real measurements.",
+  "tour_seconds": "40",
+  "tour_end": {
+    "href": "#answer",
+    "label": "See the answer"
+  }
+}

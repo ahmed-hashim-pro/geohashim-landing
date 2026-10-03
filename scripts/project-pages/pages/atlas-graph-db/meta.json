@@ -1,0 +1,9 @@
+{
+  "title": "atlas-graph-db · Ahmed Hashim",
+  "description": "A graph database written from scratch in TypeScript, where nothing counts as committed until its record is in the write-ahead log and fsynced. How a write crosses that line and comes back after a crash, with real captures.",
+  "tour_seconds": "55",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the measurements"
+  }
+}
