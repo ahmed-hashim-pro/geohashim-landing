@@ -1,0 +1,391 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">noisefloor</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A regression harness for programs that don't give the same answer twice. It runs every test case several times, measures how far the results move on their own, and only calls a change a regression when it moves them further than that.</p>
+            <p>Eval tools answer “what score does this get?”. The question that blocks a merge is “did this change make it worse?”, and on a system that samples, two runs of unchanged code already disagree. So noisefloor measures the spread first, then judges the change against it.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/noisefloor">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/noisefloor/blob/main/docs/design-notes.md">Design notes</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11+</dd>
+              <dt>Tests</dt><dd>202 passing, no key, no network</dd>
+              <dt>Dependencies</dt><dd>pydantic and pyyaml, both pinned</dd>
+              <dt>Scorers</dt><dd>9 built in, none calls a model</dd>
+              <dt>Targets</dt><dd>Any program that prints JSON</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="unchanged">Unchanged</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="regressed">Regressed</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="first">First run</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">noisefloor --root examples/rag-knowledge-agent/baseline diff</span>
+<span class="out">rag-knowledge-agent: 20260903T014508.400182Z-rag-knowledge-agent-3dbc2f92 → 20260903T014835.696525Z-rag-knowledge-agent-3dbc2f92</span>
+<span class="out">  5 unchanged</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs. Unchanged compares the committed capture of a real RAG agent, offline. Regressed uses an illustrative target written for this page. First run is the repo's quickstart.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a change moves through noisefloor">
+          <div class="sign-group">
+            <p>On this machine: run, store, measure</p>
+            <ol>
+              <li><a class="sign-link" href="#s-argv"><b>1</b> Argv</a></li>
+              <li><a class="sign-link" href="#s-store"><b>2</b> Repeat</a></li>
+              <li><a class="sign-link" href="#s-band"><b>3</b> Band</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>4</b> Gate</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a verdict CI acts on</p>
+            <ol>
+              <li><a class="sign-link" href="#s-verdict"><b>5</b> Verdict</a></li>
+              <li><a class="sign-link" href="#s-exit"><b>6</b> Exit code</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-argv" aria-labelledby="h-argv">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-argv"><span class="num" data-mark="1">1</span>Run the target as argv, never a shell</h2>
+          <p>A suite is a YAML file: one target command, and a list of cases, each with an input and the scorers that judge it. The command is a list of arguments, and the target is started without a shell.</p>
+          <ul class="st-points">
+            <li><code>{{input}}</code>, <code>{{case_id}}</code> and <code>{{repeat}}</code> are filled in one pass per argument, so an input that contains the literal text <code>{{repeat}}</code> is not filled a second time.</li>
+            <li>Case inputs are often pasted from bug reports. Through a shell, every one of them would be a command. As one argument, it stays data.</li>
+            <li>Each case is hashed from its input and scorers. A case that changes meaning under the same id is left out of the comparison, with a warning, instead of being compared.</li>
+          </ul>
+          <p class="why">The cost is no pipes, globs or variable expansion in the command line. Those are exactly the features that make injection possible.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-argv" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One hostile input, one argument <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="nf-in">
+                <span class="nf-k">Case input</span>
+                <code class="nf-input" id="nf-input">Paris<mark>"</mark><mark>;</mark> touch pwned.txt<mark>;</mark> echo <mark>"</mark><mark>$(touch pwned2.txt)</mark></code>
+              </div>
+              <p class="nf-k nf-gap">The suite's command, one box per argument</p>
+              <ol class="nf-slots">
+                <li><span>argv[0]</span><code>python</code></li>
+                <li><span>argv[1]</span><code>echo_argv.py</code></li>
+                <li class="nf-slot-in" id="nf-slot"><span>argv[2]</span><code><b class="nf-ph">{{input}}</b><b class="nf-val">Paris"; touch pwned.txt; echo "$(touch pwned2.txt)</b></code></li>
+              </ol>
+              <div class="nf-recv" id="nf-recv">
+                <span class="nf-k">What the target received, from the stored stdout</span>
+                <code>{"argv": ["Paris\"; touch pwned.txt; echo \"$(touch pwned2.txt)"]}</code>
+              </div>
+              <div class="nf-mt" id="nf-ls"><span class="cmd">ls</span><span>echo_argv.py</span><span>suite.yaml</span></div>
+              <dl class="nf-tally" id="nf-tally">
+                <div><dt>Arguments the input became</dt><dd>1</dd></div>
+                <div><dt>Files the input created</dt><dd>0</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">The input was made up for this page; the run is real. <code>noisefloor run</code> started a script that prints its own arguments, and the stored output and the directory listing are exactly as printed. Neither <code>pwned.txt</code> nor <code>pwned2.txt</code> exists.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-store" aria-labelledby="h-store">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-store"><span class="num" data-mark="2">2</span>Repeat every case and keep every output</h2>
+          <p>Each case runs N times, five by default, one after another. Every repeat's stdout, stderr, exit code and duration is stored as JSON under <code>.noisefloor/runs/</code>, so nothing a target printed is thrown away.</p>
+          <ul class="st-points">
+            <li>A crash, a timeout or output that isn't JSON is recorded as an error, never as a pass or a fail. A crash is the absence of an answer, not a low score.</li>
+            <li>Files are written to a temporary name and renamed into place, so a crash mid-write can't leave half a record.</li>
+            <li><code>noisefloor rescore</code> applies new or fixed scorers to runs already paid for, and <code>noisefloor diff</code> compares stored runs, without calling the target again.</li>
+            <li>Latency isn't scored under <code>--jobs</code> above 1. Timings taken in parallel contend with each other, so they aren't measurements.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-store" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A real RAG agent, 5 cases, 3 repeats each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="nf-clock"><span id="nf-clock">0:00</span><span id="nf-stored" aria-live="polite">0 of 15 repeats stored</span></div>
+              <div class="nf-tl" id="nf-tl" aria-hidden="true"></div>
+              <div class="nf-tticks" aria-hidden="true"><span style="left:0">0:00</span><span style="left:31.75%">1:00</span><span style="left:63.49%">2:00</span><span style="left:95.24%">3:00</span></div>
+              <p class="nf-path"><code>runs/20260903T014508.400182Z-rag-knowledge-agent-3dbc2f92/cases/</code></p>
+              <div class="nf-files" id="nf-files"></div>
+            </div>
+            <figcaption class="demo-note">Case order, repeat order and every duration come from the run files committed in <code>examples/rag-knowledge-agent/baseline/</code>: rag-knowledge-agent answering with claude-sonnet-4-6, 15 calls in 3 minutes 9 seconds, all ok. Played back 40 times faster.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-band" aria-labelledby="h-band">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-band"><span class="num" data-mark="3">3</span>Score each repeat, then measure the band</h2>
+          <p>Scorers are deterministic, so judging an answer never needs a model or a key. Each one returns a value and a pass flag for every repeat, and the repeats then collapse into one band per scorer: the noise floor that a change will be judged against.</p>
+          <ul class="st-points">
+            <li>Seven binary scorers, such as <code>contains</code>, <code>regex</code> and <code>json_path_equals</code>, and two continuous ones, <code>json_path_number</code> and <code>latency</code>.</li>
+            <li>A binary scorer becomes a pass count, like 3/3. A continuous one becomes a mean and the observed range from lowest to highest, printed as <code>0.543 [0.437–0.597] n=3</code>.</li>
+            <li><code>json_path_number</code> takes the lowest value by default, so every citation has to clear the bar, not just the best one.</li>
+            <li>One repeat has no spread. With a single repeat the report says “noise unmeasured” and calls nothing significant.</li>
+          </ul>
+          <p class="why">The range over a handful of repeats is not a confidence interval, and the README says so. It is a heuristic, and every report prints the counts behind it so a person can overrule it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-band" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>charging-bays</code>, scored three times</p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip"><span>Question</span><span>How many charging bays should we provision for a two-shift operation?</span></p>
+            <div class="demo-body">
+              <p class="nf-k">Scorer <code>{type: json_path_number, path: "citations[].score", min: 0.35}</code></p>
+              <div class="nf-reps" id="nf-reps"></div>
+              <div class="nf-line" id="nf-line"><svg id="nf-line-svg" role="img" aria-label="The three values on a number line, with the band from 0.437 to 0.597 and the mean at 0.543"></svg></div>
+              <div class="nf-mt nf-bandout" id="nf-bandout"><span>0:json_valid: 3/3</span><span>1:json_path_in: 3/3</span><span>2:json_path_number: 0.543 [0.437–0.597] n=3</span></div>
+            </div>
+            <figcaption class="demo-note">Citations and scores are the stored outputs of the committed baseline run. In repeat 1 the model also cited the FAQ, so that repeat's lowest score, and its value, is 0.4374. The three band lines use the report's own format.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-gate"><span class="num" data-mark="4">4</span>Call it a regression only when it clears the noise</h2>
+          <p>This is the line. It doesn't hold back code; it holds back the claim “this got worse” until the change moves the results further than they moved on their own. The baseline, measured before the change, is always the yardstick.</p>
+          <ul class="st-points">
+            <li>Continuous scorers: the candidate's mean has to land outside the baseline's band, on the worse side, and move by more than <code>--min-effect</code>, which is 0 unless you set it.</li>
+            <li>Binary scorers: from a baseline that passed every repeat, any failure counts, because a clean baseline showed no variance to absorb it. Otherwise the pass rate has to drop by more than 0.2. At five repeats, one extra failure is noise and two are not.</li>
+            <li>The candidate's own spread is never used as the yardstick, and the unanimous rule never runs in reverse: 4/5 to 5/5 is unchanged, not improved.</li>
+          </ul>
+          <p class="why">No t-test, on purpose: at five samples a p-value claims a precision the data can't support. A tolerance of 1e-9 keeps two drops of exactly 0.2, which floating point computes as 0.20000000000000007 and 0.19999999999999996, on the same side of the threshold.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One baseline band, three candidates</p>
+              <div class="seg" role="group" aria-label="Candidate">
+                <button type="button" data-mode="real" aria-pressed="true">Real agent, unchanged</button>
+                <button type="button" data-mode="small" aria-pressed="false">Small change</button>
+                <button type="button" data-mode="large" aria-pressed="false">Large change</button>
+              </div>
+            </div>
+            <p class="nf-ctx" id="nf-ctx"></p>
+            <div class="plot nf-plot" id="nf-plot">
+              <svg id="nf-gate-svg" role="img" aria-label="Baseline and candidate repeats on one axis, with the baseline band and both means"></svg>
+            </div>
+            <div class="nf-mt nf-reason" id="nf-reason"></div>
+            <dl class="gstats" id="nf-gstats">
+              <div><dt>Baseline band</dt><dd data-k="band">0.437–0.597</dd></div>
+              <div><dt>Candidate mean</dt><dd data-k="mean">0.597</dd></div>
+              <div><dt>Mean moved by</dt><dd data-k="effect">0.053</dd></div>
+              <div><dt>Verdict</dt><dd data-k="verdict" class="is-pos">Within noise</dd></div>
+              <div><dt>Exit code</dt><dd data-k="exit">0</dd></div>
+            </dl>
+            <p class="demo-note nf-gnote" id="nf-gnote"></p>
+            <div class="nf-bin">
+              <p class="demo-title">Binary scorers: all 36 outcomes at five repeats</p>
+              <p class="nf-k">Rows are the baseline's passes, columns the candidate's. Hover or focus a cell for the reason the report prints.</p>
+              <div class="nf-grid-wrap">
+                <div class="nf-grid" id="nf-grid" role="group" aria-label="Verdict for every baseline and candidate pass count at five repeats"></div>
+                <div class="tip" id="nf-tip" role="status"></div>
+              </div>
+              <div class="nf-legend"><span><i class="nf-sq is-reg"></i>Regressed</span><span><i class="nf-sq is-imp"></i>Improved</span><span><i class="nf-sq"></i>Within noise</span><span><i class="nf-sq is-ran"></i>Also run end to end in stage 6</span></div>
+            </div>
+            <figcaption class="demo-note">The real agent is rag-knowledge-agent, captured twice with nothing changed; values are from the committed run files. Small and large change use <span class="tag-ill">Illustrative input</span>: a script written for this page that estimates pi from random points and reports its error, run for real, five repeats each. Every grid cell is the project's own <code>compare()</code> run on that pair of pass counts. Before issue #7 was fixed, the 4/5 to 5/5 cell read improved; it is the only cell that changed.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line noisefloor only measures. Below it, the claim “this got worse” leaves the tool: a verdict, the numbers behind it, and an exit code that fails the build.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-verdict" aria-labelledby="h-verdict">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-verdict"><span class="num" data-mark="5">5</span>Report each case, worst first, with its numbers</h2>
+          <p>Each scorer gets its own verdict, and a case takes the worst of them: any regressed scorer makes the case regressed, then any improved one. Cases are listed worst first, so the line that fails the build is the first one you read.</p>
+          <ul class="st-points">
+            <li>Order: broke, regressed, redefined, unmeasured, removed, added, fixed, improved, unchanged.</li>
+            <li>No verdict is printed without the counts and bands behind it: in the terminal, as JSON, or as a Markdown table for a pull request, with the same exit code in each.</li>
+            <li>Improvements are reported under the same thresholds, so a suspiciously large gain gets the same scrutiny as a loss.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-verdict" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The real capture, judged by two versions of the rule</p>
+              <div class="seg" role="group" aria-label="Version of the rule">
+                <button type="button" data-rule="now" aria-pressed="true">Today's rule</button>
+                <button type="button" data-rule="old" aria-pressed="false">Before the fix</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <p class="nf-head-line"><code id="nf-headline">5 unchanged</code><span id="nf-exitline">exit 0</span></p>
+              <ol class="nf-board" id="nf-board"></ol>
+            </div>
+            <figcaption class="demo-note">Both outputs were re-run offline on the committed run files, with no model call: today's code, and the code at <code>524d5cd</code>, just before the fix. The old rule measured the baseline against the candidate's zero-width band (three repeats at 0.5965) by making the call with the two swapped, which is also why its reason reads backwards. Fixed in <code>ade90b8</code>, and the wording in <code>206e4a9</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-exit" aria-labelledby="h-exit">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-exit"><span class="num" data-mark="6">6</span>Fail the build with a code CI can read</h2>
+          <p>The exit code is the verdict CI acts on: 0 when nothing regressed, 1 when a case regressed, 2 when a case broke, and 3 when the harness or its configuration is wrong.</p>
+          <ul class="st-points">
+            <li>Broke outranks regressed. A target that now fails on every repeat is a more urgent finding than one that got somewhat worse, and CI can tell the two apart without reading the report.</li>
+            <li>A changed target command refuses to compare unless you pass <code>--allow-target-change</code>. Comparing two different programs is occasionally what you want and usually a mistake.</li>
+            <li>The first <code>check</code> with no baseline adopts its own run and exits 0. That is a pass by absence, so commit a baseline before trusting the gate.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-exit" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four changes, four exit codes <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="nf-exits" id="nf-exits" role="group" aria-label="Scenario"></div>
+              <div class="cli nf-cli"><pre id="nf-exit-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">A small suite and target written for this page, changed four ways and run for real with noisefloor 0.1.0; output is verbatim, and exit codes are the shell's. The broke run's stored stderr ends in <code>IndexError: list index out of range</code>. Choose a card to see its run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured on a real agent</h2>
+          <p>The README publishes one real capture: rag-knowledge-agent on claude-sonnet-4-6 with no temperature set, 5 cases, 3 repeats, captured twice with nothing changed in between, 30 model calls. Every number here can be re-checked offline from the committed run files.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>What moved</h3>
+            <p>Fifteen binary scorers held at 3/3 in both captures. The one number that moved was a lowest citation score, because in one repeat the model chose to cite a second document.</p>
+            <div class="tally"><span>15 binary, 3/3 → 3/3</span><span>1 continuous moved</span><span>5 unchanged</span></div>
+            <p>Retrieval scored each document the same in every repeat: 0.5965 for the product spec, 0.4374 for the FAQ whenever it appeared.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What a real target found</h3>
+            <p>The first comparison of the two captures said 1 improved, 4 unchanged, on an agent that had not changed. 182 tests had passed; one 15-call capture found the hole.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Before the fix</span><span class="bar"><i style="--w:90.1%"></i></span><span>182</span></div>
+              <div class="bar-row"><span>The fix</span><span class="bar"><i style="--w:94.6%"></i></span><span>191</span></div>
+              <div class="bar-row"><span>Issue #7 fixed</span><span class="bar"><i style="--w:100%"></i></span><span>202</span></div>
+            </div>
+            <p>Tests collected at each commit. The fix was checked against the stored runs, so it cost no extra model calls.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What the scorers can't see</h3>
+            <p>The suite checks structure and substrings, so a reworded answer passes as stable. The stored output shows how often the wording changed: distinct answers across the six stored repeats.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Error 409</span><span class="bar"><i style="--w:100%"></i></span><span>6 of 6</span></div>
+              <div class="bar-row"><span>Offline robot</span><span class="bar"><i style="--w:100%"></i></span><span>6 of 6</span></div>
+              <div class="bar-row"><span>Charging bays</span><span class="bar"><i style="--w:50%"></i></span><span>3 of 6</span></div>
+              <div class="bar-row"><span>Each refusal</span><span class="bar"><i style="--w:16.67%"></i></span><span>1 of 6</span></div>
+            </div>
+            <p>The refusals came back word for word; the answers did not. The README names this as a limit of the suite, not a finding about the agent.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">202 tests, no key, no network</h2>
+          <p>A deterministic fake target reaches every failure mode from flags. Its flakiness is a function of the repeat index, so a three-out-of-five baseline is exactly reproducible without a random seed.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the verdict</h3>
+            <ul>
+              <li><strong>Significance rules:</strong> the unanimous rule, the 0.2 drop, drops of exactly the threshold that must never flag, bands, minimum effect, direction, and reasons that read baseline first.</li>
+              <li><strong>Verdicts:</strong> broke outranks regressed, fixed doesn't fail the build, redefined cases are left out, a changed target is refused, and cases sort worst first.</li>
+              <li><strong>Exit codes:</strong> 14 tests make sure a configuration error or a corrupted stored run exits 3, never with a traceback or a false 1.</li>
+              <li><strong>Target adapter:</strong> shell metacharacters stay one argument, no placeholder is filled twice, and each kind of failure gets its own outcome.</li>
+              <li><strong>The committed capture:</strong> the real baseline loads, renders in every format, and contains no absolute paths, usernames or key prefixes.</li>
+            </ul>
+            <p>CI runs ruff, pytest and the quickstart from a clean checkout on Python 3.11 and 3.12.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A real statistical test</dt><dd>At five samples a t-test or a confidence interval manufactures precision. Bootstrap intervals are on the roadmap for suites that can afford many repeats.</dd></div>
+              <div><dt>LLM-as-judge scorers</dt><dd>A judge needs an API key, and the key-free test suite is load-bearing. Planned behind an explicit flag, never as a default.</dd></div>
+              <div><dt>An HTTP adapter</dt><dd>The subprocess adapter covers the first real target. A second transport waits for a need that has actually shown up.</dd></div>
+              <div><dt>Multi-turn targets</dt><dd>Conversation history would add a second source of variation that the statistics don't model.</dd></div>
+              <div><dt>Cost accounting</dt><dd>The harness only sees a target's stdout, so it has no view of tokens.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/noisefloor.git
+cd noisefloor
+python -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e .
+
+<span class="c"># The first check adopts a baseline. Run it again to compare.</span>
+noisefloor check examples/quickstart/suite.yaml
+noisefloor check examples/quickstart/suite.yaml
+
+<span class="c"># The real RAG capture, compared offline. No key needed.</span>
+noisefloor --root examples/rag-knowledge-agent/baseline diff
+
+pip install -e ".[dev]"
+pytest</pre>
+            <p>Two runtime dependencies, both pinned: pydantic and pyyaml. noisefloor itself never needs an API key; only your target might.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>
+

@@ -1,0 +1,9 @@
+{
+  "title": "triage-graph · Ahmed Hashim",
+  "description": "Multi-agent incident triage on LangGraph where nothing runs until a human approves it, enforced in code, plus a CrewAI port and a written comparison. How it works end to end, with real captures.",
+  "tour_seconds": "55",
+  "tour_end": {
+    "href": "#report",
+    "label": "See the report"
+  }
+}

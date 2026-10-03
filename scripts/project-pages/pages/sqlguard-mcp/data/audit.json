@@ -1,0 +1,15 @@
+[
+"{\"at\":\"2026-10-04T00:41:55.745016+03:00\",\"tool\":\"list_tables\",\"decision\":\"allowed\",\"rows\":3}",
+"{\"at\":\"2026-10-04T00:41:55.74569+03:00\",\"tool\":\"describe_table\",\"decision\":\"allowed\",\"rows\":5}",
+"{\"at\":\"2026-10-04T00:41:55.746011+03:00\",\"tool\":\"query\",\"statement\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\",\"kind\":\"read\",\"decision\":\"allowed\",\"rows\":1,\"elapsed\":\"0s\"}",
+"{\"at\":\"2026-10-04T00:41:55.746212+03:00\",\"tool\":\"query\",\"statement\":\"SELECT id, status, total FROM orders WHERE id = 3\",\"kind\":\"read\",\"decision\":\"allowed\",\"rows\":1,\"elapsed\":\"0s\"}",
+"{\"at\":\"2026-10-04T00:41:55.746322+03:00\",\"tool\":\"query\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\",\"kind\":\"write\",\"decision\":\"refused\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}",
+"{\"at\":\"2026-10-04T00:41:55.749394+03:00\",\"tool\":\"request_write_approval\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\",\"kind\":\"write\",\"decision\":\"approval_requested\",\"token\":\"2798b3790c80\"}",
+"{\"at\":\"2026-10-04T00:41:55.750532+03:00\",\"tool\":\"execute_approved_write\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\",\"kind\":\"write\",\"decision\":\"refused\",\"reason\":\"request has not been approved\",\"token\":\"2798b3790c80\"}",
+"{\"at\":\"2026-10-04T00:41:55.77982+03:00\",\"tool\":\"execute_approved_write\",\"statement\":\"UPDATE orders SET status = 'refunded'\",\"kind\":\"write\",\"decision\":\"refused\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE orders SET status = 'refunded' WHERE id = 3\\\"\",\"token\":\"2798b3790c80\"}",
+"{\"at\":\"2026-10-04T00:41:55.780365+03:00\",\"tool\":\"execute_approved_write\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 4\",\"kind\":\"write\",\"decision\":\"refused\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE orders SET status = 'refunded' WHERE id = 3\\\"\",\"token\":\"2798b3790c80\"}",
+"{\"at\":\"2026-10-04T00:41:55.782554+03:00\",\"tool\":\"execute_approved_write\",\"statement\":\"UPDATE orders\\n  SET status = 'refunded'\\n  WHERE id = 3\",\"kind\":\"write\",\"decision\":\"approval_redeemed\",\"token\":\"2798b3790c80\",\"rows\":1}",
+"{\"at\":\"2026-10-04T00:41:55.782878+03:00\",\"tool\":\"execute_approved_write\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\",\"kind\":\"write\",\"decision\":\"refused\",\"reason\":\"approval has already been used\",\"token\":\"2798b3790c80\"}",
+"{\"at\":\"2026-10-04T00:41:55.801489+03:00\",\"tool\":\"query\",\"statement\":\"SELECT id, status, total FROM orders WHERE id = 3\",\"kind\":\"read\",\"decision\":\"allowed\",\"rows\":1,\"elapsed\":\"0s\"}",
+"{\"at\":\"2026-10-04T00:41:55.802046+03:00\",\"tool\":\"query\",\"statement\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\",\"kind\":\"read\",\"decision\":\"allowed\",\"rows\":1,\"elapsed\":\"0s\"}"
+]

@@ -1,0 +1,50 @@
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <pattern id="dash-top" width="80" height="13" patternUnits="userSpaceOnUse">
+      <rect class="paint" x=".75" y=".75" width="38.5" height="6.5" stroke-width="1.5"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="chart-bg" aria-hidden="true">
+  <div class="c-layer" data-rate=".15" data-kind="far"></div>
+  <div class="c-layer" data-rate=".35" data-kind="mid"></div>
+  <div class="c-layer" data-rate=".6" data-kind="near"></div>
+  <div class="c-layer" data-rate=".82" data-kind="grid"></div>
+</div>
+
+<header class="site-header">
+  <div class="wrap head-row">
+    <a class="wordmark" href="/">geohashim</a>
+    <button type="button" class="tool-btn menu-btn" id="menu-btn" aria-expanded="false" aria-controls="site-nav" hidden>Menu</button>
+    <nav class="nav" id="site-nav" aria-label="Primary">
+      <ul>
+        <li><a href="/#work">Work</a></li>
+        <li><a href="/#open-source"{{CUR_OS}}>Open source</a></li>
+        <li><a href="/#products"{{CUR_PR}}>Products</a></li>
+        <li><a href="/#about">About</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <button type="button" class="tool-btn" id="theme-btn" aria-pressed="false" hidden>
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 2a8 8 0 0 1 0 16Z" fill="currentColor"/></svg>
+      <span class="theme-label">Dark theme</span>
+    </button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  <svg class="rail" id="rail" aria-hidden="true" focusable="false">
+    <defs>
+      <clipPath id="clip-ground"><rect x="0" y="0" width="0" height="0"/></clipPath>
+      <clipPath id="clip-air"><rect x="0" y="0" width="0" height="0"/></clipPath>
+    </defs>
+    <path class="r-plan" d=""/>
+    <g clip-path="url(#clip-ground)"><path class="r-stroke r-case" d=""/><path class="r-stroke r-ink" d=""/></g>
+    <g clip-path="url(#clip-air)"><path class="r-stroke r-air-case" d=""/><path class="r-stroke r-air" d=""/></g>
+    <g class="r-marks"></g>
+  </svg>
+

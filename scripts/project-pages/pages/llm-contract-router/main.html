@@ -1,0 +1,436 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">llm-contract-router</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A TypeScript library that routes a request across LLM providers, checks each answer against your schema, and tells the model which rule it broke before retrying or moving to the next model.</p>
+            <p>Falling back to a cheaper model is easy. Falling back safely is not: the weaker model returns prose where JSON was asked for, or drops a required field, and the failure lands in your application. So the hold line here protects your code from the model, not the other way round. An answer reaches the caller only after it has passed the contract.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/llm-contract-router">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/llm-contract-router/blob/main/examples/degrade.ts">The example run</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>TypeScript, Node 22 or later</dd>
+              <dt>Tests</dt><dd>105 passing, no API key or network</dd>
+              <dt>Dependencies</dt><dd>None at runtime; vendor SDKs are optional</dd>
+              <dt>Providers</dt><dd>Anthropic and OpenAI adapters, or your own in one method</dd>
+              <dt>Contracts</dt><dd>Any zod-style <code>safeParse</code>, or a plain function</dd>
+              <dt>Registry</dt><dd>Not on npm yet; build it from source</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="example">Fallback</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="refused">Refused</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="nokey">No key</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">npm run example</span>
+<span class="out">answer   : { sentiment: 'positive', score: 0.91 }
+served by: claude-haiku-4-5-20251001 (compact)
+degraded : true
+repairs  : 1
+cost     : $0.000700</span></div>
+            </div>
+            <p class="term-cap">Fallback is the repo's own example, output verbatim. Refused is a short script I ran against the built library with mock providers. No key ran with no key in the environment, the second command in an empty project that installed only the packed library; stack traces are trimmed and paths shortened. No model was called for real anywhere on this page.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a request moves through the router">
+          <div class="sign-group">
+            <p>Inside the router: model calls and replies it doesn't trust yet</p>
+            <ol>
+              <li><a class="sign-link" href="#s-tier"><b>1</b> Tier</a></li>
+              <li><a class="sign-link" href="#s-call"><b>2</b> Call</a></li>
+              <li><a class="sign-link" href="#s-parse"><b>3</b> Parse</a></li>
+              <li><a class="sign-link" href="#s-contract"><b>4</b> Contract</a></li>
+              <li><a class="sign-link" href="#s-repair"><b>5</b> Repair</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: your code</p>
+            <ol>
+              <li><a class="sign-link" href="#s-result"><b>6</b> Result</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-tier" aria-labelledby="h-tier">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-tier"><span class="num" data-mark="1">1</span>Shape the request for the model's tier</h2>
+          <p>Every model in the chain carries a tier: frontier, balanced or compact. The tier decides how much scaffolding its request gets, so the same <code>complete()</code> call produces a different request for each model.</p>
+          <ul class="st-points">
+            <li>Every tier gets the schema. Balanced and compact also get four output rules, and only compact gets a worked example. Temperature drops from 0.2 to 0.1 to 0.</li>
+            <li>The worked example is generated from the JSON Schema itself, and a test checks that it passes the contract. For a shape the generator doesn't understand it gives no example rather than a wrong one.</li>
+            <li>A caller can override one tier, say compact's temperature, without redefining the rest.</li>
+          </ul>
+          <p class="why">The asymmetry is deliberate. A compact model given a terse prompt returns prose; a frontier model given all the hand-holding does worse, because the scaffolding crowds out the task.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-tier" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One contract, three requests</p>
+              <div class="seg" role="group" aria-label="Tier">
+                <button type="button" data-tier="frontier" aria-pressed="false">Frontier</button>
+                <button type="button" data-tier="balanced" aria-pressed="false">Balanced</button>
+                <button type="button" data-tier="compact" aria-pressed="true">Compact</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="lc-tiers" id="tier-bars"></div>
+              <div class="lc-legend"><span class="lc-lk"><i class="lc-key" style="--c:var(--ink)"></i>Task and schema</span><span class="lc-lk"><i class="lc-key" style="--c:var(--blue)"></i>Output rules</span><span class="lc-lk"><i class="lc-key" style="--c:var(--magenta)"></i>Worked example</span></div>
+              <p class="lc-sub">System prompt for <b id="tier-name">compact</b>, at temperature <b id="tier-temp">0</b></p>
+              <div class="lc-blocks" id="tier-blocks">
+                <div class="lc-blk" data-b="task" style="--c:var(--ink)"><span class="lc-blk-tag">Task</span><pre>You produce a single JSON value conforming to the "sentiment" schema.</pre></div>
+                <div class="lc-blk" data-b="schema" style="--c:var(--ink)"><span class="lc-blk-tag">Schema, sent pretty-printed over 22 lines</span><pre>JSON Schema:
+{"type":"object","properties":{"sentiment":{"type":"string","enum":["positive","negative","neutral"]},"score":{"type":"number","minimum":0,"maximum":1}},"required":["sentiment","score"]}</pre></div>
+                <div class="lc-blk" data-b="rules" style="--c:var(--blue)"><span class="lc-blk-tag">Output rules</span><pre>- Return only the JSON object. No prose before or after it.
+- Do not wrap the JSON in markdown code fences.
+- Include every required field. Do not invent fields that are not in the schema.
+- If a value is genuinely unknown, use the schema's allowed representation for it rather than omitting the field.</pre></div>
+                <div class="lc-blk" data-b="example" style="--c:var(--magenta)"><span class="lc-blk-tag">Worked example, generated from the schema</span><pre>An example of the required shape. Copy the structure, not the values:
+{
+  "sentiment": "positive",
+  "score": 0
+}</pre></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">Prompt text and character counts are the project's <code>buildSystemPrompt</code> output for the example's sentiment contract; the schema is shown on one line here. Re-running the README's example and reading what the mocks recorded: the router sent the frontier model 395 characters at temperature 0.2 and the compact model 814 at 0. No paid calls.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-call" aria-labelledby="h-call">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-call"><span class="num" data-mark="2">2</span>Call the model, fall over on provider errors</h2>
+          <p>Each call runs under its own deadline, 30 seconds by default. When a call fails, the adapter has already translated the vendor's error into one small vocabulary, so the routing logic never sees a vendor error.</p>
+          <ul class="st-points">
+            <li>A provider failure moves straight to the next model, with no repair. A repair can fix a bad answer, not a 429; a test checks the primary is called once even when two repairs are allowed.</li>
+            <li>A model whose provider was never registered is skipped, not fatal, so one bad entry can't take out the rest of the chain.</li>
+            <li>Before every call, the spend so far is checked against an optional budget, <code>maxCostUsd</code>.</li>
+            <li>Keys come only from the <code>apiKey</code> option or the vendor's environment variable. A missing key fails when the provider is created, before any request.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-call" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What a failed call becomes</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="lc-lanes" id="call-lanes"></ol>
+              <div class="lc-mterm" id="call-term"></div>
+            </div>
+            <figcaption class="demo-note">The mapping is the adapters' <code>classifyStatus</code>, with the status codes its tests check, and the descriptions are the code's own. The run underneath is my script against the built library: the primary is a mock that never answers and the timeout is 20 ms, so the router moves on. Mock providers, no paid calls.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-parse" aria-labelledby="h-parse">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-parse"><span class="num" data-mark="3">3</span>Pull the JSON out of the reply</h2>
+          <p>Telling a model to return only JSON doesn't make it so, and the weaker the model the less it holds. So the parser tries the readings in order, cheapest first, and keeps the first that parses.</p>
+          <ul class="st-points">
+            <li>The whole reply, then a fenced code block, then the first balanced <code>{…}</code>, then the first balanced <code>[…]</code>.</li>
+            <li>The balanced-span scanner skips braces and escaped quotes inside strings. A regex can't: in <code>{"note":"}"}</code> the first closing brace is inside a string.</li>
+            <li>When nothing parses, that becomes a problem the model is shown on the repair, like any broken rule.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-parse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seven replies <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="lc-legend"><span class="lc-lk"><i class="lc-pk is-ok"></i>Parsed</span><span class="lc-lk"><i class="lc-pk is-no"></i>Tried, didn't parse</span><span class="lc-lk"><i class="lc-pk is-none"></i>Nothing of that kind in the reply</span></div>
+              <ol class="lc-parse" id="parse-rows"></ol>
+            </div>
+            <figcaption class="demo-note">The replies are made up. Each was run through the project's <code>extractJson</code> and its candidate generator, and the readings tried, the values and the messages are its real output. <span aria-hidden="true">↵</span> marks a line break.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-contract" aria-labelledby="h-contract">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-contract"><span class="num" data-mark="4">4</span>Check the answer against the contract</h2>
+          <p>This is the hold line, and it protects your code: nothing a model says gets past it unless it satisfies the contract. A contract is two things, a schema the model is shown and a <code>validate</code> function that decides.</p>
+          <ul class="st-points">
+            <li>Any validator with a zod-style <code>safeParse</code> fits, or a hand-written function, because the interface is structural. The library depends on no validator; its tests use real zod 4 and a hand-written contract.</li>
+            <li>Validator errors become <code>path: message</code> lines, because “invalid input” gives a model nothing to fix.</li>
+            <li>Three exits: pass and hand the data over; fail with a repair left and send the problems back; fail again and try the next model. Every rejection is recorded with its problems, tokens and cost.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-contract" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One reply at the hold line</p>
+              <div class="lc-segs">
+                <div class="seg" role="group" aria-label="Model reply">
+                  <button type="button" data-reply="wrong" aria-pressed="true">Wrong values</button>
+                  <button type="button" data-reply="missing" aria-pressed="false">Missing field</button>
+                  <button type="button" data-reply="valid" aria-pressed="false">Valid</button>
+                </div>
+                <div class="seg" role="group" aria-label="Contract">
+                  <button type="button" data-rules="hand" aria-pressed="true">Hand-written</button>
+                  <button type="button" data-rules="zod" aria-pressed="false">zod 4</button>
+                </div>
+              </div>
+            </div>
+            <div class="lc-gate" id="gate">
+              <div class="lc-zone lc-up">
+                <div class="lc-col">
+                  <p class="lc-zlabel">The model's reply, parsed <span class="tag-ill">Illustrative input</span></p>
+                  <div class="lc-reply" id="gate-reply"></div>
+                </div>
+                <div class="lc-col">
+                  <p class="lc-zlabel">Kept for the repair prompt</p>
+                  <div class="lc-probs" id="gate-probs"><p>These constraints were not met:</p><ul></ul><p class="lc-none">None. Every field passed.</p></div>
+                </div>
+              </div>
+              <div class="lc-line" id="gate-line" aria-hidden="true">
+                <svg focusable="false">
+                  <rect class="paint" x="-4" y=".75" width="110%" height="6.5" stroke-width="1.5"/>
+                  <rect class="paint" x="-4" y="13.75" width="110%" height="6.5" stroke-width="1.5"/>
+                  <rect y="26" width="100%" height="8" fill="url(#dash-top)"/>
+                  <rect y="39" width="100%" height="8" fill="url(#dash-top)"/>
+                </svg>
+                <span class="lc-light" id="gate-light">contract.validate()</span>
+              </div>
+              <div class="lc-zone lc-down">
+                <div class="lc-col">
+                  <p class="lc-zlabel">Your code</p>
+                  <div class="lc-recv" id="gate-recv" aria-live="polite"></div>
+                </div>
+                <div class="lc-col">
+                  <p class="lc-zlabel">Exit taken</p>
+                  <ol class="lc-exits" id="gate-exits">
+                    <li data-x="pass">Pass: hand the data to your code</li>
+                    <li data-x="repair">Fail with a repair left: send these lines back</li>
+                    <li data-x="next">Fail again: try the next model</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The replies are made up; the first is the one the README's example scripts for its backup model. Every verdict and message is real output: the example's hand-written contract and zod 4 through <code>fromSafeParser</code>, run on these values. No model was called.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-repair" aria-labelledby="h-repair">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-repair"><span class="num" data-mark="5">5</span>Repair once, naming the broken rule</h2>
+          <p>A rejected answer never crosses. The model is told what it produced and exactly which constraints it broke, then asked once more. Asking again without that just re-rolls the same mistake.</p>
+          <ul class="st-points">
+            <li>The repair prompt carries the original ask, the model's own reply, cut at 2,000 characters, and one line per broken rule.</li>
+            <li>One repair per model by default. If the repair fails too, the router stops spending on a model that can't comply and moves on.</li>
+            <li>The next model starts clean from the original prompt and never sees the failed repair.</li>
+          </ul>
+          <p class="why">One test says it in its name: the router “tells the model what was wrong, not just that it was wrong”.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-repair" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What the router sent back <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Run">
+                <button type="button" data-run="works" aria-pressed="true">Repair works</button>
+                <button type="button" data-run="fails" aria-pressed="false">Repair fails</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <ol class="lc-ledger" id="rp-ledger"></ol>
+              <div class="lc-rprompt" id="rp-prompt"></div>
+              <p class="lc-rnote" id="rp-note"></p>
+            </div>
+            <figcaption class="demo-note">Prompts are what the router actually sent, recorded by the mock provider (<code>provider.calls</code>): Repair works re-runs the README's example, Repair fails is my script where the primary repeats its mistake. Attempt lines are printed in the example's format. Mock providers, no paid calls.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Only an answer that passed the contract crosses here. Everything above happens inside the router; below this line is your code, which gets typed data or a typed failure, never a malformed answer.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-result" aria-labelledby="h-result">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-result"><span class="num" data-mark="6">6</span>Hand back typed data or a typed failure</h2>
+          <p>Your code gets <code>{ ok: true, data, meta }</code> with the data typed and validated, or <code>{ ok: false, error, meta }</code> where the error is <code>chain_exhausted</code>, <code>budget_exceeded</code> or <code>configuration</code>. <code>meta</code> matters most when it failed, so it travels in the result rather than on an exception.</p>
+          <ul class="st-points">
+            <li><code>meta.attempts</code> lists every call: model, tier, repair number, outcome, failure kind, problems, tokens, cost and latency.</li>
+            <li><code>degraded</code> means a model other than the primary served it; <code>repairs</code> counts repair calls. Two fields, two signals.</li>
+            <li><code>costUsd</code> sums every attempt, repairs and abandoned models included, so a fallback can cost more than the primary alone.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-result" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four runs, four results</p>
+              <div class="seg" role="group" aria-label="Run">
+                <button type="button" data-run="pass" aria-pressed="false">Pass first time</button>
+                <button type="button" data-run="example" aria-pressed="true">README example</button>
+                <button type="button" data-run="fallover" aria-pressed="false">Repair fails</button>
+                <button type="button" data-run="exhausted" aria-pressed="false">Every model fails</button>
+              </div>
+            </div>
+            <div class="lc-res">
+              <div class="lc-res-main">
+                <ol class="lc-atts" id="res-atts"></ol>
+                <div class="lc-cost">
+                  <p class="lc-ctotal"><code>meta.costUsd</code> <b id="res-total">$0.000000</b></p>
+                  <div class="lc-cbar" id="res-cbar"><span class="lc-cmark" style="--at:46.875%"><i></i><em>Primary alone, first try: $0.005250</em></span></div>
+                  <div class="lc-legend"><span class="lc-lk"><i class="lc-key" style="--c:var(--red)"></i>Spent on rejected answers</span><span class="lc-lk"><i class="lc-key" style="--c:var(--green)"></i>Spent on the accepted answer</span></div>
+                </div>
+              </div>
+              <dl class="lc-fields" id="res-fields"></dl>
+            </div>
+            <figcaption class="demo-note">Values are the real results of four runs with mock providers, no paid calls: the README's example, and three runs of my script against the built library. Each mock call reports 100 input and 50 output tokens, and the prices are the example's inputs ($15 and $75 per million tokens for the primary, $1 and $5 for the backup), not current list prices.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="answer" aria-labelledby="h-answer">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-answer">The README's run, traced</h2>
+          <p>The repo's example scripts two mock providers: a primary that rate-limits, and a backup whose first answer breaks the contract. Hover or focus a line of its output to see which part of the script caused it.</p>
+        </div>
+        <div class="lc-trace">
+          <div class="panel lc-src">
+            <p class="demo-title"><code>examples/degrade.ts</code>, lines 48 to 60</p>
+            <pre id="trace-src"></pre>
+          </div>
+          <div class="panel lc-out">
+            <p class="demo-title"><code>npm run example</code></p>
+            <ul class="lc-olines" id="trace-out"></ul>
+            <p class="lc-onote" id="trace-note" aria-live="polite">Hover or focus a line above.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The repo documents no benchmarks, so none are quoted here. These numbers come from running the project's own code with mock providers on my machine.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>A fallback can cost more</h3>
+            <p>The total counts every call, repairs and abandoned models included.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Primary, first try</span><span class="bar"><i style="--w:46.875%"></i></span><span>$0.005250</span></div>
+              <div class="bar-row"><span>README example</span><span class="bar"><i style="--w:6.25%"></i></span><span>$0.000700</span></div>
+              <div class="bar-row"><span>Repair fails, backup</span><span class="bar"><i style="--w:96.875%"></i></span><span>$0.010850</span></div>
+              <div class="bar-row"><span>Every model fails</span><span class="bar"><i style="--w:100%"></i></span><span>$0.011200</span></div>
+            </div>
+            <p>A failed repair on the expensive model plus a fallback came to about twice the primary alone. The README says as much: you are buying a valid answer with extra round trips. Mock token counts, the example's prices.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The budget is a soft ceiling</h3>
+            <p><code>maxCostUsd</code> is checked before each call, against what has already been spent.</p>
+            <div class="bars lc-budget">
+              <div class="bar-row"><span>Budget</span><span class="bar lc-at" style="--at:83.3%"><i style="--w:83.3%"></i></span><span>$0.005000</span></div>
+              <div class="bar-row"><span>Spent</span><span class="bar lc-at" style="--at:83.3%"><i style="--w:87.5%"></i></span><span>$0.005250</span></div>
+            </div>
+            <p>So a run stops at the first check after reaching the budget, and can pass it by up to one call. Measured: a $0.005000 budget returned <code>budget_exceeded</code> after $0.005250. No call starts once the budget is reached.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>One package, nothing else</h3>
+            <p>Packed from the repo and installed into an empty project, offline.</p>
+            <div class="tally"><span>1 package added</span><span>0 runtime dependencies</span><span>17.6 kB packed</span></div>
+            <p>The vendor SDKs are optional peer dependencies behind their own entry points. Importing the Anthropic adapter without its SDK fails at import with <code>Cannot find package '@anthropic-ai/sdk'</code>, naming what to install.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">105 tests, none needs an API key</h2>
+          <p>Every provider is a mock or a fake client. CI sets no provider key at all, so the suite passing there shows nothing reaches a real API.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward what fails quietly</h3>
+            <ul>
+              <li><strong>Routing:</strong> falls over on four failure kinds without a repair, reports every model when the chain runs out, skips an unregistered provider, and turns a provider that never answers into a timeout.</li>
+              <li><strong>The contract:</strong> repairs instead of giving up, tells the model what was wrong, moves on when the repair fails, honours <code>repairsPerModel: 0</code>, and keeps <code>degraded</code> and <code>repairs</code> separate.</li>
+              <li><strong>Calibration:</strong> each tier gets a different request, the worked example passes its own schema, a self-referential schema still terminates, and a runaway answer is cut before it's echoed back.</li>
+              <li><strong>Parsing:</strong> fences, prose, nesting, braces and escaped quotes inside strings, and four replies it must refuse.</li>
+              <li><strong>Adapters:</strong> the Anthropic and OpenAI wire shapes against fake clients, and HTTP status codes mapped to the router's vocabulary.</li>
+              <li><strong>zod:</strong> the README's zod path, end to end with real zod 4.</li>
+            </ul>
+            <p>CI runs build, typecheck, lint, the tests, coverage and the README example on Node 22 and 24.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Streaming</dt><dd>The contract is checked against a complete response, so there is nothing to validate mid-stream.</dd></div>
+              <div><dt>Backoff, caching and batching</dt><dd>No retries within a model beyond the one repair. A 429 falls over at once; backoff belongs on the vendor client you pass in.</dd></div>
+              <div><dt>Quality measurement</dt><dd>The router trusts the tier you assign and won't notice a model getting worse. Tier is a judgement, not a benchmark. Measuring that is a different tool, <a href="https://github.com/ahmed-hashim-pro/noisefloor">noisefloor</a>.</dd></div>
+              <div><dt>Shipped prices</dt><dd>Model identities and tiers ship; prices don't, because a stale price that looks authoritative is worse than none. You pass current prices with <code>withPricing</code>.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/llm-contract-router.git
+cd llm-contract-router
+npm ci
+npm run check     <span class="c"># build, typecheck, lint, 105 tests</span>
+npm run example   <span class="c"># the fallback run, no key needed</span>
+
+<span class="c"># It isn't on npm. To use it in an app, pack the build:</span>
+npm pack
+cd ../your-app
+npm i ../llm-contract-router/llm-contract-router-0.1.0.tgz
+npm i @anthropic-ai/sdk   <span class="c"># only for llm-contract-router/anthropic</span></pre>
+            <p><code>npm pack</code> ships the <code>dist/</code> folder that <code>npm run check</code> builds, so run that first. Installing straight from GitHub won't work: <code>dist/</code> isn't committed and no install script builds it. Keys are read only from the <code>apiKey</code> option or <code>ANTHROPIC_API_KEY</code> and <code>OPENAI_API_KEY</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>
+

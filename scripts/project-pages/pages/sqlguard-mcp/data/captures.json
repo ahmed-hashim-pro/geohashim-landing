@@ -1,0 +1,333 @@
+{
+ "cycle": [
+  {
+   "k": "call",
+   "tool": "list_tables",
+   "args": "{}",
+   "reply": "{\"tables\":[\"customers\",\"order_items\",\"orders\"]}"
+  },
+  {
+   "k": "call",
+   "tool": "describe_table",
+   "args": "{\"table\":\"orders\"}",
+   "reply": "{\"columns\":[{\"name\":\"id\",\"not_null\":false,\"primary_key\":true,\"type\":\"INTEGER\"},{\"name\":\"customer_id\",\"not_null\":true,\"primary_key\":false,\"type\":\"INTEGER\"},{\"name\":\"status\",\"not_null\":true,\"primary_key\":false,\"type\":\"TEXT\"},{\"name\":\"total\",\"not_null\":true,\"primary_key\":false,\"type\":\"REAL\"},{\"name\":\"placed_at\",\"not_null\":true,\"primary_key\":false,\"type\":\"TEXT\"}],\"decision\":\"allowed\",\"table\":\"orders\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[1]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT id, status, total FROM orders WHERE id = 3\"}",
+   "reply": "{\"columns\":[\"id\",\"status\",\"total\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[3,\"pending\",215.5]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "request_write_approval",
+   "args": "{\"sql\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\"}",
+   "reply": "{\"decision\":\"pending\",\"expires_at\":\"2026-10-04T00:46:55+03:00\",\"next_step\":\"Ask the operator to run that command in their own terminal, then call execute_approved_write with this token and the identical statement. You cannot approve this yourself.\",\"operator_must_run\":\"sqlguard approve 2798b3790c80\",\"statement\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\",\"token\":\"2798b3790c80\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"2798b3790c80\",\"sql\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"The operator has not approved this yet. Wait, and do not retry in a loop.\",\"reason\":\"request has not been approved\"}"
+  },
+  {
+   "k": "cli",
+   "cmd": "sqlguard pending",
+   "out": [
+    "2798b3790c80  expires 12:46AM",
+    "  UPDATE orders SET status = 'refunded' WHERE id = 3",
+    "",
+    "approve one with: sqlguard approve <token> --approvals ./approvals"
+   ],
+   "exit": 0
+  },
+  {
+   "k": "cli",
+   "cmd": "sqlguard approve 2798b3790c80",
+   "out": [
+    "",
+    "  statement: UPDATE orders SET status = 'refunded' WHERE id = 3",
+    "  requested: Sun, 04 Oct 2026 00:41:55 EEST",
+    "  expires:   Sun, 04 Oct 2026 00:46:55 EEST",
+    "",
+    "approved 2798b3790c80"
+   ],
+   "exit": 0
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"2798b3790c80\",\"sql\":\"UPDATE orders SET status = 'refunded'\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE orders SET status = 'refunded' WHERE id = 3\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"2798b3790c80\",\"sql\":\"UPDATE orders SET status = 'refunded' WHERE id = 4\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE orders SET status = 'refunded' WHERE id = 3\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"2798b3790c80\",\"sql\":\"UPDATE orders\\n  SET status = 'refunded'\\n  WHERE id = 3\"}",
+   "reply": "{\"decision\":\"executed\",\"rows_affected\":1}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"2798b3790c80\",\"sql\":\"UPDATE orders SET status = 'refunded' WHERE id = 3\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Each approval runs once. Request a new one.\",\"reason\":\"approval has already been used\"}"
+  },
+  {
+   "k": "cli",
+   "cmd": "sqlguard approve 2798b3790c80",
+   "out": [
+    "",
+    "  statement: UPDATE orders SET status = 'refunded' WHERE id = 3",
+    "  requested: Sun, 04 Oct 2026 00:41:55 EEST",
+    "  expires:   Sun, 04 Oct 2026 00:46:55 EEST",
+    "[stderr] sqlguard: approval has already been used: redeemed at 2026-10-04T00:41:55+03:00"
+   ],
+   "exit": 1
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT id, status, total FROM orders WHERE id = 3\"}",
+   "reply": "{\"columns\":[\"id\",\"status\",\"total\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[3,\"refunded\",215.5]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[2]]}"
+  }
+ ],
+ "refusals": [
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT 1; DROP TABLE orders\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Send one complete statement with no comments.\",\"reason\":\"statement contains more than one statement: found \\\"D\\\" after the first statement ended\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders -- just counting\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Send one complete statement with no comments.\",\"reason\":\"statement contains a comment\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT 'DELETE FROM orders' AS note\"}",
+   "reply": "{\"columns\":[\"note\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[\"DELETE FROM orders\"]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"DROP TABLE orders\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"ddl\",\"next_step\":\"Schema changes are out of scope. Ask the operator to make them directly.\",\"reason\":\"this statement changes the schema or the database itself, which this server never executes\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"PRAGMA table_info(orders)\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"ddl\",\"next_step\":\"Schema changes are out of scope. Ask the operator to make them directly.\",\"reason\":\"this statement changes the schema or the database itself, which this server never executes\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SET timezone = 'UTC'\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"unknown\",\"next_step\":\"Rewrite it as a plain SELECT.\",\"reason\":\"this statement could not be proved to be a read\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"BEGIN\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"unknown\",\"next_step\":\"Rewrite it as a plain SELECT.\",\"reason\":\"this statement could not be proved to be a read\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"DELETE FROM orders\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT * FROM orders ORDER BY id\"}",
+   "reply": "{\"columns\":[\"id\",\"customer_id\",\"status\",\"total\",\"placed_at\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":8,\"rows\":[[1,1,\"shipped\",129.98,\"2026-07-02\"],[2,1,\"paid\",49.99,\"2026-08-11\"],[3,2,\"pending\",215.5,\"2026-08-19\"],[4,3,\"shipped\",18,\"2026-08-22\"],[5,3,\"refunded\",76.25,\"2026-08-28\"],[6,4,\"paid\",310,\"2026-09-01\"],[7,5,\"pending\",22.4,\"2026-09-02\"],[8,2,\"paid\",95.1,\"2026-09-03\"]]}"
+  }
+ ],
+ "broken": [
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"2ms\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[8]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH doomed AS (SELECT id FROM orders) DELETE FROM orders WHERE id IN (SELECT id FROM doomed)\"}",
+   "reply": "{\"decision\":\"error\",\"kind\":\"read\",\"reason\":\"query: attempt to write a readonly database (8)\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH x AS (SELECT 1) UPDATE orders SET status = 'refunded'\"}",
+   "reply": "{\"decision\":\"error\",\"kind\":\"read\",\"reason\":\"query: attempt to write a readonly database (8)\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH x AS (SELECT 1) INSERT INTO orders (customer_id, status, total, placed_at) VALUES (1, 'paid', 1, '2026-10-01')\"}",
+   "reply": "{\"decision\":\"error\",\"kind\":\"read\",\"reason\":\"query: attempt to write a readonly database (8)\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[8]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[1]]}"
+  }
+ ],
+ "real": [
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[8]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH doomed AS (SELECT id FROM orders) DELETE FROM orders WHERE id IN (SELECT id FROM doomed)\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH x AS (SELECT 1) UPDATE orders SET status = 'refunded'\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"WITH x AS (SELECT 1) INSERT INTO orders (customer_id, status, total, placed_at) VALUES (1, 'paid', 1, '2026-10-01')\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[8]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT count(*) FROM orders WHERE status = 'refunded'\"}",
+   "reply": "{\"columns\":[\"count(*)\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[1]]}"
+  }
+ ],
+ "hero": [
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT id, plan FROM accounts WHERE id = 42\"}",
+   "reply": "{\"columns\":[\"id\",\"plan\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[42,\"free\"]]}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"UPDATE accounts\\nSET plan = 'pro'\\nWHERE id = 42;\"}",
+   "reply": "{\"decision\":\"refused\",\"kind\":\"write\",\"next_step\":\"Call request_write_approval with this exact statement, then ask the operator to approve it.\",\"reason\":\"this statement changes rows, and writes are not executed without human approval\"}"
+  },
+  {
+   "k": "call",
+   "tool": "request_write_approval",
+   "args": "{\"sql\":\"UPDATE accounts\\nSET plan = 'pro'\\nWHERE id = 42;\"}",
+   "reply": "{\"decision\":\"pending\",\"expires_at\":\"2026-10-04T01:00:04+03:00\",\"next_step\":\"Ask the operator to run that command in their own terminal, then call execute_approved_write with this token and the identical statement. You cannot approve this yourself.\",\"operator_must_run\":\"sqlguard approve 7525fca039a2\",\"statement\":\"UPDATE accounts\\nSET plan = 'pro'\\nWHERE id = 42;\",\"token\":\"7525fca039a2\"}"
+  },
+  {
+   "k": "cli",
+   "cmd": "sqlguard approve 7525fca039a2",
+   "out": [
+    "",
+    "  statement: UPDATE accounts",
+    "SET plan = 'pro'",
+    "WHERE id = 42;",
+    "  requested: Sun, 04 Oct 2026 00:55:04 EEST",
+    "  expires:   Sun, 04 Oct 2026 01:00:04 EEST",
+    "",
+    "approved 7525fca039a2"
+   ],
+   "exit": 0
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts\\nSET plan = 'pro'\\nWHERE id = 43;\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE accounts\\\\nSET plan = 'pro'\\\\nWHERE id = 42;\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts SET plan = 'pro' WHERE id = 42\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE accounts\\\\nSET plan = 'pro'\\\\nWHERE id = 42;\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts SET plan = 'pro';\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE accounts\\\\nSET plan = 'pro'\\\\nWHERE id = 42;\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts SET plan = 'enterprise' WHERE id = 42;\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE accounts\\\\nSET plan = 'pro'\\\\nWHERE id = 42;\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"update accounts set plan = 'pro' where id = 42;\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Approval is bound to the exact statement. Request a new one for the statement you actually want.\",\"reason\":\"statement does not match the one that was approved: approved \\\"UPDATE accounts\\\\nSET plan = 'pro'\\\\nWHERE id = 42;\\\"\"}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts SET plan = 'pro' WHERE id = 42;\"}",
+   "reply": "{\"decision\":\"executed\",\"rows_affected\":1}"
+  },
+  {
+   "k": "call",
+   "tool": "execute_approved_write",
+   "args": "{\"token\":\"7525fca039a2\",\"sql\":\"UPDATE accounts\\nSET plan = 'pro'\\nWHERE id = 42;\"}",
+   "reply": "{\"decision\":\"refused\",\"next_step\":\"Each approval runs once. Request a new one.\",\"reason\":\"approval has already been used\"}"
+  },
+  {
+   "k": "call",
+   "tool": "query",
+   "args": "{\"sql\":\"SELECT id, plan FROM accounts WHERE id = 42\"}",
+   "reply": "{\"columns\":[\"id\",\"plan\"],\"decision\":\"allowed\",\"elapsed\":\"0s\",\"kind\":\"read\",\"row_count\":1,\"rows\":[[42,\"pro\"]]}"
+  }
+ ]
+}

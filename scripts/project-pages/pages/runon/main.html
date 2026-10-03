@@ -1,0 +1,447 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">runon</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A command-line tool that runs plain shell-script programs on your machine, on one server, or across a named group of servers, over the ssh you already use. It is published on PyPI as <code>runon</code>.</p>
+            <p>Most teams keep their procedures in a scripts folder nobody trusts, and Ansible is a lot to adopt for six scripts that work. runon keeps the scripts and does the annoying part: getting a script and its helpers onto many machines, running them, and saying which ones failed. Before anything reaches a server, it settles where the run goes, what it runs, and whether you meant it.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/runon">View on GitHub</a>
+              <a class="cta-link" href="https://pypi.org/project/runon/">runon on PyPI</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.10 or newer</dd>
+              <dt>Tests</dt><dd>419 passing, none needs a server or a key</dd>
+              <dt>Transport</dt><dd>The system ssh and scp, so your keys and ~/.ssh/config apply</dd>
+              <dt>Dependencies</dt><dd>None on Python 3.11 and up; tomli on 3.10</dd>
+              <dt>Published</dt><dd>PyPI, version 0.14.0</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="refuse">Refuse</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="plan">Plan</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="run">Run</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">runon -C examples group --group production run-program migrate &lt; /dev/null</span>
+<span class="out">Migrate the database — Applies pending schema migrations
+
+DESTRUCTIVE: Locks tables while it runs and cannot be rolled back.</span>
+<span class="err">runon: migrate is marked destructive and there is no terminal to confirm on.
+Pass --yes, or set RUNON_ASSUME_YES=1, if you mean it.</span></div>
+            </div>
+            <p class="term-cap">Real output. Refuse and Plan were captured from runon 0.14.0 on the repo's examples workspace, with an illustrative destructive program, <code>migrate</code>, added to it. Run is the quickstart step from CI. Nothing on this page connected to a server.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a run moves through runon">
+          <div class="sign-group">
+            <p>On your machine: nothing connects yet</p>
+            <ol>
+              <li><a class="sign-link" href="#s-dir"><b>1</b> Directory</a></li>
+              <li><a class="sign-link" href="#s-targets"><b>2</b> Targets</a></li>
+              <li><a class="sign-link" href="#s-program"><b>3</b> Program</a></li>
+              <li><a class="sign-link" href="#s-hold"><b>4</b> Plan or yes</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: ssh and scp</p>
+            <ol>
+              <li><a class="sign-link" href="#s-ship"><b>5</b> Ship</a></li>
+              <li><a class="sign-link" href="#s-report"><b>6</b> Report</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-dir" aria-labelledby="h-dir">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-dir"><span class="num" data-mark="1">1</span>Keep each procedure as a directory</h2>
+          <p>A program is a directory with a <code>main.sh</code> in it. Adding a capability means adding a directory, and the tool itself never changes: runon knows how to reach machines, and shell knows what to do on them.</p>
+          <ul class="st-points">
+            <li>Optional files sit beside <code>main.sh</code>: <code>meta.toml</code> says what it is, <code>params.toml</code> holds settings that travel with it, and <code>prompts.toml</code> lists what it asks for at run time.</li>
+            <li>Shared helpers live in <code>functions/</code> and are copied with every program, because a script that sources a helper is broken without it.</li>
+            <li>There is one workspace, <code>~/.runon/workspace</code>, made on first use. <code>-C</code> points somewhere else for a single command.</li>
+            <li>A program learns where it is running from environment variables, so <code>./main.sh</code> still runs by hand.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-dir" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The <code>examples/</code> workspace in the repo</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ul class="ro-tree" id="dir-tree">
+                <li class="ro-d" style="--lv:0">examples/</li>
+                <li class="ro-d" style="--lv:1">programs/</li>
+                <li class="ro-d" style="--lv:2">disk-report/</li>
+                <li class="ro-f" style="--lv:3" data-k="a">main.sh <span class="ro-cm"># Reports the fullest filesystem, and fails if it is above a threshold.</span></li>
+                <li class="ro-d" style="--lv:2">hello-world/</li>
+                <li class="ro-f" style="--lv:3" data-k="b">main.sh <span class="ro-cm"># Prints a greeting from each host.</span></li>
+                <li class="ro-d" style="--lv:1">functions/</li>
+                <li class="ro-f" style="--lv:2">say.sh <span class="ro-cm"># Prints a message with a consistent prefix.</span></li>
+                <li class="ro-d" style="--lv:1">layouts/</li>
+                <li class="ro-f" style="--lv:2">split.sh</li>
+                <li class="ro-f" style="--lv:1">inventory.toml <span class="ro-cm"># hosts and groups</span></li>
+              </ul>
+              <div class="cli ro-list" id="dir-list"><pre><span class="cmd">runon -C examples list programs</span>
+<span class="ro-ln" data-k="a">  disk-report  <mark>Reports the fullest filesystem, and fails if it is above a threshold.</mark></span>
+<span class="ro-ln" data-k="b">  hello-world  <mark>Prints a greeting from each host.</mark></span></pre></div>
+              <div class="ro-env" id="dir-env">
+                <p>What <code>disk-report</code> is handed on db-1</p>
+                <ul>
+                  <li><b>RUNON_HOST</b>db-1</li>
+                  <li><b>RUNON_ADDRESS</b>10.0.0.9</li>
+                  <li><b>RUNON_PROGRAM</b>disk-report</li>
+                  <li><b>RUNON_FUNCTIONS</b>"$HOME/.runon"/functions</li>
+                  <li><b>RUNON_VAR_ROLE</b>database</li>
+                </ul>
+              </div>
+            </div>
+            <figcaption class="demo-note">The tree and its comment lines are the repo's <code>examples/</code> directory. The listing is a real run of runon 0.14.0: with no <code>meta.toml</code>, a program's description is the first comment line of its <code>main.sh</code>. The variables are what runon's own environment builder produced for db-1, recorded through its FakeTransport.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-targets" aria-labelledby="h-targets">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-targets"><span class="num" data-mark="2">2</span>Resolve every target from one file</h2>
+          <p>Hosts and groups live in one <code>inventory.toml</code>, short enough to read on one screen and diff in review. It is loaded and checked before runon touches anything.</p>
+          <ul class="st-points">
+            <li>Each <code>address</code> is handed to ssh untouched, so a Host alias from <code>~/.ssh/config</code> works.</li>
+            <li>A group that names an unknown host stops every command when the file loads, before a rollout can half-finish on the hosts it could find.</li>
+            <li>An unknown bare name is refused as a typo. Anything shaped like an address, such as <code>root@10.0.0.4</code>, is used as given: there is no allowlist.</li>
+            <li><code>password = "..."</code> in the file is an error. The inventory gets committed, so it may only say where a password lives.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-targets" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five ways to name a target</p>
+              <div class="seg" role="group" aria-label="Inventory and target">
+                <button type="button" data-scn="clean" aria-pressed="true">As written</button>
+                <button type="button" data-scn="addr" aria-pressed="false">An address it doesn't know</button>
+                <button type="button" data-scn="name" aria-pressed="false">A name it doesn't know</button>
+                <button type="button" data-scn="secret" aria-pressed="false">A password in the file</button>
+                <button type="button" data-scn="typo" aria-pressed="false">A typo in a group</button>
+              </div>
+            </div>
+            <div class="ro-inv">
+              <div class="ro-toml">
+                <p class="ro-cap"><code>examples/inventory.toml</code></p>
+                <pre id="inv-file"></pre>
+              </div>
+              <div class="ro-res">
+                <p class="ro-cap">What runon resolved</p>
+                <ul class="ro-targets" id="inv-res"></ul>
+                <div class="cli"><pre id="inv-out"></pre></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The inventory is the repo's <code>examples/inventory.toml</code> with its comments trimmed. Lines marked <span class="tag-ill">Illustrative input</span> are edits made for this page and read by runon's real parser. Every output is a real run of runon 0.14.0, and none of these runs started ssh.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-program" aria-labelledby="h-program">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-program"><span class="num" data-mark="3">3</span>Check the program before it travels</h2>
+          <p>The program is checked on your machine as well, because the target is the worst place to learn that a script cannot run.</p>
+          <ul class="st-points">
+            <li>Names may use letters, digits, dot, dash and underscore, so <code>../../etc</code> is refused rather than resolved.</li>
+            <li>A <code>main.sh</code> saved with Windows line endings is refused, with the <code>sed</code> that fixes it. On the target it would fail as "not found", which reads like a missing program.</li>
+            <li>An empty <code>--program</code>, usually an unset shell variable, is refused instead of falling through to a menu.</li>
+            <li>With nobody at a terminal, a missing program, host or group is refused and the choices are named, even when there is only one.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-program" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five commands, four that stop here</p>
+              {{REPLAY}}
+            </div>
+            <p class="ro-prefix">Each line runs <code>runon -C examples host --host web-1</code> followed by:</p>
+            <ol class="ro-checks-list" id="prog-list"></ol>
+            <figcaption class="demo-note">Real runs of runon 0.14.0 on the examples workspace. <code>winbox</code> is an <span class="tag-ill">Illustrative input</span>: a program written with CRLF line endings, the same input CI uses. None of these runs started ssh.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-hold" aria-labelledby="h-hold">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-hold"><span class="num" data-mark="4">4</span>Stop for a plan or a yes</h2>
+          <p>This is the last step before the first connection, and it runs once per command, not once per host. <code>--dry-run</code> stops just before it and prints the plan. A program that declares <code>destructive = true</code> in its <code>meta.toml</code> has to be agreed to here.</p>
+          <ul class="st-points">
+            <li>With nobody at a terminal, a destructive program is refused unless the command says <code>--yes</code> or the environment says <code>RUNON_ASSUME_YES=1</code>.</li>
+            <li>The warning prints even when <code>--yes</code> skips the question, so the log records what was agreed to.</li>
+            <li>Answering no exits 130, so <code>runon … &amp;&amp; notify "deployed"</code> can't announce a rollout that never happened.</li>
+            <li>Values a program asks for in <code>prompts.toml</code> are collected here too, once for the whole group: the environment first, then the terminal, then the declared default.</li>
+          </ul>
+          <p class="why">The line only holds what declares itself. A program without <code>destructive = true</code> goes straight through once its targets and name check out, <code>copy-program</code> skips the question, and the plain <code>copy</code> verb has no consent step at all. A test pins the refusal: it asserts exit status 2 and an empty list of transport calls.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo ro-hold" id="d-hold" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One destructive program, sent to production four ways</p>
+              <div class="seg" role="group" aria-label="How the run is sent">
+                <button type="button" data-mode="plan" aria-pressed="false">Plan with --dry-run</button>
+                <button type="button" data-mode="notty" aria-pressed="true">Nobody at a terminal</button>
+                <button type="button" data-mode="no" aria-pressed="false">Someone answers n</button>
+                <button type="button" data-mode="yes" aria-pressed="false">The command says --yes</button>
+              </div>
+            </div>
+            <p class="ro-cmd"><span>runon -C examples group --group production run-program migrate</span><b id="hold-suf"> &lt; /dev/null</b><small id="hold-note"></small></p>
+            <div class="ro-field" id="hold-field">
+              <div class="ro-mach">
+                <p class="ro-cap">On this machine</p>
+                <ol class="ro-steps" id="hold-steps">
+                  <li data-s="t"><b>Targets</b><span>web-1, web-2, db-1</span></li>
+                  <li data-s="p"><b>Program</b><span>migrate, marked destructive</span></li>
+                  <li data-s="c"><b>Consent</b><span id="hold-consent">Not asked yet</span></li>
+                </ol>
+              </div>
+              <div class="ro-line" id="hold-line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <div class="ro-hosts">
+                <p class="ro-cap">Group production</p>
+                <ul id="hold-hosts">
+                  <li><b>web-1</b><span>deploy@web-1.example.com</span><em></em></li>
+                  <li><b>web-2</b><span>deploy@web-2.example.com</span><em></em></li>
+                  <li><b>db-1</b><span>deploy@10.0.0.9</span><em></em></li>
+                </ul>
+              </div>
+            </div>
+            <div class="ro-meter">
+              <p class="ro-count"><b id="hold-n">0</b><span>ssh processes started</span></p>
+              <p class="ro-exit" id="hold-exit" aria-live="polite"></p>
+            </div>
+            <div class="cli ro-holdout"><pre id="hold-out"></pre></div>
+            <figcaption class="demo-note"><code>migrate</code> is an <span class="tag-ill">Illustrative input</span>: a one-line program with <code>destructive = true</code> and its own warning text. Every line of output is runon 0.14.0's. ssh and scp were replaced by a recorder that logs its arguments and connects to nothing: it logged nothing for the first three runs, and one ssh call per host for the <code>--yes</code> run, whose host results are not shown because the recorder answered them.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Everything above happens on your machine and starts no ssh process. Below this line, runon hands the run to ssh and scp.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-ship" aria-labelledby="h-ship">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ship"><span class="num" data-mark="5">5</span>Ship the program with its helpers</h2>
+          <p>Past the line, each host gets the same steps: make the directory, copy the program, copy the shared functions, run it. Everything goes through the system ssh and scp, so your keys, agent, <code>~/.ssh/config</code> and <code>known_hosts</code> apply unchanged.</p>
+          <ul class="st-points">
+            <li>Copies land in the parent directory, because <code>scp -r</code> nests a second copy inside the first otherwise.</li>
+            <li>The run is wrapped as <code>env … /bin/sh -c '…'</code>, so an account whose login shell is tcsh or fish still gets every variable.</li>
+            <li>With no password in play, ssh runs with <code>BatchMode=yes</code>, so a missing key fails at once instead of leaving twenty connections waiting for input.</li>
+            <li>A password goes through a private askpass helper that answers password prompts only, never appears in argv, and is deleted when the run ends.</li>
+          </ul>
+          <p class="why">Connections are kept open for 60 seconds by default with ssh's own ControlMaster, so the several connections one command makes can share a login.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ship" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>copy-run-program migrate</code> to web-1, as ssh and scp received it</p>
+              <div class="seg" role="group" aria-label="How web-1 authenticates">
+                <button type="button" data-auth="key" aria-pressed="true">With a key</button>
+                <button type="button" data-auth="pw" aria-pressed="false">With a password</button>
+              </div>
+            </div>
+            <div class="ro-ship">
+              <ol class="ro-calls" id="ship-calls"></ol>
+              <aside class="ro-saw" id="ship-saw" aria-live="polite">
+                <p class="ro-cap">What ssh was handed</p>
+                <ul></ul>
+              </aside>
+            </div>
+            <div class="ro-ci">
+              <p class="ro-cap">From CI, against a real sshd, on an account whose login shell is tcsh</p>
+              <div class="cli"><pre><span class="cmd">runon host --host cshbox copy-run-program shellcheck --verbose &lt; /dev/null</span>
+<span class="ok">cshbox                   ok</span>
+    H=[cshbox] P=[42] F=[yes]</pre></div>
+              <p class="ro-small">The CI program prints its host name, a parameter and whether the functions library arrived. Before the <code>env … /bin/sh -c</code> wrapper, all three arrived empty on tcsh and the run still reported ok.</p>
+            </div>
+            <figcaption class="demo-note">Arguments recorded by replacing ssh and scp with a script that logs what it is given; nothing connected. The control socket path is shown as it would be for a home of <code>/home/you</code>; paths replaced. The password run was recorded on a <code>run-program</code> call; the copy steps take their options from the same builder.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-report" aria-labelledby="h-report">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-report"><span class="num" data-mark="6">6</span>Report every host, and fail if one did</h2>
+          <p>Each host runs inside its own guard, so one unreachable machine becomes one failed line and the others carry on. A rollout that worked on two machines out of three has not worked, and the exit status says so.</p>
+          <ul class="st-points">
+            <li>Failures always show their output. Successes show theirs only with <code>-v</code>.</li>
+            <li>A group run ends with a count, such as <code>2/3 ok</code>, and exits 1 if any host failed.</li>
+            <li>A failed copy skips the run on that host, so it never runs whatever version was already there.</li>
+            <li><code>-j N</code> runs N hosts at once, and the report keeps the inventory's order.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-report" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One group run of disk-report, across production</p>
+              <div class="seg" role="group" aria-label="What goes wrong">
+                <button type="button" data-scn="run" aria-pressed="true">A program fails</button>
+                <button type="button" data-scn="copy" aria-pressed="false">A copy fails</button>
+                <button type="button" data-scn="ci" aria-pressed="false">Real ssh failures, from CI</button>
+              </div>
+            </div>
+            <div class="ro-lanes" id="rep-lanes" role="table" aria-label="Steps per host">
+              <div class="ro-lrow ro-lhead" role="row"><span role="columnheader">Host</span><span role="columnheader"><span class="ro-hl">mkdir</span><span class="ro-hn" aria-hidden="true">1</span></span><span role="columnheader"><span class="ro-hl">Program</span><span class="ro-hn" aria-hidden="true">2</span></span><span role="columnheader"><span class="ro-hl">Functions</span><span class="ro-hn" aria-hidden="true">3</span></span><span role="columnheader"><span class="ro-hl">Run</span><span class="ro-hn" aria-hidden="true">4</span></span><span role="columnheader">Result</span></div>
+            </div>
+            <p class="ro-lkey" aria-hidden="true">Steps: 1 make the directory, 2 copy the program, 3 copy the functions, 4 run it.</p>
+            <div class="cli ro-repout" id="rep-cli"><pre id="rep-out"></pre></div>
+            <div class="ro-cifails" id="rep-ci" hidden>
+              <div>
+                <p class="ro-cap">A password host whose key ssh has never seen</p>
+                <div class="cli"><pre><span class="cmd">runon host --host unknown run-program hello-world --verbose &lt; /dev/null</span>
+<span class="err">unknown                  FAILED (255)</span>
+    Host key verification failed.</pre></div>
+                <p class="ro-small">It fails at once. The askpass helper now declines the "are you sure" question. When it answered that with the password, ssh asked again and again until CI timed out.</p>
+              </div>
+              <div>
+                <p class="ro-cap"><code>--watch</code>, pointed at an address that doesn't answer</p>
+                <div class="cli"><pre><span class="cmd">runon -C /tmp/ops host --host 192.0.2.1 --watch run-program hello-world &lt; /dev/null</span>
+could not log in, so these get no pane:
+<span class="err">192.0.2.1                FAILED (255)</span>
+    ssh: connect to host 192.0.2.1 port 22: Connection timed out</pre></div>
+                <p class="ro-small">The run exits non-zero and opens no pane. Before 0.14.0 it printed a tmux session name and exited 0 with every pane dead.</p>
+              </div>
+            </div>
+            <figcaption class="demo-note">The first two runs drive runon 0.14.0 through its own FakeTransport, so nothing connected; db-1's program output and its scp error are <span class="tag-ill">Illustrative input</span>, and the report around them is runon's. The CI runs are real failures against the runner's own sshd, shown without the timeout and log redirection CI wraps them in.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Captured for this page with runon 0.14.0. Wherever ssh or scp would have run, a recorder stood in for them and logged every call it received.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Stopped on this machine</h3>
+            <p>18 remote commands that runon refused or only planned, run while a recorder stood in for ssh and scp.</p>
+            <p class="ro-big"><b>0</b><span>ssh or scp processes started</span></p>
+            <div class="bars">
+              <div class="bar-row"><span>Dry run</span><span class="bar"><i style="--w:100%"></i></span><span>6</span></div>
+              <div class="bar-row"><span>Program checks</span><span class="bar"><i style="--w:50%"></i></span><span>3</span></div>
+              <div class="bar-row"><span>Inventory, targets</span><span class="bar"><i style="--w:33.3%"></i></span><span>2</span></div>
+              <div class="bar-row"><span>No terminal</span><span class="bar"><i style="--w:33.3%"></i></span><span>2</span></div>
+              <div class="bar-row"><span>Consent</span><span class="bar"><i style="--w:33.3%"></i></span><span>2</span></div>
+              <div class="bar-row"><span>Flag values</span><span class="bar"><i style="--w:33.3%"></i></span><span>2</span></div>
+              <div class="bar-row"><span>Password file 0644</span><span class="bar"><i style="--w:16.7%"></i></span><span>1</span></div>
+            </div>
+            <details class="data ro-data">
+              <summary>All 18 commands</summary>
+              <table id="stop-table"><thead><tr><th>Command</th><th>Stopped by</th><th class="n">Exit</th></tr></thead><tbody></tbody></table>
+            </details>
+          </article>
+          <article class="panel m-card">
+            <h3>What crossing costs</h3>
+            <p>Calls the recorder logged once a run cleared the line.</p>
+            <div class="bars">
+              <div class="bar-row"><span>copy-run, 1 host</span><span class="bar"><i style="--w:100%"></i></span><span>4</span></div>
+              <div class="bar-row"><span>run, 3 hosts</span><span class="bar"><i style="--w:75%"></i></span><span>3</span></div>
+            </div>
+            <p>One host costs two ssh calls and two scp calls: make the directory, copy the program, copy the functions, run. A group run of an already-copied program is one ssh call per host.</p>
+            <p>Every call carries <code>ControlPersist=60s</code>, so those calls can share one login. That sharing needs a real sshd and was not measured here.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What it installs</h3>
+            <p>On Python 3.11 and up, runon installs nothing but itself. CI checks it on every commit by installing the wheel into a clean environment.</p>
+            <div class="tally"><span>runon==0.14.0, and nothing else</span><span>72,863-byte wheel</span><span>tomli only on Python 3.10</span></div>
+            <p>19 modules and 3,987 lines of Python. The full-screen program picker draws on the terminal directly rather than pull in a library every install would need.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">419 tests, no server needed</h2>
+          <p>Everything that would reach another machine goes through one Transport interface, and the suite drives the fake one, which ships as public API so you can test your own programs the same way. An empty list of recorded calls is how a test proves a refusal never reached a host.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward what fails quietly</h3>
+            <ul class="ro-themes">
+              <li><i class="t-dot" style="--c:var(--blue)"></i><span><strong>The command and the remote path:</strong> refusals with nobody at a terminal, a failed copy skipping the run, quoting so a value can't smuggle a command, variables surviving a login shell that isn't Bourne.</span></li>
+              <li><i class="t-dot" style="--c:var(--magenta)"></i><span><strong>Credentials and connections:</strong> a password never in argv or the inventory, a 0600 file created with its mode already set, a helper that never answers a host-key question, socket paths that always fit.</span></li>
+              <li><i class="t-dot" style="--c:var(--yellow)"></i><span><strong>Programs and the inventory:</strong> destructive consent, declining exits 130, prompts in order, CRLF, a group naming an unknown host, IPv6 addresses.</span></li>
+              <li><i class="t-dot" style="--c:var(--water)"></i><span><strong>The terminal:</strong> shell completion in bash, zsh and fish, the picker, <code>doctor</code>, <code>--watch</code>, and a check that the README's command reference matches the parser.</span></li>
+            </ul>
+            <p>CI runs ruff and the suite on Ubuntu and macOS across Python 3.10 to 3.13. All 419 pass on macOS; on Ubuntu 418 pass and one is skipped, a test that needs csh. A separate job drives a real sshd on localhost: key and password logins, an unknown host key, a tcsh account, a group of one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Rollback and desired state</dt><dd>It runs your script. For convergence, the README points to Ansible or Chef, and says to use them.</dd></div>
+              <div><dt>Inventory discovery</dt><dd>No cloud APIs and no dynamic inventory. You write the file.</dd></div>
+              <div><dt>Live output in the collected path</dt><dd>Results arrive when a host finishes. <code>--watch</code> opens a tmux pane per host when you need to see it happen.</dd></div>
+              <div><dt>An agent on the hosts</dt><dd>Groups run over ssh only, with no plan to add one.</dd></div>
+              <div><dt>A private channel for prompt answers</dt><dd>A secret prompt is hidden on screen, but on a remote run its value is visible in <code>ps</code> on both machines while the program runs. The README says to fetch such credentials on the target instead.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>pip install runon            <span class="c"># or: pipx install runon</span>
+
+<span class="c"># Nothing to set up first.</span>
+runon list programs
+runon local run-program hello-world -v
+
+<span class="c"># A real machine, over your own ssh.</span>
+runon add-host web-1 --address 10.0.0.1 --user deploy
+runon host --host web-1 copy-run-program hello-world -v
+
+<span class="c"># Who a group run would touch, without touching them.</span>
+runon group --group production run-program hello-world --dry-run</pre>
+            <p>Python 3.10 or newer. On 3.11 and up it installs nothing but itself; on 3.10 pip also fetches <code>tomli</code>. The suite runs from a clone with <code>pip install -e ".[dev]"</code> and <code>pytest</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

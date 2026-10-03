@@ -1,0 +1,9 @@
+{
+  "title": "llm-contract-router · Ahmed Hashim",
+  "description": "A TypeScript router across LLM providers that checks every answer against your schema, tells the model which rule it broke, and repairs or falls back before anything reaches your code. How it works end to end, with real runs.",
+  "tour_seconds": "45",
+  "tour_end": {
+    "href": "#answer",
+    "label": "See the traced run"
+  }
+}

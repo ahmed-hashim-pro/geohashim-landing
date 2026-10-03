@@ -1,0 +1,346 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">Mushaf</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A Quran reader for the web that shows the printed Mushaf itself: 604 page images, every ayah on them tappable, and pages that turn like a book.</p>
+            <p>A printed Mushaf is read by the page, so the reader shows the page by default rather than reflowed text, and does the work around it. It knows where every ayah sits on each image, turns pages without losing your place, and checks what is already in the browser before asking anyone else.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://mushaf.geohashim.com/tabs/mushaf">Open Mushaf</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Built with</dt><dd>Angular 20 and Ionic 8, server-rendered</dd>
+              <dt>Hosting</dt><dd>AWS Amplify</dd>
+              <dt>Pages</dt><dd>604 images, 1260 px wide</dd>
+              <dt>Text</dt><dd>Uthmani script, from alquran.cloud</dd>
+              <dt>Ayah geometry</dt><dd>13,766 line boxes, bundled with the app</dd>
+              <dt>Ads</dt><dd>None, and no analytics code</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="link">Link</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="render">Render</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="tap">Tap</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">curl -s https://mushaf.geohashim.com/tabs/mushaf/page/1 | grep -oE '&lt;title&gt;[^|]*|og:image" content="[^"]*'</span>
+<span class="out">&lt;title&gt;الفاتحة - صفحة 1
+og:image" content="https://android.quran.com/data/width_1260/page001.png</span></div>
+            </div>
+            <p class="term-cap">Real output from the live site, October 2026. The tap session runs the reader's own hit-test code offline on the bundled geometry; the tap positions are illustrative.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How the reader gets a page in front of you">
+          <div class="sign-group">
+            <p>Ships with the app, or already in this browser</p>
+            <ol>
+              <li><a class="sign-link" href="#s-find"><b>1</b> Find</a></li>
+              <li><a class="sign-link" href="#s-tap"><b>2</b> Geometry</a></li>
+              <li><a class="sign-link" href="#s-turn"><b>3</b> Turn</a></li>
+              <li><a class="sign-link" href="#s-cache"><b>4</b> Cache</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: alquran.cloud and quran.com</p>
+            <ol>
+              <li><a class="sign-link" href="#s-text"><b>5</b> Text</a></li>
+              <li><a class="sign-link" href="#s-draw"><b>6</b> Page</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-find" aria-labelledby="h-find">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-find"><span class="num" data-mark="1">1</span>Find the page</h2>
+          <p>Every way into the reader ends at the same address, <code>/tabs/mushaf/page/n</code>, with n from 1 to 604. The index, the search results, bookmarks and shared links all resolve to a page number first.</p>
+          <ul class="st-points">
+            <li>The juz list is a table of start pages that ships with the app, so opening a juz needs no request.</li>
+            <li>Ayah search is the one way in that needs a request: it asks alquran.cloud, then looks up the exact page of each of the first 30 matches. The one you pick opens with that ayah highlighted.</li>
+            <li>Jump to page accepts 1 to 604. Anything else closes the dialog and leaves you where you were.</li>
+            <li>The server names each page before it reaches the browser, from the same bundled geometry, and sets the link preview image to that page.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-find" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">604 pages, 30 juz, one route</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="mu-ruler" id="mu-ruler"><svg id="mu-ruler-svg" role="img" aria-label="The 604 pages with the start page of each of the 30 juz marked"></svg></div>
+              <p class="mu-count" id="mu-juz-count" aria-live="polite">30 of 30 juz start pages match the bundled geometry</p>
+              <ol class="mu-ways" id="mu-ways">
+                <li data-k="juz"><span class="mu-way-in">Juz 30 in the index</span><span class="mu-way-arrow" aria-hidden="true"></span><code>/tabs/mushaf/page/582</code><span class="mu-way-out">Table lookup, no request</span></li>
+                <li data-k="jump"><span class="mu-way-in">Jump to page 300 <span class="tag-ill">Illustrative input</span></span><span class="mu-way-arrow" aria-hidden="true"></span><code>/tabs/mushaf/page/300</code><span class="mu-way-out">Inside 1 to 604, opens</span></li>
+                <li data-k="bad" class="is-no"><span class="mu-way-in">Jump to page 605 <span class="tag-ill">Illustrative input</span></span><span class="mu-way-arrow" aria-hidden="true"></span><code>no change</code><span class="mu-way-out">Outside 1 to 604, the dialog just closes</span></li>
+                <li data-k="link"><span class="mu-way-in">A shared link</span><span class="mu-way-arrow" aria-hidden="true"></span><code>/tabs/mushaf/page/2</code><span class="mu-way-out">Titled on the server: <span class="mu-ar" lang="ar" dir="rtl">البقرة - صفحة 2</span></span></li>
+              </ol>
+            </div>
+            <figcaption class="demo-note">Juz start pages are the reader's own table, each checked against the first ayah of that juz in the bundled geometry file. The page 2 title is the live server's output. The jump inputs are illustrative; the 1 to 604 check is the reader's.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-tap" aria-labelledby="h-tap">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-tap"><span class="num" data-mark="2">2</span>Know where every ayah sits</h2>
+          <p>The page is a picture, so the reader carries a map of it: one box per ayah per line, in the image's own 1260 px coordinates. The map loads once, when you first open a page in image view, and is used every time you tap.</p>
+          <ul class="st-points">
+            <li>A tap is scaled into page coordinates, then tested against the boxes. Inside a box wins. Otherwise the nearest box wins, but only within 50 px of the 1260 px page, about 13 px on screen when the page is drawn 330 px wide.</li>
+            <li>An ayah that runs over several lines has a box on each, and all of them light up together.</li>
+            <li>Highlights are placed as percentages of the image, so they stay on the ayah at any zoom from 50 to 200 percent and on any screen. Recitation and search results use the same boxes.</li>
+          </ul>
+          <p class="why">Ayah keys like <code>1:7</code> stand in for the text here; the real page image carries the words.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-tap" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Taps against the bundled geometry <span class="tag-ill">Illustrative input</span></p>
+              <div class="mu-head-tools">
+                <div class="seg" role="group" aria-label="Page">
+                  <button type="button" data-page="1" aria-pressed="true">Page 1</button>
+                  <button type="button" data-page="2" aria-pressed="false">Page 2</button>
+                  <button type="button" data-page="50" aria-pressed="false">Page 50</button>
+                </div>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="mu-tap">
+              <div class="mu-sheet" id="mu-sheet">
+                <svg id="mu-tap-svg" role="img" aria-label="Line boxes of the page, with taps and the ayah each one selects"></svg>
+              </div>
+              <div class="mu-tap-side">
+                <p class="mu-try" id="mu-try">Tap or click the page to run the same test.</p>
+                <div class="mu-log" id="mu-log" aria-live="polite"></div>
+                <div class="mu-hl" id="mu-hl"></div>
+              </div>
+            </div>
+            <dl class="gstats">
+              <div><dt>Pages</dt><dd>604</dd></div>
+              <div><dt>Line boxes</dt><dd>13,766</dd></div>
+              <div><dt>Ayahs</dt><dd>6,236</dd></div>
+              <div><dt>This page</dt><dd id="mu-this">10 boxes</dd></div>
+              <div><dt>Tolerance</dt><dd>50 px</dd></div>
+            </dl>
+            <figcaption class="demo-note">Boxes are the reader's bundled <code>ayahinfo.json</code>. The hit test and the highlight maths are the reader's own, copied verbatim and run in this page, with page images taken as 1260 by 2038 px, the size measured on four sampled live pages. Tap positions are illustrative; the first four match an offline run of the same code.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-turn" aria-labelledby="h-turn">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-turn"><span class="num" data-mark="3">3</span>Turn the page like a book</h2>
+          <p>On a wide screen the reader shows two pages at once, paired as in print: the odd page on the right, the even page on the left. Open an even page and its odd partner becomes the main page.</p>
+          <ul class="st-points">
+            <li>In two-page view of the page images, a turn is a 3D curl in six segments. The free edge leads while you drag, the spine takes just over half the final rotation so the whole sheet ends past vertical, and the turn commits past 60 degrees or springs back.</li>
+            <li>A button turn runs the full half circle in 500 ms with ease-in-out; a release finishes the rest of the way in proportion, never under 200 ms.</li>
+            <li>The address updates with <code>replaceState</code>, so turning pages adds no history entries and the URL always points at the page on screen.</li>
+            <li>In single-page view, a swipe needs more than 50 px of travel and 1.5 times more sideways than vertical movement, and the current page stays on screen until the next page's text has arrived.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-turn" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Side view of a turn from pages 3 and 4 <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="mu-book" id="mu-book"><svg id="mu-book-svg" role="img" aria-label="Side view of the turning sheet"></svg></div>
+              <div class="mu-turn-read">
+                <div><span>Angle</span><b id="mu-angle">0°</b></div>
+                <div><span>On screen</span><b id="mu-spread">3 | 4</b></div>
+                <div><span>Address</span><b id="mu-url"><code>/tabs/mushaf/page/3</code></b></div>
+              </div>
+              <p class="mu-turn-say" id="mu-turn-say" aria-live="polite">Drag across the book to turn the page.</p>
+            </div>
+            <figcaption class="demo-note">The curl is drawn with the reader's own segment formula and easing, side on. The drags are illustrative; the 60 degree commit, the 500 ms and 200 ms timings and the page pairing are the reader's.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-cache" aria-labelledby="h-cache">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-cache"><span class="num" data-mark="4">4</span>Check this browser first</h2>
+          <p>Before a text request leaves the browser, the reader's service worker looks in its own cache. A reply it already holds is served from there, with no network at all. Only a miss goes out to alquran.cloud.</p>
+          <ul class="st-points">
+            <li>The rule is <code>performance</code>: a cached reply up to 30 days old wins. Older ones are dropped and fetched again.</li>
+            <li>It keeps the 100 most recently used replies. When a new one arrives with the cache full, the least recently used goes. Search, translation and tafseer replies share those 100 places.</li>
+            <li>The worker is installed during the first visit, so requests made before it takes over go straight to the network.</li>
+            <li>Page images are not in this cache. They come from quran.com's CDN, which marks them cacheable for about 296 days, so the browser's own cache can answer repeats.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-cache" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The text cache through a reading session <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="mu-cache">
+              <div class="mu-req" id="mu-req" aria-live="polite"><span class="mu-req-url"><code>/v1/page/1/quran-uthmani</code></span><span class="mu-req-res"></span></div>
+              <div class="mu-slots" id="mu-slots" aria-hidden="true"></div>
+              <dl class="mu-tally" id="mu-tally">
+                <div><dt>Requests</dt><dd data-k="req">0</dd></div>
+                <div><dt>From this browser</dt><dd data-k="hit">0</dd></div>
+                <div><dt>From alquran.cloud</dt><dd data-k="miss">0</dd></div>
+                <div><dt>Evicted</dt><dd data-k="out">0</dd></div>
+              </dl>
+              <p class="mu-cache-say" id="mu-cache-say">Single-page view: read pages 1 to 110 in order, go back to page 105, then back to page 4.</p>
+            </div>
+            <figcaption class="demo-note">The session is illustrative. Its handling follows the live site's service worker exactly: <code>performance</code>, 100 entries, 30 days, least recently used out first. On the live site, opening page 1 and pressing next left exactly two entries, <code>/v1/page/1/quran-uthmani</code> and <code>/v1/page/2/quran-uthmani</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Not in this browser</span>Above this line is what ships with the app or is already cached. Below it, the reader asks third parties: alquran.cloud for the text, quran.com's CDN for the page image.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-text" aria-labelledby="h-text">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-text"><span class="num" data-mark="5">5</span>Fetch the text, one page at a time</h2>
+          <p>One request per page, for the Uthmani text of exactly the ayahs on it. In two-page view, a second request fetches the facing page.</p>
+          <ul class="st-points">
+            <li>The reply carries ten fields per ayah. The reader keeps five: its number, its number in the surah, the juz, the surah, and the text, which feeds copy, share and the text views.</li>
+            <li>Its page boundaries agree with the bundled geometry: the same ayahs, page for page, on all six pages sampled.</li>
+            <li>If the request fails in image view, the reader still shows the page image and raises no error. In the text views it says so, with a retry button.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-text" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The reply, and what the reader keeps</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="mu-get"><b>GET</b> <code>api.alquran.cloud/v1/page/2/quran-uthmani</code></p>
+              <ul class="mu-fields" id="mu-fields"></ul>
+              <h3 class="mu-sub">Same ayahs on both sides</h3>
+              <div class="mu-agree" id="mu-agree"></div>
+              <div class="mu-fail" id="mu-fail">
+                <div><b>Request fails, image view</b><span>The page image still shows, and no error.</span></div>
+                <div><b>Request fails, text views</b><span><q>Failed to load page</q> and a Retry button</span></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">Field names are from the live API's reply for page 1; the kept five are the reader's own mapping. Ayah counts per page were compared on the live API and the bundled geometry in October 2026. The failure messages are the reader's code; the text itself is elided here.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-draw" aria-labelledby="h-draw">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-draw"><span class="num" data-mark="6">6</span>Draw the printed page</h2>
+          <p>The page image is the default view: <code>page001.png</code> to <code>page604.png</code>, 1260 px wide, from quran.com's CDN, which serves them from its Hafs Madani set. The ayah boxes from stage 2 sit on top as highlights.</p>
+          <ul class="st-points">
+            <li>Opened on a screen 1024 px or wider, the reader starts in two-page view unless you have chosen a view yourself. The check runs when the reader opens, not on every resize.</li>
+            <li>At 768 px wide and below, the zoom and two-page buttons are hidden and the page fits the screen.</li>
+            <li>The stacked page edges beside a spread thin out near the covers: one edge line per page still to come on that side, up to three.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-draw" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Page 1 opened on three screens, with ayah 1:7 highlighted <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="mu-screens" id="mu-screens"></div>
+            <div class="mu-pct" id="mu-pct"></div>
+            <figcaption class="demo-note">Line boxes from the bundled geometry stand in for the page images. The layout rules and the 1:7 highlight percentages are the reader's code and its real output; the screen widths are illustrative.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured on the live site</h2>
+          <p>The repo documents no benchmarks. These are byte counts from the live site, its two third-party sources and the bundled data, taken in October 2026.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>What a page costs</h3>
+            <p>The image is the cost. The text reply is one to two percent of it.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Page 50 image</span><span class="bar"><i style="--w:100%"></i></span><span>126 kB</span></div>
+              <div class="bar-row"><span>Page 1 image</span><span class="bar"><i style="--w:32.2%"></i></span><span>40 kB</span></div>
+              <div class="bar-row"><span>Page 50 text</span><span class="bar"><i style="--w:1.1%"></i></span><span>1.4 kB</span></div>
+              <div class="bar-row"><span>Page 1 text</span><span class="bar"><i style="--w:.6%"></i></span><span>0.7 kB</span></div>
+            </div>
+            <p>Images 40,445 to 125,578 bytes; text replies 692 to 1,393 bytes compressed, over four sampled pages.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What ships once</h3>
+            <p>The geometry for all 604 pages is one JSON file, fetched once and kept.</p>
+            <div class="bars">
+              <div class="bar-row"><span>As stored</span><span class="bar"><i style="--w:100%"></i></span><span>346 kB</span></div>
+              <div class="bar-row"><span>As sent</span><span class="bar"><i style="--w:35%"></i></span><span>121 kB</span></div>
+            </div>
+            <p>346,322 bytes, sent as 121,179 with brotli. The service worker also prefetches the 95 files of the app shell.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What the server sends</h3>
+            <p>The page list is prerendered. Each page is rendered on the server when asked, so a shared link arrives titled, with its own preview image.</p>
+            <div class="tally"><span>Index: prerendered</span><span>Page: server-rendered</span></div>
+            <p>A rendered page is about 40.5 kB of HTML. If server rendering takes over 10 seconds, the server sends the client-rendered shell instead.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Zoom and two-page view on phones</dt><dd>Their buttons are hidden at 768 px wide and below.</dd></div>
+              <div><dt>Swipes in some places</dt><dd>Ignored within 20 px of the screen edge, which belongs to the iOS back gesture, and while the page is zoomed in.</dd></div>
+              <div><dt>An unbounded text cache</dt><dd>The last 100 replies, up to 30 days old, and no more.</dd></div>
+              <div><dt>Long search result lists</dt><dd>The first 30 matches, each needing its own page lookup.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Try it</h3>
+            <ul class="mu-try-list">
+              <li>Open the index of surahs and juz at <a href="https://mushaf.geohashim.com/tabs/mushaf">mushaf.geohashim.com/tabs/mushaf</a>.</li>
+              <li>Go straight to any page: <code>/tabs/mushaf/page/1</code> to <code>/tabs/mushaf/page/604</code>.</li>
+              <li>On a screen 1024 px or wider, pages open as a two-page spread. Drag across it to turn the page.</li>
+              <li>Tap an ayah on the page to play, copy, share, bookmark, translate it or read its tafseer.</li>
+            </ul>
+            <p>A first visit starts with a short welcome screen.</p>
+            <p class="btn-row"><a class="btn btn-ink" href="https://mushaf.geohashim.com/tabs/mushaf">Open Mushaf</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

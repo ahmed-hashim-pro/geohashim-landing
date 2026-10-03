@@ -1,0 +1,418 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">triage-graph</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Multi-agent incident triage on LangGraph. Specialists investigate an alert, a proposer picks one action from a fixed allow-list, and nothing runs until a human approves, edits or rejects it.</p>
+            <p>An agent that can restart services needs a stop that no prompt can talk its way past. Here the allow-list lives in one module and every layer checks it again, and the pause for a human is a checkpoint on disk that survives the process being killed. The same investigation was rebuilt in CrewAI to compare the two frameworks from experience.</p>
+            <p>It is a portfolio project: four synthetic incidents, a deterministic fake model, and a dry-run adapter that only records what it would do. It has never been used on a real incident.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/triage-graph">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/triage-graph/blob/main/docs/LANGGRAPH_VS_CREWAI.md">LangGraph vs CrewAI</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11+</dd>
+              <dt>Tests</dt><dd>133 passing, 1 skipped: the paid real-model eval</dd>
+              <dt>Graph</dt><dd>LangGraph 1.2.12, checkpoints in SQLite</dd>
+              <dt>Model</dt><dd>A deterministic fake by default. The Anthropic path is written but has never been run.</dd>
+              <dt>Actions</dt><dd>A dry run: recorded, never performed</dd>
+              <dt>Comparison</dt><dd>A CrewAI port of the investigation and proposal</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="pause">Pause</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="approve">Approve</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="refuse">Refuse</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">uv run triage run --alert fixtures/alerts/high-latency.json --thread-id demo</span>
+<span class="out">proposer             proposes scale_up on checkout-api (proposal 8bedf438cdeb)
+approval             paused: waiting for a human decision
+
+=== Waiting for approval (thread demo) ===</span></div>
+            </div>
+            <p class="term-cap">Real output from the CLI on the bundled fixtures, captured for this page with the fake model. Some investigation lines are cut where marked. Proposal ids are random on every run. <span class="tag-ill">Illustrative input</span> The thread ids, the reason and the approver name were typed for the capture.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an alert moves through the graph">
+          <div class="sign-group">
+            <p>Before the gate: reads fixture files, changes nothing</p>
+            <ol>
+              <li><a class="sign-link" href="#s-dispatch"><b>1</b> Dispatch</a></li>
+              <li><a class="sign-link" href="#s-evidence"><b>2</b> Evidence</a></li>
+              <li><a class="sign-link" href="#s-runbooks"><b>3</b> Runbooks</a></li>
+              <li><a class="sign-link" href="#s-propose"><b>4</b> Propose</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>5</b> Gate</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the dry-run executor</p>
+            <ol>
+              <li><a class="sign-link" href="#s-act"><b>6</b> Act once</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-dispatch" aria-labelledby="h-dispatch">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-dispatch"><span class="num" data-mark="1">1</span>Send specialists, one step at a time</h2>
+          <p>A supervisor node calls the model with a <code>route</code> tool and sends one specialist at a time: a log investigator, a metrics investigator or a runbook agent. Each specialist is its own small LangGraph subgraph, with private messages and at most four tool rounds.</p>
+          <ul class="st-points">
+            <li>Every supervisor turn that doesn't end the investigation uses a step. A reply with no valid <code>route</code> call uses one too, so a model that never answers properly still stops.</li>
+            <li>At the limit, 6 by default, the run ends as <code>escalated</code> and goes straight to the report. It never reaches the approval gate, so nothing is executed.</li>
+          </ul>
+          <p class="why">LangGraph's own recursion limit is no guard here. Its docs say 1000; the installed source says 10007. The repo sets it to twice the step limit plus 10, just above its own check.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-steps" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same alert with 6 steps, then with 2</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tg-lanes" id="tg-lanes"></div>
+            </div>
+            <figcaption class="demo-note">Step lines and model-call counts are real output from <code>triage run</code> on the high-latency fixture, with <code>--max-steps 6</code> and <code>--max-steps 2</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-evidence" aria-labelledby="h-evidence">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-evidence"><span class="num" data-mark="2">2</span>Read the logs and flag the metrics that moved</h2>
+          <p>The tools read fixture files that stand in for log and metrics backends. The LangGraph graph and the CrewAI port wrap the same functions, so both see the same evidence.</p>
+          <ul class="st-points">
+            <li>Log lines are grouped by message template, with numbers and ids masked, so 44 lines become 4 groups with counts and first and last seen.</li>
+            <li>A metric counts as anomalous only if its peak is at least 1.5 times its baseline and it also rose by a fixed amount: 15 points of CPU or memory, 150 ms of p99 latency, 1 point of error rate, or 50 requests a second.</li>
+          </ul>
+          <p class="why">The fixed amount stops a tiny baseline from turning noise into an anomaly. Here the error rate peaked at 3.2 times its baseline and still didn't count, because it only rose by 0.44 points.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-metrics" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>checkout-api</code>, the hours before the alert</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <h3 class="tg-sub">Logs, WARN and above, the hour before the alert</h3>
+              <ol class="tg-logs" id="tg-logs"></ol>
+              <h3 class="tg-sub">Metrics: peak against the hour before the window</h3>
+              <div class="tg-mx" id="tg-mx">
+                <div class="tg-mx-axis" aria-hidden="true"><span class="tg-ax"><span style="--x:0%">0</span><span class="is-line" style="--x:15%">1.5x</span><span style="--x:50%">5x</span><span style="--x:100%">10x</span></span></div>
+              </div>
+              <div class="legend-row"><span class="key"><i class="tg-k-bar"></i>Peak divided by baseline</span><span class="key"><i class="k-target"></i>The 1.5x ratio</span></div>
+            </div>
+            <figcaption class="demo-note">Log groups, baselines, peaks and rises come from the project's own <code>search_logs</code> and <code>detect_metric_anomalies</code>, run on the high-latency fixture with the windows the investigators used.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-runbooks" aria-labelledby="h-runbooks">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-runbooks"><span class="num" data-mark="3">3</span>Search the runbooks for this service</h2>
+          <p>The runbook agent searches the markdown runbooks with TF-IDF, counting headings twice. It passes the alerting service, so only that service's runbook and the general policy are searched.</p>
+          <p class="why">Every runbook section ends with a suggested action, and each incident's matching section suggests the expected answer. The repo says so, and its eval has a variant that hides those lines. Lexical search is the weak spot it admits: without the service filter, the right section for the ambiguous incident only narrowly wins.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-runbooks" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The ambiguous incident: bursts of 5xx errors on <code>orders-api</code></p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip"><span>Query</span><span>orders-api 5xx error rate above 1% orders-api crossed a 1% 5xx rate several times in the last 30 minutes; each burst lasts about two minutes.</span></p>
+            <div class="tg-rb" id="tg-rb"></div>
+            <figcaption class="demo-note">Scores re-run offline with the project's own <code>search_runbooks</code> on the bundled runbooks, with the exact query the runbook agent sent. Top three results in each mode.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-propose" aria-labelledby="h-propose">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-propose"><span class="num" data-mark="4">4</span>Propose one action from the allow-list</h2>
+          <p>The proposer returns a diagnosis and one action. Code then checks it against <code>actions.py</code>, whose first line reads “This module, not any prompt, decides what may run.”</p>
+          <ul class="st-points">
+            <li>An action off the list, or an allowed action aimed at another service, is not passed on. It becomes <code>page_human</code>, and what the model asked for is recorded so the human sees the attempt.</li>
+            <li>The proposal id is created here, before the pause, because LangGraph re-runs the paused node from the top when it resumes.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-propose" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What the model asked for, and what the human is shown</p>
+              {{REPLAY}}
+            </div>
+            <div class="tg-allow"><span>The allow-list</span><code>restart_service</code><code>scale_up</code><code>rollback_deploy</code><code>page_human</code></div>
+            <div class="tg-props" id="tg-props"></div>
+            <figcaption class="demo-note">The first row is the fake model on the high-latency fixture. The other two are the repo's scripted misbehaving models from <code>tests/scripted.py</code>, run through the real graph on the high-latency and intermittent-5xx fixtures. The notes are the program's own text.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-gate"><span class="num" data-mark="5">5</span>Stop and wait for a human</h2>
+          <p>The approval node calls <code>interrupt()</code> with the proposal and the allow-list. The run is saved to SQLite and the command exits. The decision can come hours later, from another shell, with <code>triage resume</code>.</p>
+          <p>The node accepts only a well-formed decision that names this proposal. Anything else ends the run as refused, with nothing executed. A rejected or refused run can't be resumed; a person starts a new one, which is why the CLI checks an edit before it sends it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo tg-gate-wrap" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One paused proposal, six possible decisions</p>
+              <div class="seg" role="group" aria-label="Decision">
+                <button type="button" data-mode="approve" aria-pressed="false">Approve</button>
+                <button type="button" data-mode="edit" aria-pressed="false">Edit</button>
+                <button type="button" data-mode="reject" aria-pressed="true">Reject</button>
+                <button type="button" data-mode="offlist" aria-pressed="false">Edit off the list</button>
+                <button type="button" data-mode="wrong" aria-pressed="false">Wrong proposal</button>
+                <button type="button" data-mode="extra" aria-pressed="false">Extra field</button>
+              </div>
+            </div>
+            <div class="tg-gate" id="tg-gate">
+              <div class="tg-g-col">
+                <h3>Paused at the gate</h3>
+                <p class="tg-card tg-prop-card"><small>ALERT-1042, checkout-api</small><span>Proposal <code id="g-pid">8bedf438cdeb</code></span><b>scale_up on checkout-api</b></p>
+                <h3>The decision</h3>
+                <div class="tg-card tg-dec" id="g-dec"><small id="g-via">From the CLI</small><code id="g-cmd"></code></div>
+              </div>
+              <div class="tg-g-col">
+                <h3>The approval node checks</h3>
+                <ol class="tg-checks" id="g-checks">
+                  <li><i aria-hidden="true"></i><span>A well-formed decision<small>no extra fields; only an edit names an action</small></span><em></em></li>
+                  <li><i aria-hidden="true"></i><span>Names the pending proposal<small>the id the human was shown</small></span><em></em></li>
+                  <li><i aria-hidden="true"></i><span>An edit stays on the allow-list<small>checked again here, not only by the CLI</small></span><em></em></li>
+                  <li><i aria-hidden="true"></i><span>Approve or edit<small>a reject ends the run here</small></span><em></em></li>
+                </ol>
+              </div>
+              <div class="tg-hold" id="g-hold" aria-hidden="true"><span class="tg-hold-paint"></span><b id="g-hold-say"></b></div>
+              <div class="tg-g-col tg-g-air">
+                <h3>Past the line</h3>
+                <p class="tg-card tg-exec" id="g-exec"></p>
+                <div class="tg-ledger"><small><code>dry_run_ledger.jsonl</code></small><pre id="g-ledger"></pre></div>
+                <p class="tg-outcome" id="g-out"></p>
+              </div>
+            </div>
+            <div class="mini-term tg-g-term" id="g-term" aria-live="polite"></div>
+            <figcaption class="demo-note">Approve, edit, reject and the off-list edit are real CLI sessions on the high-latency fixture, each on its own run, so the proposal ids differ. The CLI can't send the last two values; they went through the repo's runner, as its tests do, and the lines shown are the program's output. <span class="tag-ill">Illustrative input</span> The reason, the approver name and the wrong proposal id were typed.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Everything above reads fixture files and changes nothing. Below this line, an approved decision reaches the executor, and the executor only records what it would do.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-act" aria-labelledby="h-act">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-act"><span class="num" data-mark="6">6</span>Check again, then act once</h2>
+          <p>The executor doesn't trust the route that led to it. <code>authorize()</code> re-checks the saved decision from scratch, and only then calls the dry-run adapter.</p>
+          <ul class="st-points">
+            <li>The decision must approve or edit this proposal id, the action must be on the allow-list, and the target must be the alerting service. If any check fails it raises instead of acting.</li>
+            <li>The adapter has one method per allowed action and appends one line to a ledger. If the same proposal id comes back after a crash, it returns the first record instead of acting twice.</li>
+            <li>The report is built by code from the saved state, not written by a model.</li>
+          </ul>
+          <p class="why">Nothing is restarted, scaled or rolled back: every method returns “would …” text. The gate also trusts the checkpoint file. Anyone who can write to it could forge a decision, because decisions aren't signed; the README lists this as a limitation.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-act" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">After the gate, two ways it can go</p>
+              <div class="seg" role="group" aria-label="Scenario">
+                <button type="button" data-scn="crash" aria-pressed="true">Killed, then approved</button>
+                <button type="button" data-scn="forged" aria-pressed="false">Forged state</button>
+              </div>
+            </div>
+            <div class="tg-proc" id="tg-proc">
+              <div class="tg-pc" data-k="run"><small>Process 1</small><b><code>triage run … --wait</code></b><span>memory-leak alert, proposal <code>9e269d82445f</code>, then waits on stdin</span><em>kill -9, exit status -9, no ledger file</em></div>
+              <div class="tg-pc" data-k="db"><small>SQLite checkpoint</small><b>Parked at the approval node</b><span>12 model calls, 8,688 tokens in, 721 out</span><em>nothing lost</em></div>
+              <div class="tg-pc" data-k="resume"><small>Process 2</small><b><code>triage resume crash --approve</code></b><span>a new process on the same file</span><em>12 calls, 8,688 in, 721 out: no step re-ran</em></div>
+            </div>
+            <div class="tg-forged" id="tg-forged" hidden><p>Each state is handed straight to <code>executor()</code>, with no gate in front of it. <span class="tag-ill">Illustrative input</span> These are the forged states <code>tests/test_approval.py</code> uses.</p></div>
+            <ol class="pipe" id="tg-pipe">
+              <li><b>Saved decision</b><span>Present and well-formed</span></li>
+              <li><b>Approve or edit</b><span>A reject never gets here</span></li>
+              <li><b>Same proposal</b><span>The id matches</span></li>
+              <li><b>Allow-list</b><span>The final action</span></li>
+              <li><b>Alerting service</b><span>The target</span></li>
+              <li><b>Dry-run adapter</b><span>One ledger line per proposal</span></li>
+            </ol>
+            <div class="vlog" id="tg-vlog" aria-live="polite"></div>
+            <figcaption class="demo-note">Real sequence, mirroring <code>tests/test_crash_resume.py</code>: <code>kill -9</code> while <code>triage run --wait</code> waits for a decision, then <code>triage resume</code> in a new process. Like the test, both ran as <code>python -m triage_graph.cli</code> with a temporary <code>--state-dir</code>, left out here. Model-call and token counts were read from the checkpoint before and after. The forged-state errors are the program's exceptions, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="report" aria-labelledby="h-report">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-report">The report, written by code</h2>
+          <p>Every run ends with a markdown report built from the saved state: the outcome, the model, the steps, the human's decision, what the executor recorded, and every tool call with what it returned. This is the report from the Approve tab above. The log and runbook evidence is cut here; the full file has it.</p>
+        </div>
+        <div class="tg-rep-grid">
+          <pre class="panel tg-report" id="tg-report"></pre>
+          <div class="panel box">
+            <h3>What it is careful about</h3>
+            <dl>
+              <div><dt>Token counts are labelled</dt><dd>The fake model's usage is characters divided by four, and the report says “estimated” rather than passing it off as real.</dd></div>
+              <div><dt>The model is recorded</dt><dd>The graph stores which model produced the findings, so a run resumed under another provider still reports the right one.</dd></div>
+              <div><dt>Refusals are kept</dt><dd>When the proposer refuses what the model asked for, the note goes into the report, so the reviewer sees the attempt.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="compare" aria-labelledby="h-compare">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-compare">Built twice: LangGraph and CrewAI</h2>
+          <p>The investigation and the proposal were rebuilt as a CrewAI crew, with the same fixtures, tools, prompts and allow-list check. The rows below quote the repo's written comparison. Both versions were only ever run on fake models, so this says nothing about how either behaves with a real one.</p>
+        </div>
+        <div class="panel tg-cmp" role="table" aria-label="LangGraph and CrewAI compared, quoted from docs/LANGGRAPH_VS_CREWAI.md">
+          <div class="tg-cmp-row tg-cmp-h" role="row"><span role="columnheader"></span><span role="columnheader">LangGraph 1.2.12</span><span role="columnheader">CrewAI 1.15.23</span></div>
+          <div class="tg-cmp-row" role="row"><b role="rowheader">Where control flow lives</b><span role="cell" data-l="LangGraph">“In the graph: nodes, conditional edges”</span><span role="cell" data-l="CrewAI">“Mostly in the model: a delegating agent picks coworkers through tool calls”</span></div>
+          <div class="tg-cmp-row" role="row"><b role="rowheader">Step limit</b><span role="cell" data-l="LangGraph">“A counter in state, checked by the supervisor node; ends with a clean <code>escalated</code> outcome”</span><span role="cell" data-l="CrewAI">“<code>max_iter</code> ends with a forced final answer and no signal; took a tool hook plus a <code>ConditionalTask</code>”</span></div>
+          <div class="tg-cmp-row" role="row"><b role="rowheader">Human approval</b><span role="cell" data-l="LangGraph">“<code>interrupt()</code> inside any node; resume with any JSON value”</span><span role="cell" data-l="CrewAI">“Crews: a blocking <code>input()</code> review loop. Flows: <code>@human_feedback</code> with a pending state; resume with a string”</span></div>
+          <div class="tg-cmp-row" role="row"><b role="rowheader">Crash recovery</b><span role="cell" data-l="LangGraph">“Checkpoint after every step; exact resume, tested with SIGKILL”</span><span role="cell" data-l="CrewAI">“Checkpoint per finished task. Restore skips finished tasks, but custom LLMs and task conditions come back wrong”</span></div>
+          <div class="tg-cmp-row" role="row"><b role="rowheader">Writes outside the repo</b><span role="cell" data-l="LangGraph">“Nothing”</span><span role="cell" data-l="CrewAI">“A key file under the user data dir on import; a SQLite file there on every kickoff; telemetry on by default”</span></div>
+        </div>
+        <div class="tg-cmp-notes">
+          <article class="panel m-card">
+            <h3>The verdict, in the write-up's words</h3>
+            <p>“For this workflow, LangGraph. Its main requirements are a hard approval gate, a step limit with a clear outcome, and a pause that survives a crash, and in LangGraph those are ordinary code at points I choose.”</p>
+            <p>“CrewAI was quicker for describing agents and their tools, and delegation needed no routing code.”</p>
+            <a class="cta-link" href="https://github.com/ahmed-hashim-pro/triage-graph/blob/main/docs/LANGGRAPH_VS_CREWAI.md">Read the comparison</a>
+          </article>
+          <article class="panel m-card">
+            <h3>Checked for this page</h3>
+            <p>The port proposed the same action as the LangGraph version on all four alerts, with 12 model calls each:</p>
+            <div class="tally"><span>rollback_deploy</span><span>scale_up</span><span>restart_service</span><span>page_human</span></div>
+            <p>The repo's tests pin the restore problem: after a crash, the custom LLM came back as an OpenAI client and the conditional task as a plain task. They passed.</p>
+            <p>Running the port also wrote a third file the docs don't list: a version cache, written after CrewAI asked pypi.org for its latest release. The CrewAI path works offline, but it does reach for the network.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, and what wasn't</h2>
+          <p>Every result in the repo comes from the fake model. No real-model run has been made, and the README says so in bold. These numbers were re-run for this page.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>The fake eval, re-run</h3>
+            <p>Four alerts, six runs each, in two variants: with the runbooks' suggested actions, and with them hidden from every agent.</p>
+            <div class="tally"><span>With suggestions 24 of 24</span><span>Suggestions hidden 24 of 24</span></div>
+            <p>That is by construction: the fake model's rules were written against these fixtures, and the eval report opens by saying so. Its tables matched the committed report exactly.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Cost, planned before spending</h3>
+            <p>Estimated cost per run of the eval, against a $2 cap.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Haiku 4.5</span><span class="bar tg-cap"><i style="--w:12%"></i></span><span>$0.036</span></div>
+              <div class="bar-row"><span>Sonnet 5.5, low</span><span class="bar tg-cap"><i style="--w:29%"></i></span><span>$0.087</span></div>
+              <div class="bar-row"><span>Opus 5.5, low</span><span class="bar tg-cap"><i style="--w:58%"></i></span><span>$0.174</span></div>
+              <div class="bar-row"><span>Opus 5.5, medium</span><span class="bar tg-cap tg-over"><i style="--w:98%"></i></span><span>$0.294</span></div>
+            </div>
+            <p>The line is $0.25, the most a run can cost for one run of each of the 8 cells to fit under $2. The planner fits 6, 2 and 1 runs per cell, and refuses the last. Without a key it prints the plan and stops. A callback refuses any call whose worst case could cross the cap.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Docs against source</h3>
+            <p>Two places where LangGraph's docs and its installed source disagree, both re-checked in langgraph 1.2.12:</p>
+            <p>The default recursion limit is documented as 1000 and set to 10007 (<code>_internal/_config.py:32</code>).</p>
+            <p><code>Command(resume=None)</code> crashes with <code>UnboundLocalError</code>, reported upstream as langgraph issue #7034. The runner refuses <code>None</code> before LangGraph sees it, and the thread stays paused.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">133 tests pass, 1 is skipped</h2>
+          <p>The skipped test is the real-model eval. It spends money, so it runs only when both an API key and <code>TRIAGE_EVAL_REAL=1</code> are set. The other 133 run on the fake model with no key; the full suite took 4 minutes 52 seconds here.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the gate</h3>
+            <ul>
+              <li><strong>The gate:</strong> the run pauses with nothing executed, a forged approval in the input is ignored, six malformed or mismatched decisions fail closed, and the executor refuses six forged states.</li>
+              <li><strong>A real crash:</strong> the CLI is killed while it waits for a decision, resumed from a new process, and checked for exactly one ledger line and an unchanged token count.</li>
+              <li><strong>The graph:</strong> the step limit, replies with no route call, off-list and other-service proposals, the tool-round cap and the input schema.</li>
+              <li><strong>The CrewAI port:</strong> the same action as LangGraph on every alert, the step limit under parallel delegation, and what a checkpoint restore loses.</li>
+              <li><strong>The docs:</strong> a test checks that the README's diagram has exactly the graph's edges.</li>
+            </ul>
+            <p>CI runs ruff, the tests and the README quickstart on Ubuntu and macOS with Python 3.11, 3.12 and 3.13, with no secrets.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Signed decisions</dt><dd>The gate trusts the checkpoint database, so anyone who can write to it can forge a decision. An HMAC over the proposal id and decision would close that; it is out of scope.</dd></div>
+              <div><dt>Acting on other services</dt><dd>Actions only ever target the alerting service. A fix that belongs to a failing dependency always goes to a person.</dd></div>
+              <div><dt>Real-model results</dt><dd>The Anthropic path and the real-model eval were built and tested offline, but never run.</dd></div>
+              <div><dt>Real backends</dt><dd>Four synthetic incidents, one service each. The tools read files, and the runbooks name the answer.</dd></div>
+              <div><dt>More than one user</dt><dd>A local CLI over a SQLite file, with no authentication and no guard against two people resuming the same run. The ledger does refuse to record a proposal twice.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/triage-graph.git
+cd triage-graph
+uv sync
+
+<span class="c"># Investigates, then stops at the gate. No key needed.</span>
+uv run triage run --alert fixtures/alerts/high-latency.json --thread-id demo
+
+<span class="c"># A separate process decides.</span>
+uv run triage resume demo --approve
+uv run triage show demo</pre>
+            <p>Try <code>--reject --reason "..."</code> or <code>--edit restart_service</code> instead, or <code>--wait</code> to decide in the same terminal. The CrewAI port needs <code>uv sync --extra crewai</code>, then <code>uv run python -m crewai_port --alert fixtures/alerts/error-spike-after-deploy.json</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

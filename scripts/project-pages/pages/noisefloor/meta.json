@@ -1,0 +1,5 @@
+{
+  "title": "noisefloor · Ahmed Hashim",
+  "description": "A regression harness for programs that don't give the same answer twice: it measures run-to-run noise first and only calls a change a regression when it clears that. How it works end to end, with real captures.",
+  "tour_seconds": "60"
+}
