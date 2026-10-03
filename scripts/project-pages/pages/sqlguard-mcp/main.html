@@ -1,0 +1,417 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">sqlguard-mcp</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An MCP server that lets an agent query a SQLite database. Reads run at once. A write waits until a person approves that exact statement with a separate command, and the approval works once.</p>
+            <p>People want an agent that can answer “how many orders were refunded last month” from the real data, without handing it write access to find out. An agent decides for itself when to call a tool, so this server lets it ask for a write and gives it no way to grant one.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/sqlguard-mcp">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/sqlguard-mcp#the-security-model">Security model</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.25+, no cgo</dd>
+              <dt>Tests</dt><dd>138 passing (65 tests plus 73 subtests)</dd>
+              <dt>Protocol</dt><dd>MCP Go SDK, five tools, stdio or HTTP</dd>
+              <dt>Database</dt><dd>SQLite, through a pure Go driver</dd>
+              <dt>Approval</dt><dd><code>sqlguard approve &lt;token&gt;</code>, run by a person</dd>
+              <dt>Deploy</dt><dd>Helm chart, distroless image, non-root</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="read">Read</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="held">Held</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="approved">Approved</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="out">agent → request_write_approval {"sql":"UPDATE orders SET status = 'refunded' WHERE id = 3"}</span>
+<span class="out">{"decision":"pending","expires_at":"2026-10-04T00:46:55+03:00","next_step":"Ask the operator to run that command in their own terminal, then call execute_approved_write with this token and the identical statement. You cannot approve this yourself.","operator_must_run":"sqlguard approve 2798b3790c80","statement":"UPDATE orders SET status = 'refunded' WHERE id = 3","token":"2798b3790c80"}</span>
+</div>
+            </div>
+            <p class="term-cap">A real session against the bundled sample shop. The agent's calls were sent as MCP JSON-RPC over stdio, and each reply is the tool's structured result, verbatim. Times are local to the machine that ran it. The Approved tab leaves out two calls with edited statements, made between the approval and the run; stage 4 shows one of them.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a statement moves through sqlguard">
+          <div class="sign-group">
+            <p>Before the line: reads run, writes wait</p>
+            <ol>
+              <li><a class="sign-link" href="#s-classify"><b>1</b> Classify</a></li>
+              <li><a class="sign-link" href="#s-read"><b>2</b> Read</a></li>
+              <li><a class="sign-link" href="#s-request"><b>3</b> Request</a></li>
+              <li><a class="sign-link" href="#s-approve"><b>4</b> Approve</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: one run, and the deployment</p>
+            <ol>
+              <li><a class="sign-link" href="#s-redeem"><b>5</b> Redeem</a></li>
+              <li><a class="sign-link" href="#s-deploy"><b>6</b> Deploy</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-classify" aria-labelledby="h-classify">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-classify"><span class="num" data-mark="1">1</span>Classify before anything runs</h2>
+          <p>Every statement is classified before it goes near the database. The classifier does not parse SQL. It scans the text once for bare words, and it refuses anything it cannot prove is a read.</p>
+          <ul class="st-points">
+            <li>Text inside quotes is skipped, so <code>SELECT 'DELETE FROM orders'</code> is a read and <code>deleted_at</code> is one identifier, not a verb.</li>
+            <li>A comment or a second statement is refused outright, because either can hide something.</li>
+            <li>Order decides. A write keyword anywhere makes it a write, then a schema keyword makes it DDL, and only then does a leading <code>SELECT</code>, <code>WITH</code>, <code>VALUES</code> or <code>EXPLAIN</code> make it a read.</li>
+            <li>Anything else is unknown and refused. Unknown is the type's zero value, so a missed case fails closed.</li>
+          </ul>
+          <p class="why">It is wrong in one direction on purpose: <code>SET timezone</code> is harmless and still refused. A real parser is engine-specific, the good ones need cgo, and it is wrong the other way whenever its grammar is not the one the engine runs.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-classify" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Ten statements sent to the running server</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="sg-cls" id="sg-cls"></ol>
+              <dl class="sg-tally" id="sg-tally"></dl>
+              <div class="legend-row"><span class="key"><i class="sg-k sg-k-w"></i>Word the decision turned on</span><span class="key"><i class="sg-k sg-k-q"></i>Quoted, skipped</span><span class="key"><i class="sg-k sg-k-x"></i>Where the scan gave up</span></div>
+            </div>
+            <figcaption class="demo-note">Each statement went to <code>sqlguard serve</code> over MCP on the bundled sample shop. The decision, kind and reason, or the rows for the two reads, are its replies, verbatim, with the other keys left out. The highlighting follows the scan rules in <code>internal/policy/classify.go</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="2">2</span>Read on a connection that cannot write</h2>
+          <p>Reads run on their own SQLite handle, opened with <code>query_only(1)</code>. If a write ever got past the classifier, SQLite itself would refuse it there, so both layers have to fail before a write lands on the read path.</p>
+          <ul class="st-points">
+            <li>Two handles on one file. Reads use the read-only one; only an approved write reaches the other.</li>
+            <li>The path is a filename, not a connection string, so a caller cannot slip in <code>query_only(0)</code>.</li>
+            <li>Reads stop at 500 rows and 30 seconds by default, and a cut-off result says how to narrow the query.</li>
+          </ul>
+          <p class="why">To see the second layer work, the classifier was broken on purpose in a scratch copy, so that it trusts the first word. SQLite's own form of a write that starts with <code>WITH</code> then went straight to the read handle.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three writes that start like reads</p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip sg-l-q"><span id="sg-l-n">Statement 1 of 3</span><code id="sg-l-sql"></code></p>
+            <div class="sg-lanes" id="sg-lanes">
+              <div class="sg-lane" data-lane="real">
+                <p class="sg-lane-name">Real classifier</p>
+                <div class="sg-track" aria-hidden="true"><i class="sg-puck"></i></div>
+                <ol class="sg-stations">
+                  <li data-st="cls"><b>Classifier</b><span class="sg-say"></span></li>
+                  <li data-st="ro"><b>Read handle</b><span class="sg-say"></span></li>
+                  <li data-st="db"><b>orders</b><span class="sg-say"></span></li>
+                </ol>
+              </div>
+              <div class="sg-lane" data-lane="broken">
+                <p class="sg-lane-name">First-word classifier <span class="sg-broken">Broken on purpose, scratch copy</span></p>
+                <div class="sg-track" aria-hidden="true"><i class="sg-puck"></i></div>
+                <ol class="sg-stations">
+                  <li data-st="cls"><b>Classifier</b><span class="sg-say"></span></li>
+                  <li data-st="ro"><b>Read handle</b><span class="sg-say"></span></li>
+                  <li data-st="db"><b>orders</b><span class="sg-say"></span></li>
+                </ol>
+              </div>
+            </div>
+            <div class="vlog sg-l-log" id="sg-l-log" aria-live="polite"></div>
+            <figcaption class="demo-note">Both columns are real replies on the bundled sample shop: the binary built from main on the left, and on the right a build whose classifier returns “read” whenever the first word can start a read. The real classifier's replies are shortened to their first keys. The broken build exists only to show the second layer.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-request" aria-labelledby="h-request">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-request"><span class="num" data-mark="3">3</span>Turn a refused write into a request</h2>
+          <p>A refused write names the way forward: ask for approval. Asking returns a token, but holding the token grants nothing.</p>
+          <ul class="st-points">
+            <li><code>request_write_approval</code> takes writes only. Reads need no token, and schema changes can never be approved.</li>
+            <li>The request is a file in a directory the server owns, not a row in the database the agent can query. It records the statement, a SHA-256 fingerprint of it and an expiry, five minutes by default.</li>
+            <li>A token is 12 hex characters from <code>crypto/rand</code>. Anything else is rejected before it can be used as a path.</li>
+            <li>Running the write with the token straight away is refused, with a next step that says to wait rather than retry in a loop.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-request" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The request, on the wire and on disk</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body sg-req">
+              <ol class="sg-wire" id="sg-wire"></ol>
+              <div class="sg-file">
+                <p class="sg-file-name"><code>approvals/2798b3790c80.json</code></p>
+                <pre class="sg-file-body" id="sg-file"></pre>
+              </div>
+            </div>
+            <figcaption class="demo-note">The three calls and replies are verbatim from the session in the hero terminal. The file is shown as it was written at request time; <code>approved_at</code> and <code>redeemed_at</code> are added in stage 4, and their values come from the same file read after the session.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-approve" aria-labelledby="h-approve">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-approve"><span class="num" data-mark="4">4</span>A person approves, out of band</h2>
+          <p>The agent has five tools and none of them approves anything. Approval is a separate command, <code>sqlguard approve</code>, that a person runs in their own terminal, in a process the agent has no way to start.</p>
+          <ul class="st-points">
+            <li>Two protocol tests fail if a sixth tool is advertised or a tool is named to approve. Adding an <code>approve</code> tool to a scratch copy failed both.</li>
+            <li><code>sqlguard pending</code> lists what is waiting. <code>sqlguard approve</code> prints the statement, when it was asked for and when it expires, then records the approval in the token's file.</li>
+            <li>An approval is bound to one statement and used up by one run, so an edited statement is refused and the token still works for the original. Stage 5 looks at both rules closely.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-approve" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One token, two processes</p>
+              {{REPLAY}}
+            </div>
+            <div class="sg-life" id="sg-life">
+              <div class="sg-card" id="sg-card">
+                <div class="sg-card-top">
+                  <p><code>approvals/2798b3790c80.json</code></p>
+                  <ol class="sg-states" aria-label="Token state">
+                    <li data-s="pending">Requested</li>
+                    <li data-s="approved">Approved</li>
+                    <li data-s="used">Used</li>
+                  </ol>
+                </div>
+                <div class="sg-gate" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <dl class="sg-fields">
+                  <div><dt>token</dt><dd>2798b3790c80</dd></div>
+                  <div><dt>statement</dt><dd>UPDATE orders SET status = 'refunded' WHERE id = 3</dd></div>
+                  <div data-f="fp"><dt>fingerprint</dt><dd>f7f41e152fb18caa…</dd></div>
+                  <div><dt>expires_at</dt><dd>2026-10-04T00:46:55.746462+03:00</dd></div>
+                  <div data-f="approved"><dt>approved_at</dt><dd>not set</dd></div>
+                  <div data-f="redeemed"><dt>redeemed_at</dt><dd>not set</dd></div>
+                </dl>
+                <p class="sg-marker" id="sg-marker"><code>approvals/2798b3790c80.used</code> created with <code>O_EXCL</code>, 0 bytes</p>
+              </div>
+              <ol class="sg-tl" id="sg-tl" aria-live="polite"></ol>
+            </div>
+            <figcaption class="demo-note">Every call, command and reply is verbatim from one session on the bundled sample shop, in this order. A script played the operator, so the approval landed 27 ms after the first refusal; with a person it takes as long as they take. One more edited call (<code>WHERE id = 4</code>) was refused the same way and is left out.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line the agent reads and asks, and nothing is written. Below it, a statement a person approved runs once, exactly as approved.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-redeem" aria-labelledby="h-redeem">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-redeem"><span class="num" data-mark="5">5</span>Run it once, exactly as approved</h2>
+          <p><code>execute_approved_write</code> classifies the statement again rather than trusting the token, then redeems it. The token must be approved, unexpired and issued for this statement. Only then does the statement run, on the writable handle.</p>
+          <ul class="st-points">
+            <li>The same statement means the same SHA-256 fingerprint once runs of whitespace are collapsed. Reformatting passes. A changed value, a missing <code>WHERE</code>, a dropped semicolon or a change of case does not.</li>
+            <li>A mismatch does not use up the approval; the approved statement still runs afterwards.</li>
+            <li>Once is enforced by the file system. Redeeming creates <code>&lt;token&gt;.used</code> with <code>O_EXCL</code>, which exactly one process can do. The server and the approve command are separate programs, so a lock inside one would not hold the other.</li>
+            <li>An approved write that fails, on a missing table for example, still uses up its token.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-redeem" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The landing page's statement, approved once <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="sg-ap">
+              <div class="sg-ap-stmt">
+                <p class="sg-cap">Approved, token <code>7525fca039a2</code> <span class="sg-ran">Ran once</span></p>
+                <pre>UPDATE accounts
+SET plan = 'pro'
+WHERE id = 42;</pre>
+              </div>
+              <dl class="sg-ap-fp">
+                <div><dt>Whitespace collapsed</dt><dd><code>UPDATE accounts SET plan = 'pro' WHERE id = 42;</code></dd></div>
+                <div><dt>SHA-256, first 16</dt><dd><b class="sg-hex">529cb8f057e84cdf</b></dd></div>
+                <div><dt>Account 42</dt><dd><code id="sg-acct">[[42,"free"]]</code></dd></div>
+              </dl>
+            </div>
+            <ol class="sg-tries" id="sg-tries"></ol>
+            <div class="legend-row sg-tries-key"><span class="key"><mark class="sg-chg">42</mark>Changed</span><span class="key"><del class="sg-del">;</del>Removed, not sent</span><span class="key"><b class="sg-eq-k">=</b>Same fingerprint as the approved statement</span></div>
+            <figcaption class="demo-note">The statement is the one in the landing page's hero. The sample database has no <code>accounts</code> table, so one was added (<code>(41,'free'), (42,'free'), (43,'team')</code>) to let it run; everything else is the real binary. Calls are shown in the order they were made. Each reply is real, shortened to its decision and the first clause of its reason. Fingerprints are SHA-256 of the whitespace-collapsed text, as <code>Fingerprint</code> computes them, and match the token's file.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-deploy" aria-labelledby="h-deploy">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-deploy"><span class="num" data-mark="6">6</span>Move the approval behind the cluster</h2>
+          <p>Deployed with the Helm chart, approving needs <code>kubectl exec</code> into the pod, so it takes cluster credentials. An agent can reach the MCP endpoint from anywhere in the cluster and still cannot start the process that approves. The approval code did not change.</p>
+          <ul class="st-points">
+            <li><code>--http</code> serves MCP at <code>/mcp</code> next to two probes. <code>/healthz</code> never touches the database; <code>/readyz</code> pings it. A volume problem takes the pod out of the Service instead of restarting a healthy process into a crash loop.</li>
+            <li>One replica and a <code>Recreate</code> strategy, because SQLite is a single-writer file on a <code>ReadWriteOnce</code> volume. The replica count is deliberately not a chart value.</li>
+            <li>A distroless image with no shell, running as user 65532. The Service is <code>ClusterIP</code>, and an init container seeds the database only if it is missing.</li>
+          </ul>
+          <p class="why">The endpoint has no authentication or TLS yet, so anything that reaches the Service can read. The approval protects writes, not reads.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-deploy" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What CI checks on a real cluster</p>
+              {{REPLAY}}
+            </div>
+            <div class="sg-where">
+              <div><p class="sg-cap">Approving on your machine needs write access to <code>./approvals</code></p><pre>sqlguard approve &lt;token&gt;</pre></div>
+              <div><p class="sg-cap">Approving in the cluster needs cluster credentials</p><pre>kubectl exec deploy/sqlguard -c sqlguard -- \
+  /usr/local/bin/sqlguard approve &lt;token&gt; --approvals /data/approvals</pre></div>
+            </div>
+            <div class="sg-ci">
+              <p class="sg-ci-head"><span>The <code>kubernetes</code> job, run 33909487669</span><b>93 s in all</b></p>
+              <ol class="sg-steps" id="sg-steps"></ol>
+            </div>
+            <div class="sg-term sg-probe" id="sg-probe"></div>
+            <figcaption class="demo-note">Step names, results and durations come from GitHub's API for the run on commit <code>b52b684</code>, rounded to whole seconds by GitHub. CI's own logs need a login to read, so the terminal lines were captured locally against <code>sqlguard serve --http</code>, making the same calls as <code>deploy/verify.sh</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="answer" aria-labelledby="h-answer">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-answer">The audit log of that session</h2>
+          <p>Every decision the server makes is appended to <code>audit.jsonl</code>, allowed or refused. This is the whole log for the session in the hero terminal and stage 4. The person's approval is not a server decision: it lives in the token's file as <code>approved_at</code>, which is why the log jumps from the early refusal to the edited attempts.</p>
+        </div>
+        <div class="panel sg-audit">
+          <ol class="sg-log" id="sg-log" data-reveal></ol>
+          <p class="demo-note">The log file, verbatim, one row per line, with the date and time zone dropped from <code>at</code> and the reason shortened where noted.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Each guard was checked the same way: run it, then delete it in a scratch copy and see what fails. Nothing here changed the repository.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Once, across processes</h3>
+            <p>The test races 16 separate stores over one directory, which is what two programs look like, to redeem a single approval.</p>
+            <div class="bars">
+              <div class="bar-row"><span>With O_EXCL</span><span class="bar"><i style="--w:6.25%"></i></span><span>1 of 16</span></div>
+              <div class="bar-row"><span>Without, fewest</span><span class="bar"><i style="--w:18.75%"></i></span><span>3 of 16</span></div>
+              <div class="bar-row"><span>Without, most</span><span class="bar"><i style="--w:75%"></i></span><span>12 of 16</span></div>
+            </div>
+            <p>With <code>O_EXCL</code>, exactly one winner in 100 of 100 runs. With it replaced by a plain “already redeemed?” check, the test failed in all 60 runs. Racing goroutines through one store instead passed 30 of 30 runs even without the claim, which is why the test uses separate stores.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Delete a guard, a test fails</h3>
+            <p>Six guards removed one at a time in a scratch copy, then the suite run.</p>
+            <ul class="sg-muts">
+              <li><span>No <code>query_only(1)</code></span><b>TestReadConnectionCannotWrite</b></li>
+              <li><span>No fingerprint check</span><b>TestApprovalCannotBeWidened</b></li>
+              <li><span>First word decides</span><b>TestClassify</b></li>
+              <li><span>An <code>approve</code> tool</span><b>TestNoToolCanGrantApproval</b></li>
+              <li><span>Line comments allowed</span><b>TestClassifyRefuses</b></li>
+              <li><span>One flag parse</span><b>TestFlagsParseOnEither<wbr>SideOfThePositional</b></li>
+            </ul>
+            <p>Each removal failed at least the test named, and most failed more than one.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Reads are bounded</h3>
+            <p>Both limits measured on the sample shop with tighter settings than the defaults.</p>
+            <div class="tally"><span>3 of 11 rows</span><span>2,002.8 ms</span></div>
+            <p>At <code>--max-rows 3</code>, an 11-row table came back as 3 rows with <code>"truncated":true</code>. At <code>--timeout 2s</code>, a recursive query with no end stopped with <code>query: context deadline exceeded</code> after a 2,002.8 ms round trip.</p>
+            <p>Ordinary tool calls on the sample database took 0.1 to 3.3 ms round trip over stdio, on one Mac.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">138 tests, no database server and no credentials</h2>
+          <p>Counted with <code>go test -race -count=1 -json ./...</code>: 65 tests plus 73 subtests, all passing. Each package is tested at its own layer, and the outermost tests start the real binary.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the boundary</h3>
+            <ul>
+              <li><strong>Classifier:</strong> 42 statements, including the ones a naive check gets wrong: verbs inside strings, <code>deleted_at</code>, a quoted <code>"delete"</code>, writes behind <code>WITH</code> or <code>EXPLAIN</code>, and comments or second statements hiding a <code>DROP</code>.</li>
+              <li><strong>Engine:</strong> writes fired at the read handle fail with SQLite's own refusal and the row count is unchanged; row cap edges; cancelled and expired contexts.</li>
+              <li><strong>Approval:</strong> single use, binding to the statement, whitespace-only normalising, expiry on an injected clock, the 16-store race, and tokens that try to be paths.</li>
+              <li><strong>Protocol:</strong> a real MCP client over in-memory transports; exactly five tools, none that approves; refusals that carry their next step.</li>
+              <li><strong>The binary:</strong> built and started as a subprocess, then driven over stdio through refuse, request, early run, approve, run and reuse, ending with the audit log.</li>
+              <li><strong>Deployment:</strong> liveness survives a closed database, readiness returns 503, MCP over HTTP, clean shutdown, and seeding that leaves an existing file alone.</li>
+            </ul>
+            <p>CI runs vet, gofmt, the race-enabled suite and a build on Go 1.25.x and the current stable release, plus a job that deploys the chart to a kind cluster and drives it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A sandbox</dt><dd>An approved write runs exactly as written.</dd></div>
+              <div><dt>Cost limits on reads</dt><dd>Reads are capped by rows and time, not by cost, so a legal <code>SELECT</code> can still be expensive.</dd></div>
+              <div><dt>Row and column access control</dt><dd>Anything readable is readable.</dd></div>
+              <div><dt>Other databases</dt><dd>SQLite only. The policy layer does not depend on the engine; the driver does. For PostgreSQL the plan is a <code>pg_query</code> front end, with this classifier as the fallback.</dd></div>
+              <div><dt>Authentication and TLS</dt><dd>Not in the deployment. The endpoint belongs behind a NetworkPolicy and an authenticating proxy, with TLS at an ingress or a mesh.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/sqlguard-mcp.git
+cd sqlguard-mcp
+
+make build          <span class="c"># -> ./bin/sqlguard</span>
+./bin/sqlguard seed ./shop.db
+make check          <span class="c"># vet, gofmt and the full suite with -race</span>
+
+<span class="c"># Point an MCP client at, with absolute paths:</span>
+<span class="c">#   bin/sqlguard serve --db shop.db</span>
+
+<span class="c"># When the agent asks for a write, in your own terminal:</span>
+./bin/sqlguard pending
+./bin/sqlguard approve &lt;token&gt;</pre>
+            <p>Go 1.25 or later. No database server, no cgo and no API key. <code>seed</code> writes a small shop from SQL compiled into the binary. The server and <code>approve</code> must use the same approvals directory, <code>./approvals</code> by default, or pass <code>--approvals</code>. <code>make deploy</code> installs the chart into a local kind cluster.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

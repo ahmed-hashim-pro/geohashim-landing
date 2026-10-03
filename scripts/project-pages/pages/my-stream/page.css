@@ -1,0 +1,189 @@
+/* 1. The probe */
+.ms-probe { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ms-pr { display: grid; gap: 8px; padding: 10px 12px 12px; background: var(--field); border: 1px solid var(--rule); border-left: 4px solid var(--rule); transition: border-color .35s; }
+.ms-pr.is-done { border-left-color: var(--green); }
+.ms-pr.is-stop.is-done { border-left-color: var(--red); }
+.ms-pr-top { display: grid; grid-template-columns: auto minmax(24px, 1fr) auto; align-items: center; gap: 10px; }
+.ms-pr-top code { justify-self: start; font-size: 12.5px; overflow-wrap: anywhere; }
+.ms-pr-wire { position: relative; height: 2px; background: repeating-linear-gradient(to right, var(--rule) 0 4px, transparent 4px 8px); }
+.ms-pr-wire i { position: absolute; top: -4px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); opacity: 0; transition: left .4s cubic-bezier(.3, .7, .3, 1), opacity .2s; }
+.ms-pr.is-sent .ms-pr-wire i { left: calc(100% - 10px); opacity: 1; }
+.ms-pr.is-back .ms-pr-wire i { left: 0; opacity: 0; }
+.ms-pr-code { min-width: 3.2em; padding: 2px 8px; border: 1.5px solid var(--ink); font: 700 13px/1.3 var(--mono); text-align: center; opacity: .25; transition: opacity .25s, background-color .25s, color .25s; }
+.ms-pr.is-back .ms-pr-code { opacity: 1; }
+.ms-pr.is-stop.is-back .ms-pr-code { background: var(--red); border-color: var(--red); color: var(--chalk); }
+.ms-pr-out { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: var(--fs-sm); }
+.ms-pr-kind { padding: 1px 7px; border: 1px solid var(--rule); font: 500 12px/1.5 var(--mono); color: var(--ink-2); }
+.ms-pr.is-stop .ms-pr-out b { color: var(--red); }
+.ms-pr:not(.is-stop) .ms-pr-out b { color: var(--green); }
+.ms-pr-msg { font: 400 12.5px/1.5 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.ms-pr-out, .ms-pr-msg { transition: opacity .35s; }
+.ms-pr:not(.is-done) .ms-pr-out, .ms-pr:not(.is-done) .ms-pr-msg { opacity: 0; }
+.ms-jobline .ms-click::before { content: "Click: "; color: var(--yellow); }
+.ms-jobline .ms-click { color: var(--t-fg); font-weight: 600; }
+
+/* 2. Scrape and pre-filter */
+.ms-feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ms-it { display: grid; gap: 2px; padding: 8px 12px 9px; background: var(--field); border: 1px solid var(--rule); border-left: 4px solid var(--rule); opacity: 0; transform: translateY(6px); transition: opacity .3s, transform .3s, border-color .3s, background-color .3s; }
+.ms-it.in { opacity: 1; transform: none; }
+.ms-it-t { font-weight: 600; font-size: var(--fs-sm); line-height: 1.35; }
+.ms-it-u { font: 400 12px/1.4 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.ms-it-why { font-size: var(--fs-xs); line-height: 1.4; max-height: 0; overflow: hidden; opacity: 0; transition: max-height .4s, opacity .3s; }
+.ms-it-why code { white-space: normal; }
+.ms-it.is-judged .ms-it-why { max-height: 4em; opacity: 1; }
+.ms-it.is-judged[data-out="queued"] { border-left-color: var(--green); }
+.ms-it.is-judged[data-out="queued"] .ms-it-why { color: var(--green); font-weight: 600; }
+.ms-it.is-judged[data-out="drafted"], .ms-it.is-judged[data-out="blocked"] { border-left-color: var(--red); background: var(--wash); }
+.ms-it.is-judged[data-out="drafted"] .ms-it-t, .ms-it.is-judged[data-out="blocked"] .ms-it-t { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--ink-2); }
+.ms-bins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 14px 0 0; border: 1px solid var(--rule); }
+.ms-bins div { padding: 10px 12px; border-right: 1px solid var(--rule); }
+.ms-bins div:last-child { border-right: 0; }
+.ms-bins dt { font-size: var(--fs-xs); color: var(--ink-2); }
+.ms-bins dd { margin: 2px 0 0; font: 750 1.5rem/1.1 var(--sans); font-variation-settings: "wdth" 90; font-variant-numeric: tabular-nums; }
+.ms-bins [data-bin="queued"] dd { color: var(--green); }
+.ms-bins [data-bin="drafted"] dd, .ms-bins [data-bin="blocked"] dd { color: var(--red); }
+
+/* 3. Scoring */
+.ms-key { margin: 0 0 12px; }
+.ms-k { width: 18px; height: 8px; background: var(--c); }
+.ms-scores { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ms-sc { display: grid; gap: 6px; padding: 10px 12px 11px; background: var(--field); border: 1px solid var(--rule); opacity: .35; transition: opacity .3s; }
+.ms-sc.in { opacity: 1; }
+.ms-sc-t { font-weight: 600; font-size: var(--fs-sm); line-height: 1.35; }
+.ms-sc-bars { display: grid; gap: 4px; }
+.ms-sb { position: relative; display: block; height: 14px; background: var(--wash); }
+.ms-sb i, .ms-sb s { position: absolute; top: 0; bottom: 0; left: 0; }
+.ms-sb i { width: calc(var(--v) * 1%); background: var(--c); transform-origin: left; transform: scaleX(0); transition: transform .5s cubic-bezier(.3, .8, .25, 1), width .6s ease; }
+.ms-sc.in .ms-sb i { transform: none; }
+.ms-sb s { left: calc(var(--a) * 1%); width: calc((var(--v) - var(--a)) * 1%); background: repeating-linear-gradient(135deg, var(--red) 0 3px, transparent 3px 6px); opacity: 0; transition: opacity .3s; }
+.ms-sc.is-pen .ms-sb.has-pen i { width: calc(var(--a) * 1%); }
+.ms-sc.is-pen .ms-sb.has-pen s { opacity: .8; }
+.ms-sb b { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font: 600 11.5px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+.ms-sb b del { color: var(--red); }
+.ms-pen { font-size: var(--fs-xs); font-weight: 600; color: var(--red); max-height: 0; overflow: hidden; opacity: 0; transition: max-height .35s, opacity .3s; }
+.ms-sc.is-pen .ms-pen { max-height: 3em; opacity: 1; }
+.ms-sc-calc { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 4px 8px; font: 400 12.5px/1.4 var(--mono); color: var(--ink-2); }
+.ms-sc-calc span { opacity: 0; transition: opacity .3s; }
+.ms-sc.is-sum .ms-sc-calc span { opacity: 1; }
+.ms-sc-calc b { font: 750 1.375rem/1 var(--sans); font-variation-settings: "wdth" 90; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+/* 4. The gate */
+.ms-ctl { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) auto; gap: 12px 18px; align-items: end; padding: 14px 16px 6px; }
+.ms-f { display: grid; gap: 6px; font-size: var(--fs-xs); font-weight: 650; }
+.ms-f > span { display: flex; justify-content: space-between; gap: 8px; }
+.ms-f b { font-variant-numeric: tabular-nums; }
+.ms-f select { min-height: 40px; padding: 6px 8px; border: 1.5px solid var(--ink); border-radius: 2px; background: var(--field); color: var(--ink); font: 500 var(--fs-sm)/1.2 var(--sans); max-width: 100%; }
+.ms-f input[type="range"] { width: 100%; accent-color: var(--ink); min-height: 28px; }
+.ms-f small { display: flex; justify-content: space-between; font: 400 11.5px var(--mono); color: var(--ink-2); }
+.ms-f-chk { display: flex; align-items: center; gap: 8px; min-height: 40px; font-size: var(--fs-sm); cursor: pointer; }
+.ms-f-chk input { width: 18px; height: 18px; accent-color: var(--ink); }
+.ms-formula { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 6px 16px 12px; font-size: var(--fs-sm); }
+.ms-formula > span { font-weight: 650; }
+.ms-formula code { white-space: normal; }
+.ms-chart { padding: 6px 16px 4px; }
+.ms-plotwrap { position: relative; margin: 44px 12px 6px 0; }
+.ms-zones .ms-zone { position: absolute; top: 0; bottom: 28px; background: repeating-linear-gradient(135deg, var(--rule) 0 2px, transparent 2px 7px); opacity: .7; }
+.ms-zone.lo { left: 0; width: 20%; }
+.ms-zone.hi { left: 95%; width: 5%; }
+.ms-rows { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ms-row { display: grid; gap: 4px; opacity: 0; transform: translateX(-8px); transition: opacity .35s, transform .35s; }
+.ms-row.in { opacity: 1; transform: none; }
+.ms-row-t { position: relative; z-index: 3; font-size: 13px; line-height: 1.3; font-weight: 600; }
+.ms-row-t span { background: var(--chalk); padding-right: 6px; box-shadow: 0 0 0 2px var(--chalk); }
+.ms-track { position: relative; height: 18px; background: var(--wash); }
+.ms-bar { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--v) * 1%); background: var(--ink-2); transition: background-color .4s; }
+.ms-row.is-clear .ms-bar { background: var(--pass); }
+.ms-row.is-held .ms-bar { background: color-mix(in srgb, var(--red) 70%, var(--chalk)); }
+.ms-row.is-top .ms-bar { box-shadow: inset 0 0 0 2px var(--deep); }
+.ms-tag { position: absolute; top: 50%; left: calc(var(--v) * 1% + 6px); transform: translateY(-50%); z-index: 3; display: inline-flex; gap: 6px; align-items: baseline; padding: 0 4px; background: var(--chalk); font-size: 12px; white-space: nowrap; color: var(--ink-2); }
+.ms-tag b { font: 600 12px/1 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.ms-tag em { font-style: normal; font-weight: 650; }
+.ms-tag em:empty { display: none; }
+.ms-row.is-clear .ms-tag em { color: var(--deep); }
+.ms-row.is-held .ms-tag em { color: var(--red); }
+.ms-row.is-top .ms-tag em { font-weight: 800; }
+.ms-hold { position: absolute; top: -38px; bottom: 22px; z-index: 2; width: 0; transition: left .9s cubic-bezier(.3, .8, .25, 1), opacity .4s; }
+.ms-hold i { position: absolute; top: 22px; bottom: 0; width: 4px; background: var(--yellow); box-shadow: 0 0 0 1px var(--paint-edge); }
+.ms-hold i:nth-child(1) { left: -11px; } .ms-hold i:nth-child(2) { left: -5px; }
+.ms-hold i.d { background: repeating-linear-gradient(to bottom, var(--yellow) 0 7px, transparent 7px 12px); box-shadow: none; }
+.ms-hold i:nth-child(3) { left: 1px; } .ms-hold i:nth-child(4) { left: 7px; }
+.ms-hold span { position: absolute; top: 0; left: -2px; transform: translateX(-50%); padding: 1px 7px; background: var(--sign); color: var(--yellow); font: 700 12px/1.4 var(--mono); }
+.ms-baseline { position: absolute; top: -16px; bottom: 22px; width: 0; border-left: 2px dashed var(--ink-2); opacity: 0; transition: left .9s cubic-bezier(.3, .8, .25, 1), opacity .3s; }
+.ms-baseline.is-on { opacity: .8; }
+.ms-shift { position: absolute; top: -16px; height: 10px; opacity: 0; transition: left .9s cubic-bezier(.3, .8, .25, 1), width .9s cubic-bezier(.3, .8, .25, 1), opacity .3s; }
+.ms-shift.is-on { opacity: 1; }
+.ms-shift i { position: absolute; left: 0; right: 0; top: 4px; height: 2px; background: var(--ink); }
+.ms-shift i::before { content: ""; position: absolute; left: -1px; top: -4px; border: 5px solid transparent; border-right-color: var(--ink); border-left: 0; }
+.ms-shift.is-up i::before { left: auto; right: -1px; border: 5px solid transparent; border-left-color: var(--ink); border-right: 0; }
+.ms-axis { position: relative; height: 22px; margin-top: 8px; border-top: 1px solid var(--ink); font: 500 11.5px var(--mono); color: var(--ink-2); }
+.ms-axis span { position: absolute; top: 4px; transform: translateX(-50%); }
+.ms-axis span:first-child { transform: none; }
+.ms-axis span:last-child { transform: translateX(-100%); }
+.ms-plotwrap.is-reset .ms-hold, .ms-plotwrap.is-reset .ms-baseline, .ms-plotwrap.is-reset .ms-shift { opacity: 0; }
+.ms-legend { margin: 4px 16px 12px; }
+.ms-lg-paint { width: 14px; height: 12px; background: linear-gradient(to right, var(--yellow) 0 4px, transparent 4px 6px, var(--yellow) 6px 10px, transparent 10px); }
+.ms-lg-base { width: 0; height: 14px; border-left: 2px dashed var(--ink-2); }
+.ms-lg-zone { width: 18px; height: 12px; background: repeating-linear-gradient(135deg, var(--rule) 0 2px, transparent 2px 7px); border: 1px solid var(--rule); }
+.ms-stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ms-verdict { margin: 0 16px 4px; padding: 0 14px; border-left: 4px solid transparent; display: grid; gap: 6px; font-size: var(--fs-sm); line-height: 1.45; min-height: 3.2em; transition: border-color .3s; }
+.ms-verdict:empty { padding: 0; }
+.ms-verdict.is-held { padding: 12px 14px; border-left-color: var(--red); background: var(--field); }
+.ms-verdict.is-clear { padding: 12px 14px; border-left-color: var(--pass); background: var(--field); }
+.ms-log { font: 400 12.5px/1.5 var(--mono); overflow-wrap: anywhere; }
+.ms-verdict.is-held .ms-log { color: var(--red); }
+.ms-gate-wrap .cli { margin: 14px 16px 14px; }
+#s-hold .st-head code, #s-score .st-head code { white-space: normal; }
+
+/* 5. Drafting */
+.ms-prompt { margin: 0; padding: 14px 16px; background: var(--code-bg); border-bottom: 1px solid var(--rule-soft); font: 400 12.5px/1.65 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-2); }
+.ms-prompt mark { background: color-mix(in srgb, var(--yellow) 45%, transparent); color: var(--ink); font-weight: 600; padding: 0 2px; box-shadow: 0 0 0 1px var(--paint-edge); }
+.ms-calls { list-style: none; margin: 0; padding: 14px 16px 6px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ms-calls li { display: grid; gap: 3px; align-content: start; padding: 9px 10px; border: 1px solid var(--rule-soft); background: var(--panel); font-size: 13px; line-height: 1.3; opacity: .4; transition: opacity .3s, border-color .3s, box-shadow .3s; }
+.ms-calls li.on { opacity: 1; border-color: var(--ink); box-shadow: inset 0 3px 0 var(--blue); }
+.ms-calls li span { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+#d-draft .demo-head { align-items: flex-start; }
+@media (max-width: 759px) { .ms-calls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* 6. Publishing */
+.ms-pub { display: grid; grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1fr); gap: 14px 18px; align-items: center; padding: 18px 16px 14px; }
+.ms-card { display: grid; gap: 6px; padding: 14px; border: 1px solid var(--ink); background: var(--panel); transition: opacity .4s; }
+.ms-card-t { font-weight: 700; line-height: 1.3; }
+.ms-card-m { font-size: var(--fs-xs); color: var(--ink-2); }
+.ms-status { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
+.ms-status code { transition: background-color .3s, color .3s; }
+.ms-pub[data-status="published"] .ms-status code { background: var(--pass); color: var(--chalk); border-color: var(--pass); }
+.ms-pub[data-status="rejected"] .ms-status code { background: var(--red); color: var(--chalk); border-color: var(--red); }
+.ms-pub[data-status="rejected"] .ms-card { opacity: .55; }
+.ms-pub[data-status="rejected"] .ms-card-t { text-decoration: line-through; }
+.ms-editor { display: flex; align-items: center; gap: 8px; max-width: 13em; font-size: var(--fs-sm); font-weight: 600; color: var(--ink-2); }
+.ms-cursor { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); transition: background-color .25s, transform .25s; }
+.ms-pub.is-acting .ms-cursor { background: var(--blue); border-color: var(--blue); transform: scale(1.3); }
+.ms-dest { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ms-dest li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px dashed var(--rule-soft); font-size: 13.5px; color: var(--ink-2); transition: border-color .3s, color .3s, background-color .3s; }
+.ms-dest li span { font-size: 12.5px; }
+.ms-dest li.on { border-style: solid; border-color: var(--pass); color: var(--ink); background: color-mix(in srgb, var(--pass) 12%, var(--panel)); }
+@media (max-width: 759px) { .ms-pub { grid-template-columns: minmax(0, 1fr); } .ms-editor { max-width: none; } }
+
+/* What runs where */
+.ms-stack { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.ms-node { padding: 16px 16px 18px; display: grid; gap: 8px; align-content: start; }
+.ms-node h3 { font-size: 1.375rem; line-height: 1.1; }
+.ms-node p { font-size: var(--fs-sm); color: var(--ink-2); }
+.ms-n-fn { border-width: 2px; }
+@media (max-width: 1099px) { .ms-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .ms-stack { grid-template-columns: minmax(0, 1fr); } }
+
+.ms-small { font-size: var(--fs-xs); color: var(--ink-2); }
+
+@media (max-width: 899px) {
+  .ms-ctl { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 759px) {
+  .ms-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ms-stats div:last-child { grid-column: 1 / -1; }
+  .ms-bins dd { font-size: 1.25rem; }
+  .ms-plotwrap { margin-right: 8px; }
+  .ms-tag { font-size: 11.5px; }
+}
+
+.ms-cost .bar-row { grid-template-columns: 8.4em minmax(0, 1fr) 4.8em; }

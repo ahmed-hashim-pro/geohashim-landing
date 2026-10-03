@@ -1,0 +1,9 @@
+{
+  "title": "runon · Ahmed Hashim",
+  "description": "A command-line tool that runs plain shell-script programs on your machine, one server or a group of servers over your own ssh, and settles where, what and whether you meant it before anything connects. How it works end to end, with real captured output.",
+  "tour_seconds": "65",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See what was measured"
+  }
+}

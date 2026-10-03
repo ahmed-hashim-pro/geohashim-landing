@@ -1,0 +1,329 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">Online Quran</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An Android app for listening to the Quran: 146 reciters, each surah streamed or kept on the phone, and a page-image mushaf that reads offline once it is downloaded.</p>
+            <p>It is built around one rule that every play follows: look on the phone first, and use the network only for what isn't there. A downloaded surah plays in airplane mode; a surah that would need the network says so at once instead of hanging.</p>
+            <p class="oq-credit">The mushaf reader, bookmarks and read-along audio are adapted from the open-source Quran for Android project. The reciter list, the phone-first lookup, the network check and the downloads are this app's own code.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran">Get it on Google Play</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the five stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>On Google Play as</dt><dd><bdi>My Stream - القرآن الكريم</bdi></dd>
+              <dt>On Google Play since</dt><dd>July 2018</dd>
+              <dt>Version</dt><dd>13.0.0, July 2026</dd>
+              <dt>Runs on</dt><dd>Android 5.0 and later</dd>
+              <dt>Built with</dt><dd>Java and Kotlin, ExoPlayer, SQLDelight</dd>
+              <dt>Reciters</dt><dd>146 to stream or download by surah</dd>
+              <dt>Mushaf reader</dt><dd>Adapted from Quran for Android</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <figure class="oq-hero" id="d-hero">
+              <div class="oq-hero-grid">
+                <div class="oq-phone">
+                  <div class="oq-screen" id="oq-screen">
+                    <div class="oq-status"><span>9:41</span><span class="oq-net" id="oq-net"><svg viewBox="0 0 16 16" aria-hidden="true" class="oq-ic-wifi"><path d="M1.5 6.2a9.5 9.5 0 0 1 13 0M3.8 8.6a6.2 6.2 0 0 1 8.4 0M6.1 11a3 3 0 0 1 3.8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="13.2" r="1.2" fill="currentColor"/></svg><svg viewBox="0 0 16 16" aria-hidden="true" class="oq-ic-plane"><path d="M8 1.5c.6 0 1 .6 1 1.4v3.6l5.5 3.2v1.5L9 9.6v3l1.6 1.2v1.2L8 14.3l-2.6.7v-1.2L7 12.6v-3l-5.5 1.6V9.7L7 6.5V2.9c0-.8.4-1.4 1-1.4z" fill="currentColor"/></svg><span id="oq-net-label">Wi-Fi</span></span></div>
+                    <div class="oq-appbar"><b>Mishary Alafasy</b><span>afs, 114 surahs</span></div>
+                    <ul class="oq-rows" id="oq-rows"></ul>
+                    <div class="oq-player" id="oq-player"><span class="oq-pl-title" id="oq-pl-title">Nothing playing</span><span class="oq-badge" id="oq-badge" hidden></span></div>
+                    <div class="oq-toast" id="oq-toast" aria-hidden="true">Network Error</div>
+                  </div>
+                </div>
+                <div class="oq-hero-side">
+                  <div class="oq-side-head">
+                    <div class="seg" role="group" aria-label="Connection">
+                      <button type="button" data-net="on" aria-pressed="true">Online</button>
+                      <button type="button" data-net="off" aria-pressed="false">Airplane mode</button>
+                    </div>
+                    {{REPLAY}}
+                  </div>
+                  <p class="oq-hint">Switch the connection, then tap a surah. Four of these six are on the phone <span class="tag-ill">Illustrative input</span></p>
+                  <ol class="oq-steps" id="oq-steps" aria-live="polite"></ol>
+                </div>
+              </div>
+              <figcaption class="term-cap">A drawn mock, not a screenshot; in the app, tapping a surah opens the player screen. Row states are the real output of the app's own lookup code (stage 2) for an illustrative set of downloads. The rule and the toast text are the app's: <code>MediaPlayerService.kt:357-361</code>.</figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a surah reaches your ears">
+          <div class="sign-group">
+            <p>On the phone: no network needed</p>
+            <ol>
+              <li><a class="sign-link" href="#s-reciters"><b>1</b> Reciters</a></li>
+              <li><a class="sign-link" href="#s-lookup"><b>2</b> Phone first</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>3</b> Network check</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the network</p>
+            <ol>
+              <li><a class="sign-link" href="#s-keep"><b>4</b> Stream or keep</a></li>
+              <li><a class="sign-link" href="#s-mushaf"><b>5</b> Mushaf</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-reciters" aria-labelledby="h-reciters">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-reciters"><span class="num" data-mark="1">1</span>Pick a reciter, get a surah list</h2>
+          <p>The reciter list ships inside the app, so building it needs no request. Each reciter carries everything needed to make its surah list on the phone.</p>
+          <ul class="st-points">
+            <li>146 reciters, each with an Arabic and an English name; 10 also name a riwaya folder, 9 Hafs and 1 Warsh (<code>LnaguageClass.java:150-480</code>).</li>
+            <li>Each one maps to one of mp3quran.net's numbered servers by a chain of name rules (<code>serverNumber()</code>, <code>:481-1025</code>).</li>
+            <li>A range table says which surahs a reciter has: a span such as 78 to 114, or a hand-picked list (<code>managment.java:163</code>). A partial reciter only lists what is in its range.</li>
+          </ul>
+          <p class="why">117 reciters have all 114 surahs. The other 29 range from 113 surahs down to a single one.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-reciters" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">146 reciters, filled by how many surahs each has</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="oq-tiles" id="oq-tiles" role="img" aria-label="146 reciters: 117 with all 114 surahs, 29 partial"></div>
+              <div class="oq-tile-tip" id="oq-tile-tip" aria-hidden="true">Hover a tile for its reciter.</div>
+              <dl class="oq-counts">
+                <div><dt>All 114 surahs</dt><dd id="oq-n-full">117</dd></div>
+                <div><dt>Partial</dt><dd id="oq-n-part">29</dd></div>
+                <div><dt>Hand-picked lists</dt><dd id="oq-n-hand">15</dd></div>
+              </dl>
+              <h3 class="oq-sub">Reciters per mp3quran.net server</h3>
+              <div class="oq-servers" id="oq-servers"></div>
+            </div>
+            <figcaption class="demo-note">Counts and servers come from running the app's own <code>serverNumber()</code> and <code>autherRanageDetermine()</code>, copied verbatim from the published code, over all 146 reciters offline.</figcaption>
+            <details class="data">
+              <summary>The 29 partial reciters</summary>
+              <table id="oq-part-table"><thead><tr><th>Reciter id</th><th class="n">Server</th><th class="n">Surahs</th><th>List</th></tr></thead><tbody></tbody></table>
+            </details>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-lookup" aria-labelledby="h-lookup">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-lookup"><span class="num" data-mark="2">2</span>Look on the phone first</h2>
+          <p>Before anything plays, every surah in the list is resolved to one source, checked in a fixed order: a file in <code>Music/MyStream</code>, then a MediaStore entry, and only then a stream URL. The answer is shown on the row as “From phone” or “online”.</p>
+          <ul class="st-points">
+            <li>The file name is fixed, <code>AhmedHashim_&lt;reciter&gt;&lt;surah&gt;.mp3</code>, so each check is a lookup in a set (<code>LnaguageClass.java:1370-1387</code>).</li>
+            <li>One folder listing and one cached MediaStore query serve all 114 rows, warmed up off the main thread when the reciter list opens (<code>RecitesName.java:189</code>). The code's comments put the old cost at up to 114 disk and system calls per list.</li>
+            <li>The MediaStore step exists for reinstalls: the app can no longer read its old files directly, but MediaStore still finds them (<code>:1342</code>).</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-lookup" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Resolving a reciter's list</p>
+              <div class="seg" role="group" aria-label="Reciter">
+                <button type="button" data-rec="afs" aria-pressed="true">afs, all 114</button>
+                <button type="button" data-rec="maher_m" aria-pressed="false">maher_m, 78 to 114</button>
+              </div>
+            </div>
+            <div class="oq-device"><span class="oq-device-l">On this phone <span class="tag-ill">Illustrative input</span></span><span class="oq-device-files"><code>Music/MyStream/AhmedHashim_afs001.mp3</code> <code>…afs018.mp3</code> <code>…afs036.mp3</code>, and a MediaStore entry for <code>AhmedHashim_afs067.mp3</code> left from before a reinstall</span></div>
+            <ol class="oq-ladder" id="oq-ladder">
+              <li data-step="file"><b>1. File in Music/MyStream</b><span><code>existingFiles.contains(name)</code></span><em data-n="file">0</em><small>From phone</small></li>
+              <li data-step="ms"><b>2. MediaStore entry</b><span><code>downloadedUris.get(name)</code></span><em data-n="ms">0</em><small>From phone</small></li>
+              <li data-step="url"><b>3. Stream URL</b><span><code>https://server8.mp3quran.net/…</code></span><em data-n="url">0</em><small>online</small></li>
+            </ol>
+            <div class="oq-chips" id="oq-chips" aria-hidden="true"></div>
+            <div class="oq-legend"><span><i class="oq-k oq-k-file"></i>File</span><span><i class="oq-k oq-k-ms"></i>MediaStore</span><span><i class="oq-k oq-k-url"></i>Stream URL</span><span><i class="oq-k oq-k-out"></i>Not in this reciter's range</span></div>
+            <div class="oq-row-out" id="oq-row-out" aria-live="polite"></div>
+            <figcaption class="demo-note">Every row is the real output of the app's <code>GuranAya()</code> method, copied verbatim from the published code and run offline against a scratch folder. Which files exist is illustrative, and the MediaStore query is replaced by a fixed map.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-gate"><span class="num" data-mark="3">3</span>Refuse a stream with no network</h2>
+          <p>The whole list becomes the play queue, each row carrying the source it resolved to. Right before ExoPlayer prepares a source, the player checks the connection: a URL with no network stops there, with the toast “Network Error”, and the playback service shuts down.</p>
+          <ul class="st-points">
+            <li>The queue is the resolved list as is (<code>SongsManager.getPlayList</code>, <code>NewQuranPlayer.kt:359-370</code>).</li>
+            <li>The check is <code>!isNetworkAvailable &amp;&amp; data.contains("http")</code> (<code>MediaPlayerService.kt:357</code>). It only stops URLs.</li>
+            <li>A file path or a <code>content://</code> URI is prepared without asking (<code>:363-364</code>), which is why a downloaded surah plays in airplane mode.</li>
+          </ul>
+          <p class="why">Without the check, a stream with no network would leave the player loading, since a playback error is only logged (<code>:279-281</code>). With it, the answer is immediate and says why.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three sources at the check</p>
+              <div class="seg" role="group" aria-label="Connection">
+                <button type="button" data-gnet="on" aria-pressed="false">Online</button>
+                <button type="button" data-gnet="off" aria-pressed="true">No network</button>
+              </div>
+            </div>
+            <div class="oq-gate" id="oq-gate">
+              <div class="oq-g-row" data-src="file"><span class="oq-g-src"><b>Al-Kahf</b><code>Music/MyStream/AhmedHashim_afs018.mp3</code></span><span class="oq-g-lane"><i class="oq-g-tok"></i></span><span class="oq-g-out"></span></div>
+              <div class="oq-g-row" data-src="ms"><span class="oq-g-src"><b>Al-Mulk</b><code>content://media/external/audio/media/1042</code></span><span class="oq-g-lane"><i class="oq-g-tok"></i></span><span class="oq-g-out"></span></div>
+              <div class="oq-g-row" data-src="url"><span class="oq-g-src"><b>Al-Baqarah</b><code>https://server8.mp3quran.net/afs/002.mp3</code></span><span class="oq-g-lane"><i class="oq-g-tok"></i></span><span class="oq-g-out"></span></div>
+              <div class="oq-g-toast" id="oq-g-toast" aria-hidden="true">Network Error</div>
+            </div>
+            <pre class="oq-code" aria-label="MediaPlayerService.kt lines 355 to 365"><span class="oq-ln">355</span>        val test = SeparateFunctions(applicationContext)
+<span class="oq-ln">356</span>        Log.d(TAG, "startMediaSeparatly: network=${test.isNetworkAvailable}")
+<span class="oq-ln">357</span>        <mark>if (!test.isNetworkAvailable &amp;&amp; activeAudio!!.data.contains("http")) {</mark>
+<span class="oq-ln">358</span>            Toast.makeText(applicationContext, "Network Error", Toast.LENGTH_SHORT).show()
+<span class="oq-ln">359</span>            destroyService()
+<span class="oq-ln">360</span>            return
+<span class="oq-ln">361</span>        }
+<span class="oq-ln">362</span>
+<span class="oq-ln">363</span>        if (!activeAudio!!.data.contains("http") || test.isNetworkAvailable) {
+<span class="oq-ln">364</span>            exoPlayer!!.prepare()  // always async in ExoPlayer — no race condition
+<span class="oq-ln">365</span>        }</pre>
+            <figcaption class="demo-note">Worked from the published code above, not captured on a device: the refusal is an Android toast. The three sources are the stage 2 rows; the toast text is the app's own string.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Everything above comes from the phone. Below this line the app goes to the network: mp3quran.net for surah audio, and the mushaf's page hosts.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-keep" aria-labelledby="h-keep">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-keep"><span class="num" data-mark="4">4</span>Stream it, or keep it</h2>
+          <p>Past the check, a URL streams through ExoPlayer in a foreground media service. Any surah can also be downloaded, and the next lookup finds it on the phone.</p>
+          <ul class="st-points">
+            <li>Streaming runs as a foreground media-playback service with notification controls (<code>MediaPlayerService.kt:751</code>). It drops to 10% volume while another app plays a short sound, and pauses when headphones are unplugged or, where phone-state access is granted, a call comes in (<code>:283-310</code>, <code>:500-560</code>).</li>
+            <li>The download queue only takes rows whose source is still a URL (<code>AyaList.java:786-795</code>), and “Select all” picks exactly those (<code>:746-761</code>).</li>
+            <li>On Android 10 and later each file goes in through MediaStore under <code>Music/MyStream</code>, with the same fixed name the lookup checks (<code>DownloadService.java:357-366</code>).</li>
+            <li>When a download finishes, the list reloads and the lookup cache is cleared (<code>AyaList.java:898</code>). The files sit in shared storage, so they outlive a reinstall.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-keep" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Download two surahs, then look again</p>
+              {{REPLAY}}
+            </div>
+            <div class="oq-dl">
+              <div class="oq-dl-bar" id="oq-dl-bar"><span id="oq-dl-label">Download all list</span></div>
+              <ul class="oq-dl-rows" id="oq-dl-rows"></ul>
+              <dl class="oq-dl-stats">
+                <div><dt>From phone</dt><dd id="oq-dl-phone">0</dd></div>
+                <div><dt>Online</dt><dd id="oq-dl-online">114</dd></div>
+                <div><dt>“Select all” would pick</dt><dd id="oq-dl-all">114</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">Before and after are the real output of the app's lookup code, run before and after two files appear in a scratch folder <span class="tag-ill">Illustrative input</span>. Button labels are the app's strings; the progress timing is drawn.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-mushaf" aria-labelledby="h-mushaf">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-mushaf"><span class="num" data-mark="5">5</span>Download a print once, read it offline</h2>
+          <p>The mushaf tab shows the printed page as an image. The reader is adapted from the open-source Quran for Android project, and it follows the same shape as the listening side: before opening a print it checks that the pages are on the phone, and asks before downloading them.</p>
+          <ul class="st-points">
+            <li>Onboarding offers eight prints (<code>OnboardingMushafFragment.java:50-67</code>), and Madinah Colored is the default (<code>OnboardingState.java:34</code>).</li>
+            <li>Madinah Colored is this app's addition: 604 colour pages plus their ayah positions, served as one zip from the developer's own S3 bucket (<code>MadinaColoredPageProvider.kt:29-32</code>). The other seven come from android.quran.com.</li>
+            <li>The first time pages are missing, the reader asks “Download Required Files?” (<code>QuranDataActivity.kt:430-496</code>, from Quran for Android).</li>
+            <li>Read-along audio, also from Quran for Android, lists 48 recitations and plays from the phone whenever every file in the chosen range is already downloaded (<code>AudioPresenter.kt:36-42</code>).</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-mushaf" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Eight prints, and the first open of the default</p>
+              {{REPLAY}}
+            </div>
+            <div class="oq-shelf" id="oq-shelf"></div>
+            <ol class="oq-open" id="oq-open">
+              <li data-k="check"><b>Pages on the phone?</b><span>Madinah Colored, 604 pages</span><em>No</em></li>
+              <li data-k="ask" class="oq-ask"><b>Download Required Files?</b><span class="oq-ask-btns"><i>No</i><i class="is-yes">Yes</i></span><em>Yes</em></li>
+              <li data-k="zip"><b>One zip</b><span><code>zips/images_1000.zip</code> from geohashim-quran, eu-central-1</span><em class="oq-zip"><i id="oq-zip-bar"></i></em></li>
+              <li data-k="read"><b>Reader opens</b><span>All 604 pages on the phone, no network needed after this</span><em>Open</em></li>
+            </ol>
+            <figcaption class="demo-note">Page counts, hosts and the per-page flag come from the published code. The prompt title is the app's string; its message and the download size are not shown. Saying No falls back to the Classic Madani print, which can fetch single pages (<code>MadinaColoredPageProvider.kt:51-54</code>).</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="place" aria-labelledby="h-place">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-place">Keeping your place</h2>
+          <p>Bookmarks, tags and recently read pages live in a SQLite database on the phone; that module is adapted from Quran for Android, and it keeps the three most recent pages. Two pieces of memory are this app's own: the reader remembers the last repeat drill across restarts, and the listening player saves its queue and which surah it was on.</p>
+        </div>
+        <div class="oq-place">
+          <figure class="panel demo" id="d-recent" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Recent pages, three slots</p>
+              {{REPLAY}}
+            </div>
+            <pre class="oq-sqltxt" aria-label="addLastPage in LastPage.sq">addLastPage {
+  REPLACE INTO last_pages(page) VALUES(?);
+  DELETE FROM last_pages WHERE _ID NOT IN(
+    SELECT last_pages._ID FROM last_pages ORDER BY added_date DESC LIMIT ?
+  );
+}</pre>
+            <div class="oq-slots" id="oq-slots"><span class="oq-slot"></span><span class="oq-slot"></span><span class="oq-slot"></span><p class="oq-dropped" id="oq-dropped"></p></div>
+            <div class="oq-sql" id="oq-sql" aria-live="polite"></div>
+            <figcaption class="demo-note">Real output of the app's <code>LastPage.sq</code> run in SQLite, with the two edits plain SQLite needs: the SQLDelight type adapter removed, and the limit bound to 3 (<code>Constants.MAX_RECENT_PAGES</code>). The pages visited are illustrative.</figcaption>
+          </figure>
+          <div class="oq-mem">
+            <article class="panel oq-mem-card">
+              <h3>The last repeat drill</h3>
+              <p>Start and end ayah, verse repeats, range repeats and whether to stop at the end are saved the moment playback starts, so they survive the app being closed (<code>QuranSettings.java:97-112</code>). Reopening the panel inside that range restores them.</p>
+            </article>
+            <article class="panel oq-mem-card">
+              <h3>The listening queue</h3>
+              <p>The surah list and the index of the current surah are kept in the app's preferences, and the playback service reads them from there each time it starts (<code>StorageUtil.java:69</code>, <code>:107</code>; <code>MediaPlayerService.kt:157-159</code>). The position inside a surah is held in memory only.</p>
+            </article>
+            <article class="panel oq-mem-card">
+              <h3>Bookmarks and tags</h3>
+              <p>A bookmark is a page, or a surah and ayah; tags group them. Import, export and CSV export come with the Quran for Android module.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Single-page downloads for the default print</dt><dd>The bucket publishes only the full zip. A missing page re-fetches the zip instead of asking for page files that don't exist.</dd></div>
+              <div><dt>Live channels</dt><dd>The Makkah and Madinah live streams are hidden in 13.0.0. Their only way in was a tile on the More tab; the code stays so they can come back.</dd></div>
+              <div><dt>A Compose rewrite</dt><dd>The app stays on XML views and Material 3; the onboarding redesign spec lists a Jetpack Compose migration as a non-goal.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Try it</h3>
+            <p>Install it from Google Play, open the Quran tab and pick a reciter. Download a surah or two, then turn on airplane mode: the downloads still play, with the player showing “Offline”, and the rest stop with “Network Error”.</p>
+            <p><a class="btn btn-ink" href="https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran">Get it on Google Play</a></p>
+            <p class="oq-store-note">On Google Play the app is listed as <bdi>My Stream - القرآن الكريم</bdi>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

@@ -1,0 +1,5 @@
+{
+  "title": "local-network-mcp · Ahmed Hashim",
+  "description": "An MCP server for local network, system and SSH tasks, where shell commands, remote commands and process kills stay denied until the operator opts in, shown with real captured sessions.",
+  "tour_seconds": "55"
+}

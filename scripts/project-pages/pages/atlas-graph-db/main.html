@@ -1,0 +1,389 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">atlas-graph-db</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A graph database written from scratch in TypeScript: an embedded engine with a write-ahead log, crash recovery and atomic transactions, a Cypher-like query language called AQL, a multi-user server and a web explorer.</p>
+            <p>It was built to learn how a database really works, and that meant making one come back correctly after a crash. Durability came first: the log, then snapshots, then recovery tested by killing the process mid-write. Indexes, traversals, graph algorithms and AQL were built on top of something that already survived that.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/atlas-graph-db">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/atlas-graph-db/blob/main/docs/design/specs/2026-06-10-atlas-graph-platform-design.md">Design spec</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>TypeScript on Node.js 22 or later</dd>
+              <dt>Tests</dt><dd>686 passing: 468 Vitest, 218 web app</dd>
+              <dt>Engine</dt><dd>From scratch, one runtime dependency (MessagePack)</dd>
+              <dt>Server</dt><dd>Fastify, argon2id, a WebSocket change feed</dd>
+              <dt>Explorer</dt><dd>Angular 20, a Canvas2D graph</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="commit">Commit</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="recover">Recover</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="query">Query</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="dim"># a script written for this page, calling the public API</span>
+<span class="cmd">node scripts/commit.mjs</span>
+<span class="ok">transact -> {"txId":1}</span>
+<span class="out">     222  wal-000001.log
+frame @0: length=214 crc32=0x00f7902d</span></div>
+            </div>
+            <p class="term-cap">Real output, trimmed where marked. Commit and Recover are scripts written for this page that call the library's public API; they are not in the repo. Query is the repo's own compiled server, driven with curl on localhost.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a write moves through the database">
+          <div class="sign-group">
+            <p>In memory until the log says yes</p>
+            <ol>
+              <li><a class="sign-link" href="#s-parse"><b>1</b> Parse</a></li>
+              <li><a class="sign-link" href="#s-stage"><b>2</b> Stage</a></li>
+              <li><a class="sign-link" href="#s-log"><b>3</b> Log</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: durable, then visible</p>
+            <ol>
+              <li><a class="sign-link" href="#s-apply"><b>4</b> Apply</a></li>
+              <li><a class="sign-link" href="#s-snap"><b>5</b> Snapshot</a></li>
+              <li><a class="sign-link" href="#s-recover"><b>6</b> Recover</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-parse" aria-labelledby="h-parse">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-parse"><span class="num" data-mark="1">1</span>Parse the query, then pick where to start</h2>
+          <p>AQL goes through a hand-written lexer and a recursive-descent parser, then a planner. The planner starts each pattern at its cheapest node: an index seek when an equality hits an index, otherwise a scan of the label with the fewest nodes.</p>
+          <ul class="st-points">
+            <li>Reads stop here and run against committed state. A write statement goes on to stage 2 as one transaction, so any error rolls the whole statement back.</li>
+            <li>Errors carry a code, a line, a column and a caret under the problem.</li>
+            <li>Runtime guards raise <code>TIMEOUT</code> or <code>ROW_LIMIT</code> instead of returning a quietly cut result.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-parse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The plan changes when an index appears</p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip"><span>Query</span><code class="ag-q">EXPLAIN MATCH (p:Person {name: 'Ada Lovelace'})-[:KNOWS]-&gt;(f:Person) RETURN f.name</code></p>
+            <div class="demo-body">
+              <div class="ag-plan" id="ag-plan">
+                <ol class="ag-tree" aria-label="Query plan">
+                  <li class="ag-pn" data-k="project"><b>Project</b><span>f.name</span></li>
+                  <li class="ag-pn" data-k="expand"><b>Expand</b><span>p to f, KNOWS, outgoing, f is a Person</span></li>
+                  <li class="ag-pn ag-old" data-k="filter"><b>Filter</b><span>p.name = 'Ada Lovelace'</span></li>
+                  <li class="ag-pn ag-old" data-k="scan"><b>LabelScan</b><span>every Person</span><em>est. cost 24</em></li>
+                  <li class="ag-pn ag-new" data-k="seek"><b>IndexSeek</b><span>Person.name = 'Ada Lovelace'</span><em>est. cost 1</em></li>
+                </ol>
+                <div class="ag-cost" aria-live="polite"><span>Estimated start cost</span><b id="ag-cost">24</b></div>
+              </div>
+              <div class="mini-term ag-calls" id="ag-ddl"><span class="ag-call">executeQuery(db, "CREATE INDEX ON :Person(name)")</span><span class="dim">(0 rows; stats {"rowsExamined":0,"elapsedMs":13})</span></div>
+              <div class="mini-term ag-calls" id="ag-perr"><span class="ag-call">executeQuery(db, "MATCH (p:Person RETURN p.name")</span><span class="ag-err">AqlError PARSE_ERROR: expected ")", found "RETURN"</span><span class="ag-err">  at line 1, column 17</span><span>MATCH (p:Person RETURN p.name</span><span class="ag-caret">                ^</span></div>
+            </div>
+            <figcaption class="demo-note">Real <code>EXPLAIN</code> output from <code>executeQuery</code> on the repo's bundled science-history dataset (500 nodes, 1,197 edges), run by a script written for this page that calls the public API. The plan is drawn from its JSON; the parse error is verbatim from the same run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-stage" aria-labelledby="h-stage">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-stage"><span class="num" data-mark="2">2</span>Stage every change in memory</h2>
+          <p>A transaction is a synchronous callback that stages ops in a list. Nothing touches the graph or the disk while it runs, so throwing the list away is the whole rollback.</p>
+          <ul class="st-points">
+            <li>References are checked against the transaction's own view: an edge to a missing node, or deleting a node that still has edges, fails at once.</li>
+            <li>Unique constraints are checked against the batch's final state, before a byte is written.</li>
+            <li>An async callback is refused. Ops staged after the log write would leave memory and disk disagreeing.</li>
+            <li>Rejected transactions still use up node ids in that process. After a restart, numbering resumes from the highest id in the log.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-stage" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five transactions that never reach the log</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <dl class="ag-meters">
+                <div><dt>Log file</dt><dd id="ag-s-wal">268 bytes</dd></div>
+                <div><dt>Graph</dt><dd id="ag-s-store">2 nodes, 1 edge</dd></div>
+              </dl>
+              <ol class="ag-tries" id="ag-tries"></ol>
+              <p class="ag-ids" id="ag-ids">The good commit got node id 8: ids 3 to 7 went to rejected transactions. After a reopen, the next id was 9.</p>
+            </div>
+            <figcaption class="demo-note">Error lines and byte counts are real output of a script written for this page that calls <code>db.transact</code>, with a unique index on <code>Person.name</code> and one committed transaction holding Ada Lovelace, Charles Babbage and a KNOWS edge. Callbacks are shortened to what they did.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-log" aria-labelledby="h-log">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-log"><span class="num" data-mark="3">3</span>Write one record, fsync, then say yes</h2>
+          <p>The staged ops get the next transaction id and become one record: an 8-byte header holding the payload's length and a CRC-32, then the MessagePack payload. There is no begin or commit marker. A transaction is atomic because it is one checked record.</p>
+          <p>The caller hears yes only after the record is written and fsynced. If the write or the fsync fails, the commit is rejected, and the log writer refuses everything after it until the database is reopened, so nothing can be acknowledged behind a damaged record.</p>
+          <p class="why">A failed fsync is the hard case. The bytes may already be in the file, so a commit rejected at that step can be there after a restart. Its outcome is unknown, not rolled back. The server always runs with an fsync on every commit.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-log" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three commits, one record each</p>
+              <div class="seg" role="group" aria-label="Scenario">
+                <button type="button" data-scn="ok" aria-pressed="true">Commits</button>
+                <button type="button" data-scn="write" aria-pressed="false">Write fails</button>
+                <button type="button" data-scn="sync" aria-pressed="false">fsync fails</button>
+              </div>
+            </div>
+            <ol class="pipe ag-pipe" id="ag-pipe">
+              <li><b>Encode</b><span>MessagePack payload</span></li>
+              <li><b>Frame</b><span>Length and CRC-32</span></li>
+              <li><b>Write</b><span>Append to the log</span></li>
+              <li><b>fsync</b><span>Force it to disk</span></li>
+              <li><b>Yes</b><span>The txId returns</span></li>
+              <li><b>Apply</b><span>Stage 4, only now</span></li>
+            </ol>
+            <div class="ag-tape-wrap">
+              <div class="ag-hdr" id="ag-hdr" aria-live="polite"><span class="ag-hdr-tx">Next record</span><span class="ag-bytes"><i>-- -- -- --</i><i>-- -- -- --</i></span><span class="ag-hdr-say">header: length, then CRC-32, little-endian</span></div>
+              <svg class="ag-tape" id="ag-tape" role="img" aria-label="The log file, byte by byte"></svg>
+              <div class="legend-row ag-legend"><span class="key"><i class="ag-k ag-k-hdr"></i>8-byte header</span><span class="key"><i class="ag-k ag-k-wr"></i>Written, not yet fsynced</span><span class="key"><i class="ag-k ag-k-dur"></i>fsynced</span><span class="key"><i class="ag-k ag-k-bad"></i>Rejected</span></div>
+              <dl class="ag-meters">
+                <div><dt>Log file</dt><dd id="ag-l-wal">0 bytes</dd></div>
+                <div><dt>Graph</dt><dd id="ag-l-store">0 nodes</dd></div>
+              </dl>
+            </div>
+            <div class="vlog" id="ag-vlog" aria-live="polite"></div>
+            <p class="ag-verdict" id="ag-verdict"></p>
+            <figcaption class="demo-note">Header bytes, sizes and log lines are real output of a script written for this page that commits these three transactions through the public API; its log file is byte-identical to the one damaged in stage 6. The failure modes inject a fault by replacing the log file's <code>write</code> or <code>fsync</code> once at runtime; their lines are that script's real output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>The record is in the log and fsynced. Only now does the transaction change the graph that readers and subscribers see.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-apply" aria-labelledby="h-apply">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-apply"><span class="num" data-mark="4">4</span>Apply it, then tell subscribers</h2>
+          <p>Only after the append resolves does the batch touch the in-memory graph, its adjacency lists and its indexes. The batch object that was logged is the one applied, so memory and disk can't drift apart. Then the change feed emits it, and the server forwards it over WebSocket.</p>
+          <ul class="st-points">
+            <li>Short reads take no locks and always see whole committed transactions.</li>
+            <li>Long reads and graph algorithms take a read lease that holds the write queue, so they see one point in time.</li>
+            <li>Commits go through one queue, one at a time, each with its own fsync: 200 commits fired at once still made 200 fsyncs.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-apply" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One commit, millisecond by millisecond</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body ag-tl-body">
+              <ol class="ag-tl" id="ag-tl"></ol>
+              <dl class="ag-meters ag-tl-meters">
+                <div><dt>Graph</dt><dd id="ag-a-store">0 nodes, 0 edges</dd></div>
+                <div><dt>Log file</dt><dd id="ag-a-wal">0 bytes</dd></div>
+                <div><dt>fsyncs</dt><dd id="ag-a-sync">0</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">Real output of a script written for this page; it wraps the log writer at runtime only to print when its append resolves. Times are one run on a laptop; the order and counts were the same in all four runs.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-snap" aria-labelledby="h-snap">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-snap"><span class="num" data-mark="5">5</span>Fold the log into a snapshot</h2>
+          <p>Replaying a long log is slow, so once it passes 64 MiB, or on request, the database writes a snapshot of the whole graph and starts a new log segment.</p>
+          <ul class="st-points">
+            <li>Inside the write queue: close the log, open the next segment, encode the graph to memory. Writes pause for this part.</li>
+            <li>Outside it: write a temporary file, fsync it, rename it, fsync the directory, then delete what the snapshot covers.</li>
+            <li>A crash at any step leaves something recovery can use: a stray temporary file is deleted on open, and a segment the snapshot already covers is ignored, then removed.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-snap" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The data directory across one checkpoint</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="ag-step" id="ag-step" aria-live="polite"></p>
+              <div class="ag-dir" id="ag-dir">
+                <p class="ag-dir-name">data/</p>
+                <ul class="ag-files">
+                  <li class="ag-file" data-f="wal1"><span class="ag-fn">wal-000001.log</span><span class="ag-recs" data-n="4"></span><span class="ag-fs">349 B</span></li>
+                  <li class="ag-file ag-snapf" data-f="snap"><span class="ag-fn">snapshot-000001.bin</span><span class="ag-recs ag-img"><i></i></span><span class="ag-fs">390 B</span></li>
+                  <li class="ag-file" data-f="wal2"><span class="ag-fn">wal-000002.log</span><span class="ag-recs" data-n="2"></span><span class="ag-fs" id="ag-wal2">0 B</span></li>
+                </ul>
+              </div>
+              <div class="mini-term" id="ag-reopen"><span class="ag-call">openDatabase(dir)</span><span>reopen: 31.4 ms, stats={"nodeCount":5,"edgeCount":0}, indexes=[{"kind":"property","label":"Person","property":"born"}]</span><span>lookupRange Person.born 1790..1800 -&gt; Charles Babbage, Michael Faraday</span></div>
+            </div>
+            <figcaption class="demo-note">File names, sizes and the reopen lines are real output of a script written for this page that calls <code>db.checkpoint()</code>. Blocks inside a log file count its records; they are not drawn to scale.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-recover" aria-labelledby="h-recover">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-recover"><span class="num" data-mark="6">6</span>Recover whole transactions, nothing else</h2>
+          <p>On open, the database loads the newest snapshot, then replays newer log records in order. Each record's length and CRC must check out, and transaction ids must follow on without a gap.</p>
+          <ul class="st-points">
+            <li>A short or corrupt record at the end of the last segment is a torn write. The file is cut back to the last whole record, with a warning.</li>
+            <li>A gap in transaction ids, or damage in an earlier segment, is refused outright with <code>WAL_CORRUPT</code>.</li>
+            <li>The repo's crash test kills a writer five times at random moments and checks for whole transactions only, and at least everything that was acknowledged.</li>
+          </ul>
+          <p class="why">The rule has a cost. A flipped bit in the middle of the last segment looks just like a torn tail, so recovery also drops the intact records after it, with only a warning.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-recover" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five kills, then four damaged logs</p>
+              <div class="seg" role="group" aria-label="Damage to the log">
+                <button type="button" data-dmg="torn" aria-pressed="true">Torn tail</button>
+                <button type="button" data-dmg="junk" aria-pressed="false">Junk tail</button>
+                <button type="button" data-dmg="flip" aria-pressed="false">Bit flip</button>
+                <button type="button" data-dmg="gap" aria-pressed="false">Missing record</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <h3 class="ag-sub">SIGKILL at a random moment, then reopen</h3>
+              <ol class="ag-kills" id="ag-kills"></ol>
+              <p class="ag-kill-say">Every run came back as whole transactions, two nodes and one edge each, and every run recovered one more than the writer had reported: a commit already in the log when the kill landed.</p>
+              <h3 class="ag-sub">A closed log, damaged by hand, then reopened <span class="tag-ill">Illustrative input</span></h3>
+              <p class="ag-dmg-say" id="ag-dmg-say"></p>
+              <svg class="ag-tape" id="ag-tape2" role="img" aria-label="The damaged log file and how recovery reads it"></svg>
+              <div class="mini-term ag-out" id="ag-rout" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">Kill runs are real output of a script written for this page, modelled on the repo's crash test, with default settings. The damaged logs start from the three-record log in stage 3, closed, then cut, extended, flipped or spliced by hand before a real <code>openDatabase</code>. Warning and error lines are verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured at the capacity point</h2>
+          <p>The design spec set its targets before any code: 1 million nodes and 5 million edges, recovery under 30 seconds, under 8 GB of heap. These figures were re-run for this page on one laptop (macOS, 12 cores, 18 GB, Node 26) with the repo's own synthetic generator and seed. Each reopen ran in a fresh process.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Recovery, both ways</h3>
+            <p>Time to reopen the full graph, against the 30-second budget.</p>
+            <div class="bars">
+              <div class="bar-row"><span>From a snapshot</span><span class="bar floor" style="--floor-at:93.75%"><i style="--w:41.9%"></i></span><span>13.4 s</span></div>
+              <div class="bar-row"><span>Whole log replayed</span><span class="bar floor" style="--floor-at:93.75%"><i style="--w:59.4%"></i></span><span>19.0 s</span></div>
+            </div>
+            <p>Two clean runs each, within 0.1 s of each other; one earlier replay, taken while the laptop was swapping, took 47 s. The repo's benchmark times the snapshot path only. Replaying a 425 MB log of 600 transactions also fits, and day to day the 64 MiB checkpoint keeps the log far shorter.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Memory, after recovery</h3>
+            <p>Heap after a fresh reopen and a forced GC, against the 8 GB budget.</p>
+            <div class="bars">
+              <div class="bar-row"><span>After log replay</span><span class="bar floor" style="--floor-at:95.26%"><i style="--w:22.3%"></i></span><span>1.9 GB</span></div>
+              <div class="bar-row"><span>After snapshot load</span><span class="bar floor" style="--floor-at:95.26%"><i style="--w:25.7%"></i></span><span>2.2 GB</span></div>
+            </div>
+            <p>1,918 MB and 2,214 MB, about a quarter of the budget, held in plain JavaScript maps and sets with edge types interned to small integers.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>One fsync per commit</h3>
+            <p>200 single-node commits, fired at once through <code>transact</code>:</p>
+            <div class="tally"><span>200 commits</span><span>200 fsyncs</span></div>
+            <p>The log writer can share one fsync between appends, but each transaction waits for its own before the next starts. Bulk loads go fast by putting many ops in one transaction instead; the benchmark uses 10,000. On this laptop that meant about 340 to 390 small commits a second.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">686 tests, durability first</h2>
+          <p>468 Vitest tests across the six packages and 218 Angular tests for the explorer, all passing. The engine's suite does what a crash would: it kills processes, tears records and replays logs.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward what fails silently</h3>
+            <ul>
+              <li><strong>Crash:</strong> a child writer is killed with SIGKILL five times at random moments after its first durable commit; recovery must hold whole transactions only, at least everything acknowledged, and the index. On failure the test keeps the data directory as evidence.</li>
+              <li><strong>Property-based:</strong> 25 runs of up to 60 random actions with a snapshot every 2 KiB, then a reopen that must keep every invariant, the same counts and the same index definitions.</li>
+              <li><strong>The log:</strong> torn final records, bad CRCs, short writes, and the writer stopping after a failed or partial write so nothing is acknowledged behind it.</li>
+              <li><strong>Transactions:</strong> a rollback persists nothing, ids are never reused across a reopen, async callbacks are refused before any write, and a gap in transaction ids refuses to open.</li>
+              <li><strong>Constraints and queries:</strong> unique constraints with same-batch index changes, the parser and planner, MERGE, and write statements that roll back whole.</li>
+              <li><strong>Server:</strong> auth, the permission matrix, problem-details errors, the audit log and WebSocket subscriptions.</li>
+            </ul>
+            <p>CI runs the build, type checks, lint, a format check and both suites on Node 22. Five Playwright end-to-end tests in <code>apps/web/e2e</code> run separately with <code>pnpm e2e:web</code>, not in CI.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Clustering and replication</dt><dd>One node. The design spec rules out horizontal scaling for v1.</dd></div>
+              <div><dt>Graphs bigger than memory</dt><dd>The graph lives in RAM and durability lives on disk. Tens of millions of elements would need compact typed-array layouts, deferred on purpose.</dd></div>
+              <div><dt>Concurrent writers</dt><dd>One write queue, so there are no write conflicts to resolve and no MVCC.</dd></div>
+              <div><dt>Snapshots with no pause</dt><dd>A checkpoint pauses writes while it encodes the graph. JavaScript has no cheap copy-on-write fork, so that is out of scope.</dd></div>
+              <div><dt>A strict open mode</dt><dd>A damaged tail is cut back with a warning today. An error code is reserved for refusing to open instead.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/atlas-graph-db.git
+cd atlas-graph-db
+
+<span class="c"># Explorer and API on http://localhost:4848</span>
+export ATLAS_SECRET=$(openssl rand -base64 32)
+export ATLAS_ADMIN_USER=admin
+export ATLAS_ADMIN_PASSWORD=change-me-please
+docker compose up --build
+
+<span class="c"># Or build and test it locally</span>
+pnpm install
+pnpm build &amp;&amp; pnpm lint &amp;&amp; pnpm test</pre>
+            <p>One container serves the API and the explorer from the same origin, with the data directory on a mounted volume. The packages are not published to npm; the engine can be used directly from the workspace.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

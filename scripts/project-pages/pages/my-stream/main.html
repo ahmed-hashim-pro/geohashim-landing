@@ -1,0 +1,361 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">My Stream</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A web app that pulls articles from RSS feeds, has an AI model score each one, and drafts only the ones that clear a quality threshold, in English and Arabic. Publishing is left to an editor.</p>
+            <p>Model calls cost money, and cheaper models score lower on the same rubric. So anything that can be rejected without a model call is rejected first, each remaining item gets one scoring call, and the threshold moves with the model, so one platform setting holds across seven providers.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://feed.geohashim.com">Open My Stream</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Web app</dt><dd>Angular 15 and Ionic 6, server-rendered on AWS Amplify Hosting</dd>
+              <dt>Backend</dt><dd>Amplify Gen 2: AppSync GraphQL, 20 Lambda functions, DynamoDB</dd>
+              <dt>Sign-in</dt><dd>Amazon Cognito, email or phone, optional MFA</dd>
+              <dt>Billing</dt><dd>Stripe Checkout and the Stripe customer portal</dd>
+              <dt>Models</dt><dd>7 providers. Anthropic works out of the box, the others with the workspace's own API key</dd>
+              <dt>Described here</dt><dd>The build live on feed.geohashim.com</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="held">Held</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="cleared">Cleared</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="quota">Quota</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">node offline-cycle.js --no-offset</span>
+<span class="out">[Orchestrator] ── Article Scores (threshold: 60) ──</span>
+<span class="out">[Orchestrator] ✗ FAIL | Overall: 56.2 | R:62 Q:58 T:20 | "City council approves new cycle lanes for the river district"</span>
+<span class="err">[Orchestrator] No articles meet quality threshold for drafting</span>
+<span class="out">Drafted: 0 articles</span></div>
+            </div>
+            <p class="term-cap">Offline runs of the deployed Lambda's own orchestrator and quota code, with the model and the database stubbed. The articles, model scores and plan counts are illustrative; lines starting with <code>[harness]</code> come from the test harness, and the italic lines mark trims.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an article moves through My Stream">
+          <div class="sign-group">
+            <p>Before any drafting spend</p>
+            <ol>
+              <li><a class="sign-link" href="#s-start"><b>1</b> Start</a></li>
+              <li><a class="sign-link" href="#s-scrape"><b>2</b> Scrape</a></li>
+              <li><a class="sign-link" href="#s-score"><b>3</b> Score</a></li>
+              <li><a class="sign-link" href="#s-hold"><b>4</b> Hold</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: drafting</p>
+            <ol>
+              <li><a class="sign-link" href="#s-draft"><b>5</b> Draft</a></li>
+              <li><a class="sign-link" href="#s-publish"><b>6</b> Publish</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-start" aria-labelledby="h-start">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-start"><span class="num" data-mark="1">1</span>Start the run in the background</h2>
+          <p>A run starts from the article queue's Run Full Cycle button as one GraphQL mutation. The Lambda records a job, hands the work to a second invocation of itself, and returns the job id straight away.</p>
+          <ul class="st-points">
+            <li>A request id seen in the last 90 seconds returns the existing job, so a double click or a retried request doesn't start a second run.</li>
+            <li>Before touching an article, the worker loads the workspace's AI profile and sends the chosen model a one-token probe. A retired model, an exhausted quota or a rejected key fails the job with a specific message; a transient error lets it continue.</li>
+            <li>The page polls the job record every 1.5 seconds and stops waiting after 15 minutes, the Lambda's own time limit. A cancel request is checked before scoring and again before drafting.</li>
+          </ul>
+          <p class="why">The other way in is the daily schedule. At 08:00 UTC, workspaces set to daily or weekdays get 1 to 10 articles written from their own topic list. That path skips scraping, scoring and the threshold. Its topic is still checked against the blocklist.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-start" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four answers to the one-token probe <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ms-probe" id="ms-probe"></ol>
+              <div class="mini-term ms-jobline" id="ms-jobline"><span class="ms-click">Run Full Cycle, in the article queue</span><span class="dim">mutation invokeArticleAutomation(action: full, orgId, requestId)</span><span>Returns a job id at once. The worker probes the model, then starts on the articles.</span></div>
+            </div>
+            <figcaption class="demo-note">Messages, the error kind and the stop-or-continue decision come from the deployed <code>validateModel</code> and its error classifier, run offline against a stubbed provider. The four status codes are the inputs.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-scrape" aria-labelledby="h-scrape">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-scrape"><span class="num" data-mark="2">2</span>Scrape, then drop what's already known</h2>
+          <p>Every workspace gets the platform's shared RSS feeds, 13 in the code's defaults, plus any it adds. Before a model sees an item, two checks that cost nothing remove what shouldn't be scored.</p>
+          <ul class="st-points">
+            <li>Already drafted: the item's URL is normalised (lower-case host, tracking parameters and trailing slash removed) and compared with the source URLs of existing articles.</li>
+            <li>Blocked: admin patterns match the URL, the title or the body, as exact, prefix or contains.</li>
+            <li>Near-duplicates within the run are dropped by link, by title, or by more than 85% word overlap between titles.</li>
+            <li>Items with 1,000 characters of text or fewer get the full page fetched, three at a time.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-scrape" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">7 scraped, 5 queued for scoring <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ms-feed" id="ms-feed"></ol>
+              <dl class="ms-bins" id="ms-bins">
+                <div data-bin="queued"><dt>Queued for scoring</dt><dd>0</dd></div>
+                <div data-bin="drafted"><dt>Already drafted</dt><dd>0</dd></div>
+                <div data-bin="blocked"><dt>Blocked</dt><dd>0</dd></div>
+              </dl>
+              <div class="mini-term" id="ms-scrape-term"><span>[Orchestrator] ⛔ Blocked: "Sponsored: the best mattress deals this week" matches title contains "sponsored"</span><span>[Orchestrator] Pre-filter: skipped 1 already-drafted URL(s)</span><span>[Orchestrator] Pre-filter: skipped 1 URL(s) matching admin blocklist</span><span>[Queue] ✓ Added 5/5 articles (0 duplicates skipped)</span></div>
+            </div>
+            <figcaption class="demo-note">Outcomes come from the deployed <code>normalizeUrl</code> and <code>matchBlockedPattern</code> on these items; the existing article's source URL and the block pattern are illustrative. The log lines are from the offline run of the real orchestrator.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-score" aria-labelledby="h-score">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-score"><span class="num" data-mark="3">3</span>Score every item on one fixed rubric</h2>
+          <p>Up to a per-run cap, each queued item gets one model call with a fixed system prompt that asks for relevance, quality and trending, each out of 100. The workspace's voice and keywords don't enter scoring.</p>
+          <ul class="st-points">
+            <li>The overall score is <code>0.5 × relevance + 0.4 × quality + 0.1 × trending</code>.</li>
+            <li>Before that, the code takes 10 quality points per warning sign, up to 30: clickbait phrasing, a title mostly in capitals, more than one exclamation mark, under 50 characters of text, or a speculative "will …?" title.</li>
+            <li>The cap is 5 items by default, and results are cached for 24 hours per Lambda instance.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-score" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three numbers become one <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-key legend-row"><span class="key"><i class="ms-k" style="--c:var(--blue)"></i>Relevance, × 0.5</span><span class="key"><i class="ms-k" style="--c:var(--magenta)"></i>Quality, × 0.4</span><span class="key"><i class="ms-k" style="--c:var(--water)"></i>Trending, × 0.1</span></div>
+              <ol class="ms-scores" id="ms-scores"></ol>
+            </div>
+            <figcaption class="demo-note">The model's three scores are illustrative. The penalty, the weights and the arithmetic are the deployed code's, and the overall scores match the offline run's log: 56.2, 54.0, 42.0, 43.8 and 45.2.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-hold" aria-labelledby="h-hold">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-hold"><span class="num" data-mark="4">4</span>Hold anything below the line</h2>
+          <p>The platform sets one quality threshold. The workspace's chosen model shifts it by a fixed offset, because cheaper models score lower on the same rubric, and the result is clamped between 20 and 95. Items below it are never drafted.</p>
+          <p><code>effective = clamp(round(platform threshold + model offset), 20, 95)</code></p>
+          <ul class="st-points">
+            <li>Not every item that clears the line is drafted: only the top scorers, one per run by default, after a check that no article from the last 7 days has a near-identical title.</li>
+            <li>When nothing clears it, the article queue suggests a lower setting: five under the current line or five under the top quartile's score, whichever is lower, and never below 30.</li>
+            <li>Right before each draft, the workspace's count of AI generations this month is checked against its plan.</li>
+          </ul>
+          <p class="why">This gate covers the article queue's runs. The scheduled daily run, described in stage 1, doesn't pass through it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo ms-gate-wrap" id="d-hold" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five scored items against the line <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="ms-ctl">
+              <label class="ms-f"><span>Model</span><select id="ms-model"></select></label>
+              <label class="ms-f ms-f-thr"><span>Platform threshold <b id="ms-base-v">60</b></span><input type="range" id="ms-base" min="0" max="100" step="5" value="60"><small><span>0</span><span>100</span></small></label>
+              <label class="ms-f ms-f-chk"><input type="checkbox" id="ms-off" checked><span>Per-model offset</span></label>
+            </div>
+            <p class="ms-formula" id="ms-formula" aria-live="polite"></p>
+            <div class="ms-chart" id="ms-chart" role="img" aria-label="Overall score of five items against the effective threshold"></div>
+            <div class="legend-row ms-legend"><span class="key"><i class="ms-lg-paint"></i>Effective threshold</span><span class="key"><i class="ms-lg-base"></i>Platform threshold, when the offset moves the line</span><span class="key"><i class="ms-lg-zone"></i>Outside the clamp, 20 to 95</span></div>
+            <dl class="gstats ms-stats">
+              <div><dt>Model offset</dt><dd id="ms-s-off">−10</dd></div>
+              <div><dt>Effective threshold</dt><dd id="ms-s-eff">50</dd></div>
+              <div><dt>Cleared the line</dt><dd id="ms-s-clr">2 of 5</dd></div>
+              <div><dt>Drafted this run</dt><dd id="ms-s-dr">1</dd></div>
+              <div><dt>Model calls to draft</dt><dd id="ms-s-calls">3 to 6</dd></div>
+            </dl>
+            <div class="ms-verdict" id="ms-verdict" aria-live="polite"></div>
+            <div class="cli">
+              <pre><span class="cmd">node offline-quota.js</span>
+<span class="dim">period 2026-10</span>
+Pro, 499 used: allowed, counter now 500
+<span class="err">Pro, 500 used: QuotaExceededError: AI generation cap reached (500/500 this period). Upgrade the plan to continue.</span>
+<span class="err">No plan, 10 used: QuotaExceededError: AI generation cap reached (10/10 this period). Upgrade the plan to continue.</span></pre>
+            </div>
+            <figcaption class="demo-note">Offsets and the clamp are the deployed values, and every effective threshold on the slider was computed by the Lambda's own function; its copy in the web app agrees on all 261 model and threshold pairs checked. The slider has the product's own range, 0 to 100 in steps of 5. The five scores come from one illustrative Haiku run (stage 3); another model would score the items differently. The starting value of 60 is illustrative, and the plan counts in the quota run are fixtures.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line a run has spent a one-token probe and one model call per scored item. Below it, each draft takes at least three more calls, and ends as a draft for an editor, not a published article.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-draft" aria-labelledby="h-draft">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-draft"><span class="num" data-mark="5">5</span>Draft in the workspace's voice, in English and Arabic</h2>
+          <p>The workspace's AI profile goes in front of the drafting prompt as one line of guidelines: voice, reading level, target length, keywords and the citation rule. Its custom rules go at the end.</p>
+          <ul class="st-points">
+            <li>English body first, then an Arabic version with up to two attempts and a title-only translation if both fail, then three alternative headlines for an editor to choose from.</li>
+            <li>That is at least three model calls per draft and up to six, not counting retries, against one to score, which is why the line sits before drafting.</li>
+            <li>Each draft records the model, provider, tokens and cost. If every model call fell back, the model field is left empty rather than naming a model that wrote nothing.</li>
+            <li>The result is saved with the status <code>drafted</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-draft" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What changes when you change the voice <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Editorial voice" id="ms-voices"></div>
+            </div>
+            <pre class="ms-prompt" id="ms-prompt"></pre>
+            <ol class="ms-calls" id="ms-calls">
+              <li><b>English body</b><span>1 call</span></li>
+              <li><b>Arabic version</b><span>1 or 2 calls</span></li>
+              <li><b>Headline variants</b><span>1 call</span></li>
+              <li><b>Arabic title or category name</b><span>0 to 2 calls</span></li>
+            </ol>
+            <figcaption class="demo-note">The system prompt is the deployed <code>buildSystem</code> output for an illustrative profile: the default 1,200 words, two keywords, citations on and one custom rule. Switching voice changes one phrase. The six voices are the ones the product's AI Studio offers.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-publish" aria-labelledby="h-publish">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-publish"><span class="num" data-mark="6">6</span>Leave publishing to an editor</h2>
+          <p>Nothing the pipeline writes is published by the pipeline. Drafts wait in the article queue for someone with the Editor role or above.</p>
+          <ul class="st-points">
+            <li>Approve, one at a time or in bulk, sets the status to <code>published</code>. Reject sets it to <code>rejected</code> and hides the article.</li>
+            <li>Public article lists, the sitemap and the public API leave drafts out.</li>
+            <li>Workspaces have Owner, Admin, Editor and Viewer roles, and each has its own AI profile, plan and Stripe subscription.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-publish" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One draft, two possible endings <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Editor's decision">
+                <button type="button" data-act="approve" aria-pressed="true">Approve</button>
+                <button type="button" data-act="reject" aria-pressed="false">Reject</button>
+              </div>
+            </div>
+            <div class="ms-pub" id="ms-pub">
+              <article class="ms-card">
+                <p class="ms-card-t">City council approves new cycle lanes for the river district</p>
+                <p class="ms-card-m">Drafted from stage 4's run</p>
+                <p class="ms-status"><span>Status</span><code id="ms-st">drafted</code></p>
+              </article>
+              <div class="ms-editor" id="ms-editor"><span class="ms-cursor" aria-hidden="true"></span><span id="ms-ed-say">Waiting for an editor</span></div>
+              <ul class="ms-dest" id="ms-dest">
+                <li><b>Public article lists</b><span>published only</span></li>
+                <li><b>Sitemap</b><span>published only</span></li>
+                <li><b>Public API</b><span>published only</span></li>
+              </ul>
+            </div>
+            <figcaption class="demo-note">Status values and the filters come from the deployed article queue service, the public site's article queries, and the sitemap and public API Lambdas.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="stack" aria-labelledby="h-stack">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-stack">What runs where</h2>
+          <p>Every piece below is in the deployed backend definition; nothing here is planned work. One Amplify app builds the backend and the server-rendered front end together, in one job per deploy of the main branch.</p>
+        </div>
+        <div class="ms-stack">
+          <article class="panel ms-node ms-n-web"><h3>Amplify Hosting</h3><p>The Angular and Ionic app, rendered on the server by a Node 20 compute function, with static files served alongside.</p></article>
+          <article class="panel ms-node ms-n-auth"><h3>Cognito</h3><p>Sign-in by email or phone, with optional SMS or authenticator-app MFA. After sign-up, onboarding creates the user's workspace and makes them its Owner.</p></article>
+          <article class="panel ms-node ms-n-api"><h3>AppSync GraphQL</h3><p>25 data models, plus custom mutations backed by Lambda: start a run, manage members, check out, open the billing portal.</p></article>
+          <article class="panel ms-node ms-n-fn"><h3>Lambda</h3><p>20 functions. The pipeline runs in one of them, with a 900-second limit and 1 GB of memory. The others include membership, billing, email, webhooks, account deletion, the public API, the sitemap and the scheduled jobs.</p></article>
+          <article class="panel ms-node ms-n-db"><h3>DynamoDB</h3><p>The tables behind the GraphQL models. The pipeline writes its job, queue and article rows directly.</p></article>
+          <article class="panel ms-node ms-n-ev"><h3>EventBridge</h3><p>Three rules: scheduled generation at 08:00 UTC, trial reminders at 09:00 UTC, and a publishing check every 5 minutes.</p></article>
+          <article class="panel ms-node ms-n-pay"><h3>Stripe</h3><p>Checkout for subscriptions and the customer portal. A webhook with a verified signature keeps each workspace's plan and status in step.</p></article>
+          <article class="panel ms-node ms-n-etc"><h3>S3 and SES</h3><p>Article images in S3, and transactional email through SES.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, and what wasn't</h2>
+          <p>The repository documents no benchmarks. These are the numbers that could be checked: one by re-running the code, one from the hosting service, and one that is only an estimate in the code.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Two copies of one formula</h3>
+            <p>The effective threshold is computed in the web app, to preview it, and in the Lambda, to enforce it. Both were run on every catalog model at nine thresholds.</p>
+            <div class="tally"><span>29 models</span><span>9 thresholds</span><span>261 of 261 agree</span></div>
+            <p>The offsets on this page are the Lambda's values for the twelve models the landing page lists.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>One push, one deploy</h3>
+            <p>Amplify builds the backend and the server-rendered front end in one job. The last three deploys of the main branch:</p>
+            <div class="bars">
+              <div class="bar-row"><span>Latest</span><span class="bar"><i style="--w:91.3%"></i></span><span>864 s</span></div>
+              <div class="bar-row"><span>Before</span><span class="bar"><i style="--w:100%"></i></span><span>946 s</span></div>
+              <div class="bar-row"><span>Earlier</span><span class="bar"><i style="--w:90.6%"></i></span><span>857 s</span></div>
+            </div>
+            <p>About 14 to 16 minutes each, all successful.</p>
+          </article>
+          <article class="panel m-card ms-cost">
+            <h3>Scoring against drafting, estimated</h3>
+            <p>The model picker shows a cost per call from token counts fixed in the code: 3,500 in and 800 out to score, 6,000 in and 2,500 out per drafting call. These are estimates, not measurements.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Sonnet 4.6, score</span><span class="bar"><i style="--w:40.5%"></i></span><span>$0.0225</span></div>
+              <div class="bar-row"><span>Sonnet 4.6, draft</span><span class="bar"><i style="--w:100%"></i></span><span>$0.0555</span></div>
+              <div class="bar-row"><span>Haiku 4.5, score</span><span class="bar"><i style="--w:13.5%"></i></span><span>$0.0075</span></div>
+              <div class="bar-row"><span>Haiku 4.5, draft</span><span class="bar"><i style="--w:33.3%"></i></span><span>$0.0185</span></div>
+            </div>
+            <p>The draft estimate covers the English body alone. A draft also writes the Arabic version and makes smaller headline and translation calls.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="try" aria-labelledby="h-try">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Not in this build</h3>
+            <dl>
+              <div><dt>Scoring on scheduled runs</dt><dd>The daily run writes from a topic and never meets the threshold. Only runs from the article queue are scored.</dd></div>
+              <div><dt>A threshold per workspace</dt><dd>The base threshold is one platform setting. A workspace moves its line only by choosing a model.</dd></div>
+              <div><dt>Live progress</dt><dd>The page polls the job record every 1.5 seconds. Nothing is pushed to it.</dd></div>
+              <div><dt>A spending cap in dollars</dt><dd>Plans cap the number of AI generations a month. They don't cap what those generations cost.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-try">Try it</h3>
+            <p>My Stream runs at feed.geohashim.com. Sign up and create a workspace, choose a model and an editorial voice in AI Studio, add your own RSS feeds, then press Run Full Cycle in the article queue and watch the job.</p>
+            <p><a class="btn btn-ink" href="https://feed.geohashim.com">Open My Stream</a></p>
+            <p class="ms-small">The source code is private.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>
