@@ -16,3 +16,6 @@ app-root, app-landing, app-privacy, app-terms, app-not-found { display: contents
   .doc { padding: 32px 0 64px; }
   .doc-panel { padding: 22px 18px 26px; }
 }
+
+/* Landing panels link to their project pages beside the outside link. */
+.rp-actions, .prod .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }

@@ -1,0 +1,13 @@
+[
+  {"slug": "triage-graph", "name": "triage-graph", "kind": "repo", "blurb": "Multi-agent incident triage on LangGraph with a human approval gate enforced in code, plus a CrewAI port and a written comparison of the two."},
+  {"slug": "sqlguard-mcp", "name": "sqlguard-mcp", "kind": "repo", "blurb": "An MCP server that lets an agent query a SQLite database and refuses any write until a human approves that exact statement."},
+  {"slug": "atlas-graph-db", "name": "atlas-graph-db", "kind": "repo", "blurb": "A graph database written from scratch in TypeScript, with a write-ahead log, crash recovery, atomic transactions and a Cypher-like query language (AQL)."},
+  {"slug": "llm-contract-router", "name": "llm-contract-router", "kind": "repo", "blurb": "Routes requests across LLM providers behind one interface, validates each answer against your schema, and re-prompts with the constraint that failed."},
+  {"slug": "noisefloor", "name": "noisefloor", "kind": "repo", "blurb": "A regression harness for non-deterministic systems that measures run-to-run noise before calling a change a regression."},
+  {"slug": "runon", "name": "runon", "kind": "repo", "blurb": "Runs plain shell-script programs on your machine, one server, or a named group of servers over your own SSH, and is published on PyPI."},
+  {"slug": "rag-knowledge-agent", "name": "rag-knowledge-agent", "kind": "repo", "blurb": "A command-line retrieval agent that answers from a folder of documents with citations, and refuses without calling the model when no evidence clears its confidence floor."},
+  {"slug": "local-network-mcp", "name": "local-network-mcp", "kind": "repo", "blurb": "An MCP server for local network, system and SSH tasks, where shell commands, remote commands and process kills stay denied until the operator opts in."},
+  {"slug": "my-stream", "name": "My Stream", "kind": "product", "blurb": "An AI publishing platform. Scrape sources, score them against a quality threshold, and draft articles in your editorial voice."},
+  {"slug": "mushaf", "name": "Mushaf", "kind": "product", "blurb": "A focused, ad-free digital Quran reader for the web, built for fast page navigation and a layout that respects the printed Mushaf."},
+  {"slug": "online-quran", "name": "Online Quran", "kind": "product", "blurb": "A long-running Quran app for Android, with reciter audio, bookmarks and offline reading."}
+]

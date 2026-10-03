@@ -1,0 +1,9 @@
+{
+  "title": "sqlguard-mcp · Ahmed Hashim",
+  "description": "An MCP server that lets an agent query a SQLite database and holds every write until a person approves that exact statement from a separate command. How it works end to end, with real sessions.",
+  "tour_seconds": "75",
+  "tour_end": {
+    "href": "#answer",
+    "label": "See the audit log"
+  }
+}

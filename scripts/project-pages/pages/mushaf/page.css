@@ -1,0 +1,162 @@
+/* 1. Find the page */
+.mu-ruler svg { display: block; width: 100%; overflow: visible; }
+.mu-band { fill: var(--wash); stroke: var(--ink); stroke-width: 1; }
+.mu-r-cap { font: 650 12px var(--sans); fill: var(--ink-2); }
+.mu-tick line { stroke: var(--ink); stroke-width: 1.5; }
+.mu-tick text { font: 500 11px var(--mono); fill: var(--ink-2); }
+.mu-tick, .mu-pin { transition: opacity .3s; }
+.mu-tick.is-off, .mu-pin.is-off { opacity: 0; }
+.mu-r-page { font: 500 11px var(--mono); fill: var(--ink-2); }
+.mu-pin line { stroke: var(--paint-edge); stroke-width: 3; }
+.mu-pin circle { fill: var(--yellow); stroke: var(--paint-edge); stroke-width: 1.5; }
+.mu-pin text { font: 700 12px var(--mono); fill: var(--ink); }
+.mu-pin.is-no line { stroke: var(--red); stroke-dasharray: 3 3; }
+.mu-pin.is-no circle { fill: var(--chalk); stroke: var(--red); }
+.mu-pin.is-no text { fill: var(--red); }
+.mu-count { margin-top: 6px; font-size: var(--fs-xs); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.mu-ways { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+.mu-ways li { display: grid; grid-template-columns: minmax(0, 13em) 26px minmax(0, 15em) minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 8px 10px; background: var(--field); border: 1px solid var(--rule); border-left: 4px solid var(--yellow); font-size: var(--fs-sm); line-height: 1.35; transition: opacity .35s, transform .35s cubic-bezier(.2, .7, .2, 1); }
+.mu-ways li.is-no { border-left-color: var(--red); }
+.mu-ways li.is-off { opacity: 0; transform: translateY(6px); }
+.mu-way-in { font-weight: 650; }
+.mu-way-in .tag-ill { margin-left: 4px; font-weight: 400; }
+.mu-way-arrow { height: 2px; background: var(--ink); position: relative; }
+.mu-way-arrow::after { content: ""; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left: 7px solid var(--ink); border-right: 0; }
+.mu-ways code { justify-self: start; }
+.mu-ways li.is-no code { color: var(--red); }
+.mu-way-out { color: var(--ink-2); font-size: var(--fs-xs); }
+.mu-ar { font-family: "Noto Naskh Arabic", "Geeza Pro", "Traditional Arabic", serif; font-size: 1.1em; color: var(--ink); unicode-bidi: isolate; }
+@media (max-width: 759px) {
+  .mu-ways li { grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr); }
+  .mu-way-out { grid-column: 1 / -1; }
+}
+
+/* 2. Taps against the geometry */
+.mu-head-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mu-tap { display: grid; grid-template-columns: minmax(0, 330px) minmax(0, 1fr); gap: 20px 24px; padding: 18px 16px 18px; align-items: start; }
+.mu-sheet { min-width: 0; }
+.mu-sheet svg { display: block; max-width: 100%; height: auto; cursor: crosshair; touch-action: manipulation; overflow: visible; }
+.mu-page { fill: var(--field); stroke: var(--ink); stroke-width: 1; }
+.mu-box rect { stroke: var(--ink); stroke-width: .8; transition: fill .3s; }
+.mu-box.t0 rect { fill: color-mix(in srgb, var(--water) 22%, var(--field)); }
+.mu-box.t1 rect { fill: color-mix(in srgb, var(--water) 42%, var(--field)); }
+.mu-box text { font: 600 10px var(--mono); fill: var(--ink); pointer-events: none; }
+.mu-box.is-sel rect { fill: var(--yellow); stroke: var(--paint-edge); stroke-width: 1.5; }
+.mu-box { transition: opacity .25s; }
+.mu-box.is-off { opacity: 0; }
+.mu-tapmark { pointer-events: none; }
+.mu-tapmark .mu-ring { fill: color-mix(in srgb, var(--blue) 10%, transparent); stroke: var(--blue); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.mu-tapmark line { stroke: var(--blue); stroke-width: 1.5; }
+.mu-tapmark .mu-dot { fill: var(--blue); stroke: var(--field); stroke-width: 1.5; }
+.mu-tapmark.is-no .mu-ring { stroke: var(--red); fill: color-mix(in srgb, var(--red) 8%, transparent); }
+.mu-tapmark.is-no line { stroke: var(--red); stroke-dasharray: 4 3; }
+.mu-tapmark.is-no .mu-dot { fill: var(--red); }
+.mu-tapmark:not(.is-last) { opacity: .45; }
+.mu-tap-side { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.mu-try { font-size: var(--fs-sm); font-weight: 650; }
+.mu-log { padding: 12px 14px; min-height: 9.6em; background: var(--sign); color: var(--t-fg); font: 400 12.5px/1.6 var(--mono); overflow-wrap: anywhere; }
+.mu-log span { display: block; }
+.mu-log .ok { color: #9FE0B5; }
+.mu-log .err { color: var(--t-err); }
+.mu-log .dim { color: var(--t-dim); }
+.mu-hl p { font-size: var(--fs-sm); margin-bottom: 6px; }
+.mu-hl p.mu-none { color: var(--ink-2); }
+.mu-hl table, .mu-pct table { width: 100%; border-collapse: collapse; font: 500 12.5px var(--mono); font-variant-numeric: tabular-nums; }
+.mu-hl th, .mu-hl td, .mu-pct th, .mu-pct td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--rule); }
+.mu-hl th, .mu-pct th { font: 650 12px var(--sans); color: var(--ink-2); }
+#d-tap .gstats dd { font-size: 1.25rem; }
+@media (max-width: 759px) { .mu-tap { grid-template-columns: minmax(0, 1fr); padding: 14px 12px; } }
+
+/* 3. Turn the page */
+.mu-book svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; cursor: grab; }
+.mu-stack { stroke: var(--ink-2); stroke-width: 1.2; opacity: .55; }
+.mu-spine { stroke: var(--ink); stroke-width: 2.5; }
+.mu-side { font: 600 13px var(--sans); fill: var(--ink-2); }
+.mu-ghosts path { fill: none; stroke: var(--ink-2); stroke-width: 1.4; opacity: .35; }
+.mu-ref { fill: none; stroke: var(--yellow); stroke-width: 2; stroke-dasharray: 6 5; }
+.mu-ref-lab { font: 700 12px var(--mono); fill: var(--ink); }
+.mu-leaf { fill: none; stroke: var(--ink); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.mu-leaf.is-past { stroke: var(--blue); }
+.mu-edge { font: 700 12px var(--mono); fill: var(--ink); paint-order: stroke; stroke: var(--chalk); stroke-width: 3px; }
+.mu-turn-read { display: grid; grid-template-columns: 5.5em 9em minmax(0, 1fr); gap: 0; margin-top: 10px; border-top: 1px solid var(--rule); }
+.mu-turn-read div { padding: 10px 12px 2px 0; display: grid; gap: 2px; }
+.mu-turn-read span { font-size: var(--fs-xs); color: var(--ink-2); }
+.mu-turn-read b { font: 700 1.125rem/1.2 var(--sans); font-variant-numeric: tabular-nums; }
+.mu-turn-say { margin-top: 10px; min-height: 3em; font-size: var(--fs-sm); }
+@media (max-width: 499px) { .mu-turn-read { grid-template-columns: 1fr 1fr; } .mu-turn-read div:last-child { grid-column: 1 / -1; } }
+
+/* 4. The text cache */
+.mu-cache { padding: 16px 16px 6px; display: grid; gap: 14px; }
+.mu-req { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; min-height: 46px; padding: 8px 12px; background: var(--sign); color: var(--t-fg); }
+.mu-req code { background: transparent; border: 0; color: #fff; padding: 0; }
+.mu-req-res { font-size: var(--fs-xs); font-weight: 650; }
+.mu-req-res.is-hit { color: #9FE0B5; }
+.mu-req-res.is-miss { color: var(--yellow); }
+.mu-slots { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; }
+.mu-slots i { aspect-ratio: 1.25; display: grid; place-items: center; font: 600 10px/1 var(--mono); font-style: normal; color: var(--ink); background: var(--field); border: 1px solid var(--rule); font-variant-numeric: tabular-nums; overflow: hidden; }
+.mu-slots i.is-full { background: color-mix(in srgb, var(--water) 22%, var(--field)); border-color: var(--rule-soft); }
+.mu-slots i.is-new { animation: mu-in .6s ease-out; }
+.mu-slots i.is-hit { background: color-mix(in srgb, var(--pass) 45%, var(--field)); border-color: var(--paint-edge); }
+.mu-slots i.is-out { background: color-mix(in srgb, var(--yellow) 60%, var(--field)); border-color: var(--paint-edge); }
+@keyframes mu-in { from { background: var(--yellow); } }
+.mu-tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--rule); }
+.mu-tally div { padding: 10px 12px 4px 0; }
+.mu-tally dt { font-size: var(--fs-xs); color: var(--ink-2); }
+.mu-tally dd { margin: 2px 0 0; font: 750 1.5rem/1.1 var(--sans); font-variation-settings: "wdth" 90; font-variant-numeric: tabular-nums; }
+.mu-cache-say { min-height: 3em; font-size: var(--fs-sm); }
+@media (max-width: 759px) {
+  .mu-slots { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .mu-tally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 5. The text reply */
+.mu-get { font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.mu-get b { margin-right: 6px; font: 700 12px var(--mono); }
+.mu-fields { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.mu-fields li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--rule-soft); background: var(--panel); font-size: var(--fs-xs); transition: opacity .3s, background-color .4s, border-color .4s; }
+.mu-fields li code { background: transparent; border: 0; padding: 0; }
+.mu-fields li span { color: var(--ink-2); }
+.mu-fields li.is-off { opacity: 0; }
+.mu-fields li.is-judged[data-keep="true"] { border-color: var(--ink); background: color-mix(in srgb, var(--pass) 18%, var(--panel)); }
+.mu-fields li.is-judged[data-keep="false"] { opacity: .45; text-decoration: line-through; }
+.mu-sub { margin: 18px 0 8px; font-size: 1.25rem; line-height: 1.15; }
+.mu-agree { display: grid; gap: 6px; }
+.mu-ag { display: grid; grid-template-columns: 5.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--rule-soft); transition: opacity .3s; }
+.mu-ag.is-off { opacity: 0; }
+.mu-ag-p { font-weight: 650; font-size: var(--fs-sm); }
+.mu-ag-rows { display: grid; gap: 3px; min-width: 0; }
+.mu-ag-row { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.mu-ag-row small { width: 5.4em; font-size: 11.5px; color: var(--ink-2); }
+.mu-ag-row i { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+.mu-ag-row + .mu-ag-row i { background: var(--water); }
+.mu-ag b { font: 700 13px var(--mono); color: var(--green); }
+.mu-fail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 16px; transition: opacity .4s; }
+.mu-fail.is-off { opacity: 0; }
+.mu-fail div { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--rule-soft); font-size: var(--fs-xs); }
+.mu-fail b { font-size: var(--fs-sm); }
+.mu-fail span { color: var(--ink-2); }
+@media (max-width: 599px) { .mu-fail { grid-template-columns: minmax(0, 1fr); } }
+
+/* 6. Draw the printed page */
+.mu-screens { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: center; gap: 18px 22px; padding: 18px 16px 6px; }
+.mu-scr { display: grid; gap: 8px; justify-items: center; max-width: 100%; transition: opacity .4s, transform .4s cubic-bezier(.2, .7, .2, 1); }
+.mu-scr.is-off { opacity: 0; transform: translateY(8px); }
+.mu-scr svg { display: block; max-width: 100%; height: auto; }
+.mu-scr p { max-width: 17em; font-size: var(--fs-xs); color: var(--ink-2); text-align: center; }
+.mu-scr p b { display: block; color: var(--ink); font-size: var(--fs-sm); }
+.mu-scr-bg { fill: var(--field); stroke: var(--ink); stroke-width: 4; }
+.mu-scr-bar { fill: var(--wash); }
+.mu-btn { fill: none; stroke: var(--ink-2); stroke-width: 3; }
+.mu-btn.is-desk { stroke: var(--blue); stroke-width: 4; }
+.mu-pg { fill: color-mix(in srgb, var(--yellow) 10%, var(--field)); stroke: var(--ink); stroke-width: 3; }
+.mu-pg-line { fill: var(--ink); opacity: .16; }
+.mu-pg-hl { fill: var(--yellow); stroke: var(--paint-edge); stroke-width: 2; opacity: 0; transition: opacity .5s; }
+.mu-screens.is-hl .mu-pg-hl { opacity: 1; }
+.mu-edge-line { stroke: var(--ink-2); stroke-width: 2.5; }
+.mu-pct { padding: 12px 16px 16px; transition: opacity .4s; }
+.mu-pct.is-off { opacity: 0; }
+.mu-pct p { font-size: var(--fs-sm); margin-bottom: 6px; }
+
+/* Try it */
+.mu-try-list { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; font-size: var(--fs-sm); }
+.box .btn-row { margin-top: 4px; }
