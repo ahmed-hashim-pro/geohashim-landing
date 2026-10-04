@@ -1,9 +1,9 @@
-// Ported from docs/mockups/mockup-7-full-flight.html; logic unchanged.
+// Ported from docs/mockups/mockup-7-full-flight.html; the map behind it is now the terrain flight in flight.js.
 import { $, $$, r1, clamp, svgEl, mulberry, ease, createScope } from './scope.js';
-import { PERIOD, CELL, layerTile } from './terrain.js';
 import { initHeader } from './header.js';
 import { initGate } from './gate.js';
 import { initMyStream } from './mystream.js';
+import { initFlight } from './flight.js';
 
 // Runs once the prerendered page has hydrated. Everything attached outside the page's own
 // DOM goes through the scope, so navigating away detaches it.
@@ -51,31 +51,8 @@ export function initLanding() {
     range = parallaxOn() ? lead * 2.5 : h1Top + box.height * .5;
   }
 
-  /* Air: the sectional chart behind everything below the hero */
-  const layers = $$('.c-layer').map(el => ({ el, rate: +el.dataset.rate, kind: el.dataset.kind, svg: null, copies: 0 }));
-  let builtWidth = 0;
-  function buildLayers() {
-    const w = Math.max(1440, innerWidth) + 4 * CELL;
-    const copies = Math.ceil(innerHeight / PERIOD) + 1;
-    if (w > builtWidth) {
-      builtWidth = w;
-      layers.forEach((L, i) => {
-        const svg = svgEl('svg', { width: w });
-        svg.style.marginLeft = `${-w / 2}px`;
-        svg.innerHTML = `<g id="tile-${i}">${layerTile(L.kind, w)}</g>`;
-        L.el.replaceChildren(svg);
-        L.svg = svg;
-        L.copies = 1;
-      });
-    }
-    layers.forEach((L, i) => {
-      if (L.copies === copies) return;
-      L.svg.querySelectorAll('use').forEach(u => u.remove());
-      for (let k = 1; k < copies; k++) L.svg.appendChild(svgEl('use', { href: `#tile-${i}`, y: k * PERIOD }));
-      L.svg.setAttribute('height', copies * PERIOD);
-      L.copies = copies;
-    });
-  }
+  /* Air: the terrain flight behind everything below the hero (flight.js) */
+  const flight = initFlight(scope, reduce);
 
   /* Waypoint clusters: one dot per passing test, every dot the same size */
   const mainEl = $('#main');
@@ -88,8 +65,6 @@ export function initLanding() {
   const reposWrap = $('.repos-wrap');
   const startM = $('#route-start-m'), vor = $('#route-vor'), workFix = $('#work-fix'), legend = $('.legend');
   const compass = $('.compass');
-  const probe = svgEl('path', { visibility: 'hidden' });
-  routeSvg.appendChild(probe);
 
   const GOLDEN = Math.PI * (3 - Math.sqrt(5));
   const SETTLE = 900;
@@ -334,26 +309,43 @@ export function initLanding() {
       leaders.set(r, path);
     });
     repos.forEach(r => applyOn(r));
+    // Each segment is one known cubic, so the route is measured here in a single pass. Asking the
+    // browser with getPointAtLength re-walks the whole path on every call, which made this quadratic.
     let d = `M${r1(pts[0].x)} ${r1(pts[0].y)}`;
-    const Ls = [0];
+    const cx = [r1(pts[0].x)], cy = [r1(pts[0].y)], cl = [0], ends = [0];
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i], k = (b.y - a.y) * .5;
-      d += `C${r1(a.x)} ${r1(a.y + k)} ${r1(b.x)} ${r1(b.y - k)} ${r1(b.x)} ${r1(b.y)}`;
-      probe.setAttribute('d', d);
-      Ls.push(probe.getTotalLength());
+      const x0 = r1(a.x), y0 = r1(a.y), x1 = r1(a.x), y1 = r1(a.y + k), x2 = r1(b.x), y2 = r1(b.y - k), x3 = r1(b.x), y3 = r1(b.y);
+      d += `C${x1} ${y1} ${x2} ${y2} ${x3} ${y3}`;
+      const steps = Math.max(24, Math.ceil(Math.hypot(x3 - x0, y3 - y0) / 4));
+      for (let s = 1; s <= steps; s++) {
+        const t = s / steps, u = 1 - t;
+        const x = u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3;
+        const y = u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3;
+        cl.push(cl[cl.length - 1] + Math.hypot(x - cx[cx.length - 1], y - cy[cy.length - 1]));
+        cx.push(x);
+        cy.push(y);
+      }
+      ends.push(cl[cl.length - 1]);
     }
+    plan.setAttribute('d', d);
+    strokes.forEach(p => p.setAttribute('d', d));
+    // The browser's own length drives the dash, so the local measure is scaled to agree with it.
+    const total = ink.getTotalLength();
+    const scale = cl[cl.length - 1] ? total / cl[cl.length - 1] : 1;
+    const Ls = ends.map(L => L * scale);
     repos.forEach((r, k) => { r.L = Ls[firstRepo + k]; });
     const marks = [];
     pts.forEach((p, i) => { if (p.mark) marks.push({ g: addMark(p, p.mark), L: Ls[i] }); });
-    plan.setAttribute('d', d);
-    strokes.forEach(p => p.setAttribute('d', d));
-    const total = ink.getTotalLength();
     const n = Math.max(2, Math.ceil(total / 6));
     const xs = new Float32Array(n + 1), ys = new Float32Array(n + 1);
-    for (let i = 0; i <= n; i++) {
-      const q = ink.getPointAtLength(total * i / n);
-      xs[i] = q.x;
-      ys[i] = i ? Math.max(q.y, ys[i - 1]) : q.y;
+    for (let i = 0, j = 0; i <= n; i++) {
+      const L = total * i / n / scale;
+      while (j < cl.length - 2 && cl[j + 1] < L) j++;
+      const f = cl[j + 1] > cl[j] ? clamp((L - cl[j]) / (cl[j + 1] - cl[j]), 0, 1) : 0;
+      xs[i] = cx[j] + (cx[j + 1] - cx[j]) * f;
+      const y = cy[j] + (cy[j + 1] - cy[j]) * f;
+      ys[i] = i ? Math.max(y, ys[i - 1]) : y;
     }
     route = { total, n, xs, ys, marks };
     strokes.forEach(p => { p.style.strokeDasharray = `${total} ${total + 20}`; });
@@ -433,10 +425,11 @@ export function initLanding() {
       groundPaint.style.transform = `translate3d(0, ${r1(y * PAINT_LAG)}px, 0)`;
       h1.style.transform = `translate3d(0, ${r1(-y * TITLE_LEAD)}px, 0)`;
     }
-    for (const L of layers) L.el.style.transform = par ? `translate3d(0, ${r1(-((y * L.rate) % PERIOD))}px, 0)` : '';
+    flight.update(y, heroBottom, docH);
     compass.style.transform = par ? `translate3d(0, ${r1(.18 * (y - compassAlign))}px, 0)` : '';
     header.classList.toggle('is-air', y + headH >= heroBottom - 1);
     drawRoute(now || performance.now());
+    flight.afterRoute();
   }
   const requestUpdate = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
   let layoutQueued = false;
@@ -455,10 +448,9 @@ export function initLanding() {
     requestAnimationFrame(relayout);
   };
 
-  buildLayers();
   relayout();
   addEventListener('scroll', requestUpdate, { passive: true });
-  addEventListener('resize', () => { buildLayers(); requestLayout(); }, { passive: true });
+  addEventListener('resize', requestLayout, { passive: true });
   if (document.readyState === 'complete') requestLayout(); else addEventListener('load', requestLayout);
   if ('ResizeObserver' in window) scope.observe(new ResizeObserver(requestLayout)).observe(mainEl);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!scope.disposed) requestLayout(); });
