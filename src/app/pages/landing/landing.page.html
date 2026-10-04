@@ -44,10 +44,17 @@
 </svg>
 
 <div class="chart-bg" aria-hidden="true">
-  <div class="c-layer" data-rate=".15" data-kind="far"></div>
-  <div class="c-layer" data-rate=".35" data-kind="mid"></div>
-  <div class="c-layer" data-rate=".6" data-kind="near"></div>
-  <div class="c-layer" data-rate=".82" data-kind="grid"></div>
+  <div class="tm-zoom">
+    <div class="tm-ground">
+      <div class="tm-img"></div>
+      <div class="tm-shade"></div>
+      <svg class="tm-labels tm-spots" focusable="false"></svg>
+      <svg class="tm-labels tm-mef" focusable="false"></svg>
+    </div>
+  </div>
+  <div class="tm-haze"></div>
+  <div class="tm-czoom"><div class="tm-cpan"></div></div>
+  <div class="tm-fog"></div>
 </div>
 
 <header class="site-header" app-site-header></header>
@@ -112,3 +119,5 @@
 </main>
 
 <footer class="site-footer" app-site-footer></footer>
+
+<div class="alti" aria-hidden="true"><span class="alti-l">Altitude</span><strong class="alti-val">0 ft</strong><span class="alti-vs">Level</span><span class="alti-note">Holding short</span><span class="alti-win"><i class="alti-tape"></i></span></div>
