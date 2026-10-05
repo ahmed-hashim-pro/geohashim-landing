@@ -36,21 +36,6 @@ code, kbd { font-family: var(--mono); font-weight: 500; font-size: .84em; backgr
 .wrap { max-width: 1440px; margin: 0 auto; padding-left: var(--pad-l); padding-right: var(--pad-r); }
 .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); }
 
-/* Chart background, as on the landing page */
-.chart-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-.c-layer { position: absolute; left: 0; right: 0; top: 0; will-change: transform; }
-.c-layer svg { position: absolute; top: 0; left: 50%; overflow: visible; }
-.c-tint { fill: var(--terrain); }
-.c-water { fill: var(--water-fill); }
-.c-shore { fill: none; stroke: var(--water); stroke-width: 1; opacity: .75; }
-.c-line { fill: none; stroke: var(--water); stroke-linejoin: round; stroke-linecap: round; }
-.c-far { stroke-width: .9; opacity: var(--op-far); }
-.c-mid { stroke-width: .8; opacity: var(--op-mid); }
-.c-near { stroke-width: 1.2; opacity: var(--op-near); }
-.c-grid { fill: none; stroke: var(--grid); stroke-width: 1; }
-.c-word { display: none; font: 500 14px var(--sans); font-variation-settings: "wdth" 84; letter-spacing: .05em; fill: var(--label); }
-/* The chart's place names sit in the left gutter, where project pages run their route, so they stay hidden. */
-
 /* Header */
 .site-header { --hdr: var(--concrete); position: sticky; top: 0; z-index: 30; background: var(--hdr); border-bottom: 1px solid var(--rule); transition: background-color .35s, border-color .35s; }
 .site-header:not(.is-air) { --ink: var(--g-ink); --ink-2: var(--g-ink-2); }

@@ -225,36 +225,52 @@ $$('pre .copy').forEach(btn => {
   });
 });
 
-/* Chart background, title width, header state and the route rail */
+/* Terrain background, title width, header state and the route rail */
 (() => {
   const ground = $('#ground'), mainEl = $('#main'), title = $('#p-title'), rail = $('#rail');
-  const layers = $$('.c-layer').map(el => ({ el, rate: +el.dataset.rate, kind: el.dataset.kind, svg: null, copies: 0 }));
-  let builtWidth = 0;
-  function buildLayers() {
-    const w = Math.max(1440, innerWidth) + 4 * CELL;
-    const copies = Math.ceil(innerHeight / PERIOD) + 1;
-    if (w > builtWidth) {
-      builtWidth = w;
-      layers.forEach((L, i) => {
-        const svg = svgEl('svg', { width: w });
-        svg.style.marginLeft = `${-w / 2}px`;
-        svg.innerHTML = `<g id="tile-${i}">${layerTile(L.kind, w)}</g>`;
-        L.el.replaceChildren(svg);
-        L.svg = svg;
-        L.copies = 1;
-      });
+
+  // The landing's terrain flight without the altimeter: climb out of the hero, cruise, settle at the footer.
+  // The images are drawn ahead of time; scrolling only writes transforms and opacities, and only when they change.
+  const TILE = 1536, CRUISE = 8500, CLOUD = 4500, CLOUD_DEPTH = 700;
+  const smooth = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+  const zoom = $('.tm-zoom'), land = $('.tm-ground'), spots = $('.tm-spots'), mef = $('.tm-mef');
+  const haze = $('.tm-haze'), cloudZoom = $('.tm-czoom'), cloudPan = $('.tm-cpan'), fog = $('.tm-fog');
+  const written = new WeakMap();
+  const put = (el, prop, v) => {
+    let seen = written.get(el);
+    if (!seen) written.set(el, seen = {});
+    if (seen[prop] !== v) { seen[prop] = v; el.style[prop] = v; }
+  };
+  const ready = () => root.classList.add('map-ready');
+  if (document.readyState === 'complete') ready(); else addEventListener('load', ready, { once: true });
+  function fly(y) {
+    const start = groundBottom - innerHeight * .6, end = Math.max(start + 1, docH - innerHeight);
+    const t = clamp((y - start) / (end - start), 0, 1);
+    const alt = y < start ? 0 : CRUISE * Math.min(smooth(0, .22, t), 1 - smooth(.84, 1, t)), k = alt / CRUISE;
+    if (!reduce.matches) {
+      put(zoom, 'transform', `scale(${(1.9 - .9 * k).toFixed(3)})`);
+      put(land, 'transform', `translate3d(0, ${(-((y * .5) % TILE)).toFixed(1)}px, 0)`);
+      const above = alt - CLOUD;
+      const seen = above > -CLOUD_DEPTH ? smooth(-CLOUD_DEPTH, CLOUD_DEPTH * .4, above) : 0;
+      // Never fully transparent: a hidden layer is first painted when the clouds appear, a long task mid-scroll.
+      put(cloudZoom, 'opacity', String(Math.max(.01, Math.round(seen * 68) / 100)));
+      if (seen > 0) {
+        put(cloudZoom, 'transform', `scale(${clamp(4300 / Math.max(above + 900, 1), .95, 3.2).toFixed(3)})`);
+        put(cloudPan, 'transform', `translate3d(0, ${(-((y * 1.15) % TILE)).toFixed(1)}px, 0)`);
+      }
+      put(fog, 'opacity', String(Math.round(Math.max(0, 1 - Math.abs(above) / CLOUD_DEPTH) * 62) / 100));
+    } else {
+      put(zoom, 'transform', 'none');
+      put(land, 'transform', 'none');
+      put(cloudZoom, 'opacity', '0');
+      put(fog, 'opacity', '0');
     }
-    layers.forEach((L, i) => {
-      if (L.copies === copies) return;
-      L.svg.querySelectorAll('use').forEach(u => u.remove());
-      for (let k = 1; k < copies; k++) L.svg.appendChild(svgEl('use', { href: `#tile-${i}`, y: k * PERIOD }));
-      L.svg.setAttribute('height', copies * PERIOD);
-      L.copies = copies;
-    });
+    put(haze, 'opacity', String(Math.round(45 * k) / 100));
+    put(spots, 'opacity', clamp(1 - k * 1.7, 0, 1).toFixed(2));
+    put(mef, 'opacity', Math.min(1, .35 + k * 1.5).toFixed(2));
   }
 
-  const parallaxOn = () => !reduce.matches && innerWidth >= 700;
-  let groundBottom = 0, headH = 60, lastW = -1, mainTop = 0;
+  let groundBottom = 0, headH = 60, lastW = -1, mainTop = 0, docH = 0;
   const setWidth = v => { v = Math.round(v * 2) / 2; if (v === lastW) return; lastW = v; title.style.fontVariationSettings = `"wdth" ${v}`; };
 
   const plan = rail && $('.r-plan', rail), strokes = rail ? $$('.r-stroke', rail) : [], marksG = rail && $('.r-marks', rail);
@@ -307,15 +323,16 @@ $$('pre .copy').forEach(btn => {
     setWidth(125);
     headH = header.offsetHeight;
     groundBottom = ground ? ground.getBoundingClientRect().bottom + scrollY : 0;
+    docH = document.documentElement.scrollHeight;
     if (!reduce.matches && innerWidth >= 700) title.style.minHeight = `${Math.ceil(title.getBoundingClientRect().height)}px`;
     layoutRail();
   }
   let ticking = false;
   function update() {
     ticking = false;
-    const y = scrollY, par = parallaxOn();
+    const y = scrollY;
     if (!reduce.matches && innerWidth >= 700) setWidth(125 - 50 * clamp(y / 420, 0, 1));
-    for (const L of layers) L.el.style.transform = par ? `translate3d(0, ${r1(-((y * L.rate) % PERIOD))}px, 0)` : '';
+    fly(y);
     header.classList.toggle('is-air', y + headH >= groundBottom - 1);
     drawRail();
   }
@@ -323,10 +340,9 @@ $$('pre .copy').forEach(btn => {
   let lq = false;
   const relayout = () => { lq = false; measure(); update(); };
   const requestLayout = () => { if (!lq) { lq = true; requestAnimationFrame(relayout); } };
-  buildLayers();
   relayout();
   addEventListener('scroll', requestUpdate, { passive: true });
-  addEventListener('resize', () => { buildLayers(); requestLayout(); }, { passive: true });
+  addEventListener('resize', requestLayout, { passive: true });
   addEventListener('load', requestLayout);
   if ('ResizeObserver' in window) new ResizeObserver(requestLayout).observe(mainEl);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(requestLayout);
