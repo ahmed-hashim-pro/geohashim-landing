@@ -1,4 +1,4 @@
-import { DOCUMENT, Inject, Injectable } from '@angular/core';
+import { DOCUMENT, Injectable, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
 import { SITE } from '../content';
@@ -13,11 +13,9 @@ export interface SeoInput {
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
-  constructor(
-    private readonly title: Title,
-    private readonly meta: Meta,
-    @Inject(DOCUMENT) private readonly doc: Document,
-  ) {}
+  private readonly title = inject(Title);
+  private readonly meta = inject(Meta);
+  private readonly doc = inject(DOCUMENT);
 
   apply(input: SeoInput): void {
     const url = `${SITE.urls.canonical}${input.path === '/' ? '' : input.path}`;
