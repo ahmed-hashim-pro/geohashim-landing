@@ -57,7 +57,7 @@ export function initFlight(scope, reduce) {
   const head = $('#route-head');
   const shadow = head.cloneNode(true);
   shadow.removeAttribute('id');
-  shadow.setAttribute('class', 'route-shadow');
+  shadow.setAttribute('class', 'route-head route-shadow');
   head.parentNode.insertBefore(shadow, head);
 
   let alt = 0, lastAlt = 0, lastT = 0, vs = 0, vsTimer = 0;
@@ -76,7 +76,8 @@ export function initFlight(scope, reduce) {
       // Below the cloud deck you look past it, in it everything fogs, above it the tops shrink with distance.
       const above = alt - CLOUD;
       const seen = above > -CLOUD_DEPTH ? smooth(-CLOUD_DEPTH, CLOUD_DEPTH * .4, above) : 0;
-      put(cloudZoom, 'opacity', String(Math.round(seen * 68) / 100));
+      // Never fully transparent: a hidden layer is first painted when the clouds appear, a long task mid-scroll.
+      put(cloudZoom, 'opacity', String(Math.max(.01, Math.round(seen * 68) / 100)));
       if (seen > 0) {
         put(cloudZoom, 'transform', `scale(${clamp(4300 / Math.max(above + 900, 1), .95, 3.2).toFixed(3)})`);
         put(cloudPan, 'transform', `translate3d(0, ${(-((y * CLOUD_RATE) % TILE)).toFixed(1)}px, 0)`);
@@ -113,14 +114,14 @@ export function initFlight(scope, reduce) {
   }
 
   // Runs after the route is drawn, so the shadow can follow the arrowhead.
-  function afterRoute() {
-    if (reduce.matches || alt < 30 || head.getAttribute('visibility') !== 'visible') {
-      shadow.setAttribute('visibility', 'hidden');
+  function afterRoute(at) {
+    if (reduce.matches || alt < 30 || !at.on) {
+      put(shadow, 'visibility', 'hidden');
       return;
     }
     const k = alt / CRUISE, off = 8 + 64 * k;
-    shadow.setAttribute('visibility', 'visible');
-    shadow.setAttribute('transform', `translate(${r1(off * .75)} ${r1(off)}) ${head.getAttribute('transform') || ''} scale(${(1 - .4 * k).toFixed(2)})`);
+    put(shadow, 'visibility', 'visible');
+    put(shadow, 'transform', `translate3d(${r1(at.x + off * .75)}px, ${r1(at.y + off)}px, 0) rotate(${at.ang}deg) scale(${(1 - .4 * k).toFixed(2)})`);
     put(shadow, 'opacity', String(Math.round((.42 - .18 * k) * 100) / 100));
   }
 

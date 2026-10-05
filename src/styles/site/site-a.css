@@ -301,13 +301,18 @@ html:not(.js) .scenes { display: grid; gap: 28px; }
 
 /* The route: taxi line on the ground, flight route in the air */
 .route { position: absolute; left: 0; top: 0; z-index: 1; pointer-events: none; overflow: visible; }
+/* The drawn route is revealed down to the aircraft by two opposite translations, so scrolling never repaints it. */
+.route-reveal { position: absolute; left: 0; top: 0; z-index: 1; overflow: hidden; pointer-events: none; will-change: transform; }
+.route-reveal-in { will-change: transform; }
+.route-reveal .route { position: static; display: block; }
+.route-head { position: absolute; left: 0; top: 0; z-index: 1; width: 20px; height: 20px; margin: -10px 0 0 -10px; overflow: visible; pointer-events: none; visibility: hidden; will-change: transform; }
 #route-plan { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 1.5 7; stroke-linecap: round; opacity: .5; }
 #taxi-case { fill: none; stroke: var(--paint-edge); stroke-width: 7; }
 #taxi-ink { fill: none; stroke: var(--yellow); stroke-width: 4; }
 #route-case { fill: none; stroke: var(--paper); stroke-width: 8; stroke-linecap: round; }
 #route-ink { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
-#route-head path { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; stroke-linejoin: round; }
-#route-head.is-ground path { fill: var(--yellow); stroke: var(--paint-edge); }
+.route-head path { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; stroke-linejoin: round; }
+.route-head.is-ground path { fill: var(--yellow); stroke: var(--paint-edge); }
 .mark .mk { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
 .mark.on .mk { fill: var(--ink); }
 .mark-g .mk { fill: var(--chalk); stroke: var(--g-ink); }
