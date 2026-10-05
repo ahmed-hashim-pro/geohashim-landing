@@ -56,9 +56,10 @@ export function initLanding() {
 
   /* Waypoint clusters: one dot per passing test, every dot the same size */
   const mainEl = $('#main');
-  const routeSvg = $('#route');
-  const strokes = $$('.r-stroke', routeSvg);
-  const plan = $('#route-plan'), ink = $('#route-ink'), head = $('#route-head');
+  const routeSvg = $('#route'), drawnSvg = $('#route-drawn'), overSvg = $('#route-over');
+  const reveal = $('.route-reveal'), revealIn = $('.route-reveal-in');
+  const strokes = $$('.r-stroke', drawnSvg);
+  const plan = $('#route-plan'), head = $('#route-head');
   const clipG = $('#clip-g rect'), clipA = $('#clip-a rect');
   const marksG = $('#route-marks'), leadersG = $('#leaders');
   const flow = $('#open-source');
@@ -232,7 +233,9 @@ export function initLanding() {
   }
 
   /* The route: from the hold line, off the runway edge, through every repo */
-  let route = null;
+  let route = null, routeH = 0, cutWas = NaN, headWas = '', headOn = false;
+  // Where the arrowhead is, for the aircraft's shadow in flight.js.
+  const headAt = { x: 0, y: 0, ang: 0, on: false };
   let mainTop = 0, edgeY = 0, compassAlign = 0, docH = 0;
   const leaders = new Map();
 
@@ -251,9 +254,15 @@ export function initLanding() {
   function layoutRoute() {
     const mr = mainEl.getBoundingClientRect();
     const w = Math.round(mr.width), h = Math.round(mr.height);
-    routeSvg.setAttribute('width', w);
-    routeSvg.setAttribute('height', h);
-    routeSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    [routeSvg, drawnSvg, overSvg].forEach(svg => {
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    });
+    reveal.style.width = `${w}px`;
+    reveal.style.height = `${h}px`;
+    routeH = h;
+    cutWas = NaN;
     mainTop = mr.top + scrollY;
     compassAlign = flow.getBoundingClientRect().top + scrollY - headH;
     docH = document.documentElement.scrollHeight;
@@ -330,17 +339,14 @@ export function initLanding() {
     }
     plan.setAttribute('d', d);
     strokes.forEach(p => p.setAttribute('d', d));
-    // The browser's own length drives the dash, so the local measure is scaled to agree with it.
-    const total = ink.getTotalLength();
-    const scale = cl[cl.length - 1] ? total / cl[cl.length - 1] : 1;
-    const Ls = ends.map(L => L * scale);
+    const total = cl[cl.length - 1], Ls = ends;
     repos.forEach((r, k) => { r.L = Ls[firstRepo + k]; });
     const marks = [];
     pts.forEach((p, i) => { if (p.mark) marks.push({ g: addMark(p, p.mark), L: Ls[i] }); });
     const n = Math.max(2, Math.ceil(total / 6));
     const xs = new Float32Array(n + 1), ys = new Float32Array(n + 1);
     for (let i = 0, j = 0; i <= n; i++) {
-      const L = total * i / n / scale;
+      const L = total * i / n;
       while (j < cl.length - 2 && cl[j + 1] < L) j++;
       const f = cl[j + 1] > cl[j] ? clamp((L - cl[j]) / (cl[j + 1] - cl[j]), 0, 1) : 0;
       xs[i] = cx[j] + (cx[j + 1] - cx[j]) * f;
@@ -348,7 +354,6 @@ export function initLanding() {
       ys[i] = i ? Math.max(y, ys[i - 1]) : y;
     }
     route = { total, n, xs, ys, marks };
-    strokes.forEach(p => { p.style.strokeDasharray = `${total} ${total + 20}`; });
   }
 
   function lengthAtY(y) {
@@ -367,8 +372,6 @@ export function initLanding() {
     const { total, n, xs, ys } = route;
     const atEnd = scrollY + innerHeight >= docH - 2;
     const len = reduce.matches || atEnd ? total : lengthAtY(scrollY + innerHeight * .62 - mainTop);
-    const off = String(total - len);
-    strokes.forEach(p => { p.style.strokeDashoffset = off; });
     route.marks.forEach(m => m.g.classList.toggle('on', len >= m.L - 1));
     repos.forEach(r => {
       const dir = len >= r.L - 2 ? 1 : -1;
@@ -378,15 +381,26 @@ export function initLanding() {
       if (reduce.matches || firstDraw) { r.t = dir > 0 ? r.T : 0; drawRepo(r, now); } else kick(r);
     });
     firstDraw = false;
-    if (reduce.matches || len >= total - 1) { head.setAttribute('visibility', 'hidden'); return; }
     const i = Math.min(n - 1, Math.floor(len / total * n));
     const f = len / total * n - i;
     const x = xs[i] + (xs[i + 1] - xs[i]) * f, y = ys[i] + (ys[i + 1] - ys[i]) * f;
+    // The route only runs downwards, so everything above the aircraft is exactly the part flown so far.
+    const cut = len >= total - 1 ? routeH + 20 : len > 0 ? r1(y) : -20;
+    if (cut !== cutWas) {
+      cutWas = cut;
+      reveal.style.transform = `translate3d(0, ${r1(cut - routeH)}px, 0)`;
+      revealIn.style.transform = `translate3d(0, ${r1(routeH - cut)}px, 0)`;
+    }
+    const on = !reduce.matches && len < total - 1 && len > 2;
+    if (on !== headOn) { headOn = on; head.style.visibility = on ? 'visible' : 'hidden'; }
+    headAt.on = on;
+    if (!on) return;
     const j = Math.min(n, i + 2), b = Math.max(0, i - 1);
     const ang = Math.atan2(ys[j] - ys[b], xs[j] - xs[b]) * 180 / Math.PI;
-    head.setAttribute('transform', `translate(${r1(x)} ${r1(y)}) rotate(${r1(ang)})`);
+    Object.assign(headAt, { x: r1(x), y: r1(y), ang: r1(ang) });
+    const t = `translate3d(${headAt.x}px, ${headAt.y}px, 0) rotate(${headAt.ang}deg)`;
+    if (t !== headWas) { headWas = t; head.style.transform = t; }
     head.classList.toggle('is-ground', y < edgeY);
-    head.setAttribute('visibility', len > 2 ? 'visible' : 'hidden');
   }
 
   function applyOn(r) {
@@ -429,7 +443,7 @@ export function initLanding() {
     compass.style.transform = par ? `translate3d(0, ${r1(.18 * (y - compassAlign))}px, 0)` : '';
     header.classList.toggle('is-air', y + headH >= heroBottom - 1);
     drawRoute(now || performance.now());
-    flight.afterRoute();
+    flight.afterRoute(headAt);
   }
   const requestUpdate = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
   let layoutQueued = false;

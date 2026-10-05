@@ -67,11 +67,15 @@
     </defs>
     <g id="leaders"></g>
     <path id="route-plan" d=""/>
-    <g clip-path="url(#clip-g)"><path class="r-stroke" id="taxi-case" d=""/><path class="r-stroke" id="taxi-ink" d=""/></g>
-    <g clip-path="url(#clip-a)"><path class="r-stroke" id="route-case" d=""/><path class="r-stroke" id="route-ink" d=""/></g>
-    <g id="route-marks"></g>
-    <g id="route-head" visibility="hidden"><path d="M9 0L-7 -6.5L-3.5 0L-7 6.5Z"/></g>
   </svg>
+  <div class="route-reveal" aria-hidden="true"><div class="route-reveal-in">
+    <svg class="route" id="route-drawn" focusable="false">
+      <g clip-path="url(#clip-g)"><path class="r-stroke" id="taxi-case" d=""/><path class="r-stroke" id="taxi-ink" d=""/></g>
+      <g clip-path="url(#clip-a)"><path class="r-stroke" id="route-case" d=""/><path class="r-stroke" id="route-ink" d=""/></g>
+    </svg>
+  </div></div>
+  <svg class="route" id="route-over" aria-hidden="true" focusable="false"><g id="route-marks"></g></svg>
+  <svg class="route-head" id="route-head" viewBox="-10 -10 20 20" aria-hidden="true" focusable="false"><path d="M9 0L-7 -6.5L-3.5 0L-7 6.5Z"/></svg>
 
   <section class="hero" aria-labelledby="hero-title" app-hero></section>
 
