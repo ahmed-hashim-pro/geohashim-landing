@@ -68,7 +68,7 @@ export function initGate() {
     },
     draft: {
       chip: { held: 'Held', crossed: 'Cleared' },
-      held: "Held: it is drafted only if it clears your workspace's quality threshold, adjusted for the model you picked.",
+      held: "Held: it is drafted only if it clears the quality threshold, adjusted for the model your workspace picked.",
       crossed: 'Cleared the threshold. It moves on to drafting in your editorial voice.'
     },
     answer: {

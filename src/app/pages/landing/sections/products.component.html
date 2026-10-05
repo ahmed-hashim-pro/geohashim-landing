@@ -52,14 +52,14 @@
                 <p class="ms-key" id="ms-key"><span class="ms-badge" id="ms-badge">Built in</span> Anthropic runs out of the box, the rest with your own keys.</p>
               </div>
               <div class="ms-f ms-thr">
-                <label class="ms-l" for="ms-thr">Your threshold <span class="ms-val" id="ms-thr-val" aria-hidden="true">70</span></label>
-                <input type="range" id="ms-thr" min="20" max="95" step="1" value="70">
-                <p class="ms-ends" aria-hidden="true"><span>20</span><span>95</span></p>
+                <label class="ms-l" for="ms-thr">Platform threshold <span class="ms-val" id="ms-thr-val" aria-hidden="true">60</span></label>
+                <input type="range" id="ms-thr" min="0" max="100" step="5" value="60">
+                <p class="ms-ends" aria-hidden="true"><span>0</span><span>100</span></p>
               </div>
               <div class="ms-f ms-eff">
                 <p class="ms-l" id="ms-eff-l">Effective threshold</p>
-                <p class="ms-eff-row"><output id="ms-eff" aria-labelledby="ms-eff-l">70</output><code id="ms-calc">clamp(70 + 0, 20, 95)</code></p>
-                <p class="ms-formula"><code id="ms-rule">effective = clamp(threshold + model offset, 20, 95)</code></p>
+                <p class="ms-eff-row"><output id="ms-eff" aria-labelledby="ms-eff-l">60</output><code id="ms-calc">= clamp(60 + 0, 20, 95)</code></p>
+                <p class="ms-formula"><code id="ms-rule">effective = clamp(platform threshold + model offset, 20, 95)</code></p>
                 <p class="ms-why">Cheaper models score lower on the same rubric, so My Stream adjusts the threshold per model and they aren't silently rejected.</p>
                 <p class="ms-adj"><input type="checkbox" id="ms-adj" checked aria-describedby="ms-adj-d"><label for="ms-adj">Per-model adjustment</label></p>
                 <p class="ms-hint" id="ms-adj-d">Turn it off to see the problem it solves: a cheaper model scores lower on the same rubric and most items get rejected.</p>
@@ -86,14 +86,14 @@
             </div>
             <div class="ms-run">
               <button type="button" class="btn btn-ink" id="ms-go">Run the pipeline</button>
-              <p><strong>Simulated run with made-up items.</strong> Each dot is an item with a random base score, shifted by the model's offset: <span class="ms-h">the higher it flies, the higher it scored. Items below the magenta line peel off at the Score gate.</span><span class="ms-v">the further right it flies, the higher it scored. Items left of the magenta line peel off at the Score gate.</span> The stages and the threshold formula are the real ones.</p>
+              <p><strong>Simulated run with made-up items.</strong> Each dot is an item with a random base score, shifted by the model's offset: <span class="ms-h">the higher it flies, the higher it scored. Items below the magenta line peel off at the Score gate.</span><span class="ms-v">the further right it flies, the higher it scored. Items left of the magenta line peel off at the Score gate.</span> The starting threshold of 60 is an illustrative setting. The stages and the threshold formula are the real ones.</p>
             </div>
             <div class="ms-flight">
               <canvas class="ms-canvas" aria-hidden="true"></canvas>
               <ol class="ms-stages">
                 <li class="ms-stage"><p class="step-name">Sources</p><p>You point it at RSS feeds and topics, per workspace.</p></li>
                 <li class="ms-stage"><p class="step-name">Scrape</p><p>A Lambda fetches each source and queues candidate items.</p></li>
-                <li class="ms-stage"><p class="step-name">Score</p><p>The model you pick rates each item against your editorial rubric and a quality threshold, adjusted per model so cheaper models aren't silently rejected.</p></li>
+                <li class="ms-stage"><p class="step-name">Score</p><p>The model you pick rates each item against a fixed rubric and a quality threshold, adjusted per model so cheaper models aren't silently rejected.</p></li>
                 <li class="ms-stage"><p class="step-name">Draft</p><p>Items that pass are drafted in your editorial voice: voice, reading level, word count, keywords and citation rules.</p></li>
                 <li class="ms-stage"><p class="step-name">Publish</p><p>You review the queue, edit if you want, and publish.</p></li>
               </ol>
@@ -117,7 +117,7 @@
                   <div><dt>Drafted</dt><dd id="ms-n-drafted">0</dd></div>
                   <div class="q"><dt>Queued for your review</dt><dd id="ms-n-queued">0</dd></div>
                 </dl>
-                <p class="ms-live">In the product, run progress streams live over GraphQL subscriptions.</p>
+                <p class="ms-live">In the product, the page polls the job record for run progress every 1.5 seconds.</p>
                 <p class="vh" id="ms-summary" aria-live="polite"></p>
               </div>
             </div>
@@ -138,7 +138,7 @@
             <p class="prod-kind">Web app</p>
           </header>
           <p>A focused, ad-free digital Quran reader for the web, built for fast page navigation, comfortable reading typography and a layout that respects the printed Mushaf.</p>
-          <p class="btn-row"><a class="btn" href="https://mushaf.geohashim.com">Open Mushaf</a> <a class="btn" href="/products/mushaf/">How it works<span class="vh">: Mushaf</span></a></p>
+          <p class="btn-row"><a class="btn" href="https://mushaf.geohashim.com/tabs/mushaf">Open Mushaf</a> <a class="btn" href="/products/mushaf/">How it works<span class="vh">: Mushaf</span></a></p>
         </article>
         <article class="panel prod" aria-labelledby="p-quran">
           <header class="prod-head">

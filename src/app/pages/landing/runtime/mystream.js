@@ -187,7 +187,7 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
         b = m - s;
       }
       label(effT, sx + G.R + 8, a, C.magenta, 'left');
-      if (ye) label(`Yours ${yours}`, sx + G.R + 8, b, C['ink-2'], 'left');
+      if (ye) label(`Platform ${yours}`, sx + G.R + 8, b, C['ink-2'], 'left');
       if (counts[3]) label('Queued for your review', x4 + 24, G.c - 34, C.ink, 'left');
     }
   }
@@ -292,7 +292,7 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
     $('#ms-thr-val').textContent = t;
     $('#ms-eff').textContent = eff;
     $('#ms-calc').textContent = adj ? `= clamp(${t} ${off < 0 ? '-' : '+'} ${Math.abs(off)}, 20, 95)` : `= ${t}`;
-    $('#ms-rule').textContent = adj ? 'effective = clamp(threshold + model offset, 20, 95)' : 'effective = threshold (no per-model adjustment)';
+    $('#ms-rule').textContent = adj ? 'effective = clamp(platform threshold + model offset, 20, 95)' : 'effective = threshold (no per-model adjustment)';
     const own = !o.parentElement.label.includes('built in');
     const badge = $('#ms-badge');
     badge.textContent = own ? 'Your key' : 'Built in';
