@@ -74,27 +74,22 @@
                   <input type="radio" name="ms-voice" id="v-conversational" value="conversational"><label for="v-conversational">Conversational</label>
                 </div>
               </fieldset>
-              <fieldset class="ms-f ms-sched">
-                <legend class="ms-l">Schedule</legend>
-                <div class="seg">
-                  <input type="radio" name="ms-sched" id="s-daily" value="daily" checked><label for="s-daily">Daily</label>
-                  <input type="radio" name="ms-sched" id="s-weekdays" value="weekdays"><label for="s-weekdays">Weekdays</label>
-                  <input type="radio" name="ms-sched" id="s-demand" value="demand"><label for="s-demand">On demand</label>
-                </div>
-                <p class="ms-hint">The product supports running daily, on weekdays or on demand. Here, the button starts the run.</p>
-              </fieldset>
+              <div class="ms-f ms-sched">
+                <p class="ms-l">Run type: on demand</p>
+                <p class="ms-hint">A run started from the article queue is the only path through the score gate. Scheduled runs, daily or on weekdays at 08:00 UTC, write from the workspace's topic list and skip scraping, scoring and the threshold.</p>
+              </div>
             </div>
             <div class="ms-run">
               <button type="button" class="btn btn-ink" id="ms-go">Run the pipeline</button>
-              <p><strong>Simulated run with made-up items.</strong> Each dot is an item with a random base score, shifted by the model's offset: <span class="ms-h">the higher it flies, the higher it scored. Items below the magenta line peel off at the Score gate.</span><span class="ms-v">the further right it flies, the higher it scored. Items left of the magenta line peel off at the Score gate.</span> The starting threshold of 60 is an illustrative setting. The stages and the threshold formula are the real ones.</p>
+              <p><strong>Simulated run with made-up items.</strong> Each dot is an item with a random base score, shifted by the model's offset: <span class="ms-h">the higher it flies, the higher it scored. Items below the magenta line peel off at the Score gate.</span><span class="ms-v">the further right it flies, the higher it scored. Items left of the magenta line peel off at the Score gate.</span> The starting threshold of 60 is an illustrative setting. To show more traffic, the demo scores every item and drafts the top 3 that pass; the product's platform settings default to 5 scored and 1 drafted per run. The stages and the threshold formula are the real ones.</p>
             </div>
             <div class="ms-flight">
               <canvas class="ms-canvas" aria-hidden="true"></canvas>
               <ol class="ms-stages">
                 <li class="ms-stage"><p class="step-name">Sources</p><p>You point it at RSS feeds and topics, per workspace.</p></li>
                 <li class="ms-stage"><p class="step-name">Scrape</p><p>A Lambda fetches each source and queues candidate items.</p></li>
-                <li class="ms-stage"><p class="step-name">Score</p><p>The model you pick rates each item against a fixed rubric and a quality threshold, adjusted per model so cheaper models aren't silently rejected.</p></li>
-                <li class="ms-stage"><p class="step-name">Draft</p><p>Items that pass are drafted in your editorial voice: voice, reading level, word count, keywords and citation rules.</p></li>
+                <li class="ms-stage"><p class="step-name">Score</p><p>The model you pick rates each item, up to a per-run limit, against a fixed rubric and a quality threshold, adjusted per model so cheaper models aren't silently rejected.</p></li>
+                <li class="ms-stage"><p class="step-name">Draft</p><p>The highest-scoring items that pass, up to a per-run limit, are drafted in your editorial voice: voice, reading level, word count, keywords and citation rules.</p></li>
                 <li class="ms-stage"><p class="step-name">Publish</p><p>You review the queue, edit if you want, and publish.</p></li>
               </ol>
             </div>
@@ -114,8 +109,8 @@
                 <dl class="ms-counts">
                   <div><dt>In</dt><dd id="ms-n-in">0</dd></div>
                   <div><dt>Scored</dt><dd id="ms-n-scored">0</dd></div>
-                  <div><dt>Drafted</dt><dd id="ms-n-drafted">0</dd></div>
-                  <div class="q"><dt>Queued for your review</dt><dd id="ms-n-queued">0</dd></div>
+                  <div><dt>Passed</dt><dd id="ms-n-passed">0</dd></div>
+                  <div class="q"><dt>Drafted for your review</dt><dd id="ms-n-drafted">0</dd></div>
                 </dl>
                 <p class="ms-live">In the product, the page polls the job record for run progress every 1.5 seconds.</p>
                 <p class="vh" id="ms-summary" aria-live="polite"></p>

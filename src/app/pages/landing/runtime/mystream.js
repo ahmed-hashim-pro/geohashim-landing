@@ -9,14 +9,16 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
   const stages = $$('.ms-stage', box), ol = $('.ms-stages', box);
   const sel = $('#ms-model'), thr = $('#ms-thr');
   const texts = $$('.ms-text', box), voices = $$('input[name="ms-voice"]', box);
-  const nums = ['in', 'scored', 'drafted', 'queued'].map(k => $(`#ms-n-${k}`));
+  const nums = ['in', 'scored', 'passed', 'drafted'].map(k => $(`#ms-n-${k}`));
   const summary = $('#ms-summary');
   const vertQ = matchMedia('(max-width: 999px)');
   const STAR = new Path2D('M0 -11L2.8 -2.8L11 0L2.8 2.8L0 11L-2.8 2.8L-11 0L-2.8 -2.8Z');
+  // Drafts per run; the product's platform setting defaults to 1, raised here so the demo has more to show.
+  const CAP = 3;
   const D = 1.05, P1 = .3, P3 = .6, PEEL = .75, DOCK = .35, T4 = 4 * D + P1 + P3;
   const smooth = t => t * t * (3 - 2 * t);
   const counts = [0, 0, 0, 0], drawn = [-1, -1, -1, -1];
-  let G = null, items = [], simT = 0, last = 0, raf = 0, running = false, visible = true, runNo = 0, rej = 0;
+  let G = null, items = [], simT = 0, last = 0, raf = 0, running = false, visible = true, runNo = 0, rej = 0, q = 0;
   let eff = 70, shown = 70, typeAt = -1, typed = -1, off = 0;
 
   const P = (u, v) => (G.vert ? [G.c + v, u] : [u, G.c - v]);
@@ -146,6 +148,12 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
         y = hy + (ty - hy) * p;
         col = C.magenta;
         ghost = p;
+      } else if (it.skip != null) {
+        const p = ease(clamp((simT - it.skip) / PEEL, 0, 1));
+        if (p >= 1) continue;
+        [x, y] = P(G.u[3], -p * 22);
+        col = C.pass;
+        ghost = p;
       } else if (it.slot != null) {
         const p = ease(clamp((simT - it.dock) / DOCK, 0, 1)), q = slotXY(it.slot);
         x = x4 + (q[0] - x4) * p;
@@ -210,6 +218,7 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
     if (a < 0) return;
     if (!it.seen) { it.seen = 1; counts[0]++; }
     if (it.peel != null) { if (simT - it.peel >= PEEL) it.done = 1; return; }
+    if (it.skip != null) { if (simT - it.skip >= PEEL) it.done = 1; return; }
     const s = sOf(a);
     if (it.pass == null) {
       const v = vOf(scoreOf(it));
@@ -218,28 +227,37 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
       it.sc = scoreOf(it);
       it.pass = it.sc >= eff;
       if (!it.pass) { it.peel = simT; it.rj = rej++; return; }
+      counts[2]++;
     }
     if (!it.dr && s >= 3) {
+      if (counts[3] >= CAP || rank(it) >= CAP) { it.skip = simT; return; }
       it.dr = 1;
-      counts[2]++;
+      counts[3]++;
       if (typeAt < 0) { typeAt = simT; setTyped(0); }
     }
-    if (it.slot == null && a >= T4) { it.slot = counts[3]++; it.dock = simT; }
+    if (it.slot == null && a >= T4) { it.slot = q++; it.dock = simT; }
     if (it.slot != null && simT - it.dock >= DOCK) it.done = 1;
+  }
+  // Like the product, only the top scorers that pass are drafted, so rank against every item that passed or will.
+  function rank(it) {
+    return items.filter(o => o !== it && (o.pass || (o.pass == null && scoreOf(o) >= eff)) && scoreOf(o) > it.sc).length;
   }
   function writeCounts() {
     counts.forEach((v, i) => { if (v !== drawn[i]) { drawn[i] = v; nums[i].textContent = v; } });
   }
   function finish(instant) {
     if (instant) {
-      let q = 0;
-      rej = 0;
+      let passed = 0;
+      q = rej = 0;
       items.forEach(it => {
         const sc = clamp(it.base + off, 0, 100);
-        Object.assign(it, { seen: 1, done: 1, sc, pass: sc >= eff, peel: null, slot: null });
-        if (it.pass) { it.slot = q++; it.dock = -1e9; } else { it.peel = -1e9; it.rj = rej++; }
+        Object.assign(it, { seen: 1, done: 1, sc, pass: sc >= eff, peel: null, skip: null, slot: null });
+        if (!it.pass) { it.peel = -1e9; it.rj = rej++; } else passed++;
       });
-      counts.splice(0, 4, items.length, items.length, q, q);
+      items.filter(it => it.pass).sort((a, b) => b.sc - a.sc).forEach(it => {
+        if (q < CAP) { it.slot = q++; it.dock = -1e9; } else it.skip = -1e9;
+      });
+      counts.splice(0, 4, items.length, items.length, passed, q);
       shown = eff;
       setTyped(-1);
     }
@@ -247,7 +265,7 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
     writeCounts();
     draw();
     const model = sel.selectedOptions[0].textContent.replace(/ \(.*/, '');
-    summary.textContent = `Simulated run finished: ${counts[0]} made-up items in, ${counts[1]} scored, ${counts[2]} drafted and ${counts[3]} queued for your review, at an effective threshold of ${eff} with ${model}, per-model adjustment ${$('#ms-adj').checked ? 'on' : 'off'}.`;
+    summary.textContent = `Simulated run finished: ${counts[0]} made-up items in, ${counts[1]} scored, ${counts[2]} passed and ${counts[3]} drafted for your review (at most ${CAP} per run in this demo), at an effective threshold of ${eff} with ${model}, per-model adjustment ${$('#ms-adj').checked ? 'on' : 'off'}.`;
   }
   function frame(now) {
     raf = 0;
@@ -273,10 +291,10 @@ export function initMyStream({ colors, raf: requestAnimationFrame, observe }) {
     const n = 24 + Math.floor(rnd() * 17);
     items = Array.from({ length: n }, (_, i) => ({
       t0: i * 3.2 / n + rnd() * .06, base: Math.min(99, Math.round(20 + 40 * (rnd() + rnd()))), sc: null,
-      jit: (rnd() - .5) * 6, seen: 0, done: 0, pass: null, peel: null, dr: 0, slot: null, dock: 0
+      jit: (rnd() - .5) * 6, seen: 0, done: 0, pass: null, peel: null, skip: null, dr: 0, slot: null, dock: 0
     }));
     counts.fill(0);
-    simT = rej = 0;
+    simT = rej = q = 0;
     typeAt = -1;
     setTyped(-1);
     summary.textContent = '';

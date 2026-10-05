@@ -69,7 +69,7 @@ export function initGate() {
     draft: {
       chip: { held: 'Held', crossed: 'Cleared' },
       held: "Held: it is drafted only if it clears the quality threshold, adjusted for the model your workspace picked.",
-      crossed: 'Cleared the threshold. It moves on to drafting in your editorial voice.'
+      crossed: 'Cleared the threshold. It is now in line for drafting in your editorial voice.'
     },
     answer: {
       chip: { held: 'Held', declined: 'Refused locally' },
