@@ -13,8 +13,6 @@ const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&
 const root = document.documentElement;
 const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
-/*@@TERRAIN@@*/
-
 /* Header: menu disclosure and theme, as on the landing page */
 const KEY = 'geohashim-theme';
 const header = $('.site-header');

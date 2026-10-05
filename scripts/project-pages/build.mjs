@@ -52,13 +52,22 @@ function tokens() {
   return css.slice(start, end).trim();
 }
 
-function terrain() {
-  return read(join(REPO, 'src/app/pages/landing/runtime/terrain.js'))
-    .replace(/^\/\/ .*\n/, '')
-    .replace(/^import .*\n/gm, '')
-    .replace(/^export /gm, '')
-    .trim();
+// The terrain background is the landing's: its stylesheet block, its pre-drawn images and its label positions.
+function terrainCss() {
+  const css = read(join(REPO, 'src/styles/site/site-a.css'));
+  const start = css.indexOf('/* Terrain flight');
+  const end = css.indexOf('/* Altimeter');
+  if (start < 0 || end < start) throw new Error('site-a.css: terrain block not found');
+  return css.slice(start, end).trim().replaceAll('url(/assets/', `url(${BASE}/assets/`);
 }
+// bake.mjs writes the label positions as one JSON object after `TERRAIN_LABELS =`.
+const TERRAIN_LABELS = JSON.parse(read(join(REPO, 'src/app/pages/landing/runtime/terrain-labels.js')).replace(/^[\s\S]*?TERRAIN_LABELS = /, '').replace(/;\s*$/, ''));
+const TILE = 1536;
+const thrice = inner => [0, 1, 2].map(n => `<g transform="translate(0 ${n * TILE})">${inner}</g>`).join('');
+const SPOTS = thrice(
+  TERRAIN_LABELS.elev.map(([x, y, a, t]) => `<text class="c-elev" text-anchor="middle" dy="3.5" transform="translate(${x} ${y}) rotate(${a})">${t}</text>`).join('') +
+  TERRAIN_LABELS.spot.map(([x, y, t]) => `<circle class="c-peak" cx="${x}" cy="${y}" r="2.2"/><text class="c-spot" x="${x + 6}" y="${y + 4}">${t}</text>`).join(''));
+const MEF = thrice(TERRAIN_LABELS.mef.map(([x, y, a, b]) => `<text class="c-mef" x="${x}" y="${y}" text-anchor="middle">${a}<tspan dy="-13" class="c-mef-h">${b}</tspan></text>`).join(''));
 
 function headTags(entry, meta) {
   if (mockups) return '';
@@ -118,6 +127,8 @@ function build(slug) {
   const top = read(join(SHARED, 'chrome-top.html'))
     .replace('{{CUR_OS}}', repo ? ' aria-current="page"' : '')
     .replace('{{CUR_PR}}', repo ? '' : ' aria-current="page"')
+    .replace('{{TERRAIN_SPOTS}}', SPOTS)
+    .replace('{{TERRAIN_MEF}}', MEF)
     .replaceAll('href="/', `href="${BASE}/`);
   // The tour bar's closing link points at the page's payoff section, if the page names one.
   const end = meta.tour_end;
@@ -127,13 +138,13 @@ function build(slug) {
 
   let pageJs = read(join(dir, 'page.js'));
   pageJs = pageJs.replace(/\/\*@@DATA:([\w-]+)@@\*\//g, (_, name) => JSON.stringify(JSON.parse(read(join(dir, 'data', `${name}.json`)))));
-  const helpers = read(join(SHARED, 'core-helpers.js')).replace('/*@@TERRAIN@@*/', terrain());
+  const helpers = read(join(SHARED, 'core-helpers.js'));
   const script = `(() => {\n${helpers}\nconst PAGE = {};\n\n${pageJs}\n${read(join(SHARED, 'core-runtime.js'))}\n})();\n`;
   new Script(script, { filename: `${slug}/page.js` });
   if (/<\/script/i.test(script)) throw new Error(`${slug}: script contains "</script", which would end the inline tag early`);
 
   const pageCss = existsSync(join(dir, 'page.css')) ? read(join(dir, 'page.css')) : '';
-  const css = `${tokens()}\n${read(join(SHARED, 'base.css'))}\n/* This project */\n${pageCss}`;
+  const css = `${tokens()}\n${terrainCss()}\n${read(join(SHARED, 'base.css'))}\n/* This project */\n${pageCss}`;
   const head = `<!doctype html>
 <html lang="en">
 <head>
