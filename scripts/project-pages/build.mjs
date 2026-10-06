@@ -106,12 +106,12 @@ function build(slug) {
   const crumbs = `<nav class="crumbs" aria-label="Breadcrumb">
           <ol>
             <li><a href="${BASE}/#${repo ? 'open-source' : 'products'}">${repo ? 'Open source' : 'Products'}</a></li>
-            <li><span aria-current="page">${entry.name}</span></li>
+            <li><span aria-current="page"><bdi>${entry.name}</bdi></span></li>
           </ol>
         </nav>`;
   const tour = '<button type="button" class="btn btn-ink" id="tour-btn" aria-pressed="false" aria-controls="tour-bar" aria-describedby="tour-hint">'
     + `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg><span>Run all ${stages} stages</span></button>`;
-  const card = (p, cls, label) => `<a class="panel ${cls}" href="${linkTo(p)}"><small>${label}</small><strong>${p.name}</strong><span>${p.blurb}</span></a>`;
+  const card = (p, cls, label) => `<a class="panel ${cls}" href="${linkTo(p)}"><small>${label}</small><strong><bdi>${p.name}</bdi></strong><span>${p.blurb}</span></a>`;
   const pn = `<nav class="pn" aria-label="More projects">
       <div class="wrap pn-grid">
         ${prev ? card(prev, 'prev', 'Previous project') : '<span></span>'}

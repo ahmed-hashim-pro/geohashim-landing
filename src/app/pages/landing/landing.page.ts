@@ -97,7 +97,7 @@ export class LandingPage implements OnInit {
     this.seo.applyJsonLd('quran-android', {
       '@context': 'https://schema.org',
       '@type': 'MobileApplication',
-      name: 'Online Quran',
+      name: 'My Stream - القرآن الكريم',
       url: SITE.urls.quranAndroid,
       applicationCategory: 'ReferenceApplication',
       operatingSystem: 'Android',

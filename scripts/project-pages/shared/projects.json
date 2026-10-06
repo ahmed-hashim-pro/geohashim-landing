@@ -9,5 +9,5 @@
   {"slug": "local-network-mcp", "name": "local-network-mcp", "kind": "repo", "blurb": "An MCP server for local network, system and SSH tasks, where shell commands, remote commands and process kills stay denied until the operator opts in."},
   {"slug": "my-stream", "name": "My Stream", "kind": "product", "blurb": "An AI publishing platform. Scrape sources, score them against a quality threshold, and draft articles in your editorial voice."},
   {"slug": "mushaf", "name": "Mushaf", "kind": "product", "blurb": "A focused, ad-free digital Quran reader for the web, built for fast page navigation and a layout that respects the printed Mushaf."},
-  {"slug": "online-quran", "name": "Online Quran", "kind": "product", "blurb": "A long-running Quran app for Android, with reciter audio, bookmarks and offline reading."}
+  {"slug": "online-quran", "name": "My Stream - القرآن الكريم", "kind": "product", "blurb": "A long-running Quran app for Android, with reciter audio, bookmarks and offline reading."}
 ]

@@ -186,11 +186,11 @@ export const SITE: SiteContent = {
       },
       '/privacy': {
         title: 'Privacy policy · Ahmed Hashim',
-        description: 'How geohashim collects, stores, and uses your information.',
+        description: 'What this site collects (nothing about you), what stays in your browser, and who else sees your visit.',
       },
       '/terms': {
         title: 'Terms of service · Ahmed Hashim',
-        description: 'The terms that govern your use of geohashim and its products.',
+        description: 'What this portfolio site is, which licences apply to the code it shows, and what its demos replay.',
       },
     },
   },
@@ -642,52 +642,48 @@ export const SITE: SiteContent = {
   },
   legal: {
     privacy: {
-      updated: '2026-04-28',
+      updated: '2026-10-07',
       sections: [
         {
-          heading: 'Overview',
-          body: 'This is placeholder copy for the geohashim privacy policy. Replace it with reviewed legal text before launch. Each product (My Stream, Mushaf, Online Quran) ships its own in-product policy where applicable.',
+          heading: 'What this page covers',
+          body: 'This page covers this site, landing.geohashim.com (geohashim.com redirects here). My Stream, Mushaf and the Android app are separate services and are not covered here.',
         },
         {
-          heading: 'What we collect',
-          body: 'On geohashim.com we collect no personal data. The products at feed.geohashim.com, mushaf.geohashim.com, and the Online Quran Android app each describe their own data handling in-product.',
+          heading: 'What this site collects',
+          body: 'Nothing about you. There are no accounts, forms, cookies, analytics or ads. The demos on these pages run in your browser on data built into the page, and nothing you do in them is sent anywhere.',
         },
         {
-          heading: 'AI providers and your keys',
-          body: 'When you use bring-your-own-key models inside My Stream, your keys are stored encrypted per workspace and used only to make calls to the provider you have chosen.',
+          heading: 'What stays in your browser',
+          body: 'If you pick a light or dark theme, the choice is saved in your browser\'s local storage so the next page opens the same way. It never leaves your device, and clearing your site data removes it.',
         },
         {
-          heading: 'Your choices',
-          body: 'You can export, edit, or delete your data inside any of the products at any time from their settings.',
+          heading: 'Who else sees your visit',
+          body: 'The site is hosted on AWS Amplify, so AWS handles the requests that serve each page. The fonts load from Google Fonts, so your browser also sends a request to Google. Links to GitHub, LinkedIn, Google Play and the products take you to sites with their own policies.',
         },
         {
           heading: 'Contact',
-          body: 'Questions about this policy? Reach out via the links in the footer.',
+          body: 'Questions about this page? Reach me through GitHub or LinkedIn, linked in the Contact section of the home page.',
         },
       ],
     },
     terms: {
-      updated: '2026-04-28',
+      updated: '2026-10-07',
       sections: [
         {
-          heading: 'Acceptance',
-          body: 'This is placeholder copy for the geohashim terms of service. Replace it with reviewed legal text before launch.',
+          heading: 'What this site is',
+          body: 'A personal portfolio of my work. It is provided as is, for information, with no warranty that it is complete or current.',
         },
         {
-          heading: 'Use of the service',
-          body: 'You agree to use the geohashim products within applicable laws and to respect the licensing of the sources you scrape and the AI providers you call.',
+          heading: 'Code and projects',
+          body: 'The open-source repositories shown here live on GitHub, and each repository\'s own licence applies to its code. My Stream, Mushaf and the Android app are separate services and are not covered by this page.',
         },
         {
-          heading: 'Your content',
-          body: 'You retain ownership of every article you publish. You grant geohashim a limited license to display it as part of the service.',
-        },
-        {
-          heading: 'Termination',
-          body: 'You can close your account at any time. We may suspend accounts that violate these terms or abuse third-party AI providers.',
+          heading: 'Demos',
+          body: 'The demos replay captured program output or run on data built into the page. Inputs marked Illustrative input were made up for the demo.',
         },
         {
           heading: 'Changes',
-          body: 'We may update these terms. Material changes will be posted to this page with a new updated-on date.',
+          body: 'If this page changes, the date at the top changes with it.',
         },
       ],
     },

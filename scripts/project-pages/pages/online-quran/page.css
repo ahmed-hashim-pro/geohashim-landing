@@ -1,6 +1,5 @@
 /* Online Quran: every class is prefixed oq- */
 .oq-credit { padding-left: 12px; border-left: 4px solid var(--yellow); font-size: var(--fs-sm); color: var(--ink-2); }
-.oq-store-note { font-size: var(--fs-xs); color: var(--ink-2); }
 .oq-sub { margin: 18px 0 8px; font-size: 1.125rem; }
 
 /* Hero: a drawn phone with a connection switch */
