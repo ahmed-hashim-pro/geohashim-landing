@@ -46,7 +46,7 @@ PAGE.terminal = {
 
 /* Collected tests per file (pytest --collect-only), coloured by what they guard */
 PAGE.tests = [
-  ['tests/test_cli.py', 84, 'var(--blue)'], ['tests/test_transport.py', 29, 'var(--blue)'], ['tests/test_runner.py', 15, 'var(--blue)'],
+  ['tests/test_cli.py', 87, 'var(--blue)'], ['tests/test_transport.py', 29, 'var(--blue)'], ['tests/test_runner.py', 15, 'var(--blue)'],
   ['tests/test_hosts.py', 44, 'var(--magenta)'], ['tests/test_persist.py', 35, 'var(--magenta)'], ['tests/test_askpass.py', 17, 'var(--magenta)'],
   ['tests/test_programs_describe_themselves.py', 39, 'var(--yellow)'], ['tests/test_inventory.py', 25, 'var(--yellow)'],
   ['tests/test_parity.py', 90, 'var(--water)'], ['tests/test_screen.py', 24, 'var(--water)'], ['tests/test_doctor_completion.py', 17, 'var(--water)']

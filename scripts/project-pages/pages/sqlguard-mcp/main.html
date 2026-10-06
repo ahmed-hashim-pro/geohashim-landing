@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>Go 1.25+, no cgo</dd>
-              <dt>Tests</dt><dd>138 passing (65 tests plus 73 subtests)</dd>
+              <dt>Tests</dt><dd>139 passing (65 tests plus 74 subtests)</dd>
               <dt>Protocol</dt><dd>MCP Go SDK, five tools, stdio or HTTP</dd>
               <dt>Database</dt><dd>SQLite, through a pure Go driver</dd>
               <dt>Approval</dt><dd><code>sqlguard approve &lt;token&gt;</code>, run by a person</dd>
@@ -355,8 +355,8 @@ WHERE id = 42;</pre>
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">138 tests, no database server and no credentials</h2>
-          <p>Counted with <code>go test -race -count=1 -json ./...</code>: 65 tests plus 73 subtests, all passing. Each package is tested at its own layer, and the outermost tests start the real binary.</p>
+          <h2 id="h-tests">139 tests, no database server and no credentials</h2>
+          <p>Counted with <code>go test -race -count=1 -json ./...</code>: 65 tests plus 74 subtests, all passing. Each package is tested at its own layer, and the outermost tests start the real binary.</p>
         </div>
         <div class="tests">
           <div class="panel t-cluster">
@@ -366,7 +366,7 @@ WHERE id = 42;</pre>
           <div class="panel t-list">
             <h3>Weighted toward the boundary</h3>
             <ul>
-              <li><strong>Classifier:</strong> 42 statements, including the ones a naive check gets wrong: verbs inside strings, <code>deleted_at</code>, a quoted <code>"delete"</code>, writes behind <code>WITH</code> or <code>EXPLAIN</code>, and comments or second statements hiding a <code>DROP</code>.</li>
+              <li><strong>Classifier:</strong> 43 statements, including the ones a naive check gets wrong: verbs inside strings, <code>deleted_at</code>, a quoted <code>"delete"</code>, writes behind <code>WITH</code> or <code>EXPLAIN</code>, and comments or second statements hiding a <code>DROP</code>.</li>
               <li><strong>Engine:</strong> writes fired at the read handle fail with SQLite's own refusal and the row count is unchanged; row cap edges; cancelled and expired contexts.</li>
               <li><strong>Approval:</strong> single use, binding to the statement, whitespace-only normalising, expiry on an injected clock, the 16-store race, and tokens that try to be paths.</li>
               <li><strong>Protocol:</strong> a real MCP client over in-memory transports; exactly five tools, none that approves; refusals that carry their next step.</li>

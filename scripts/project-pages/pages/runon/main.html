@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>Python 3.10 or newer</dd>
-              <dt>Tests</dt><dd>419 passing, none needs a server or a key</dd>
+              <dt>Tests</dt><dd>422 passing, none needs a server or a key</dd>
               <dt>Transport</dt><dd>The system ssh and scp, so your keys and ~/.ssh/config apply</dd>
               <dt>Dependencies</dt><dd>None on Python 3.11 and up; tomli on 3.10</dd>
               <dt>Published</dt><dd>PyPI, version 0.14.0</dd>
@@ -388,7 +388,7 @@ could not log in, so these get no pane:
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">419 tests, no server needed</h2>
+          <h2 id="h-tests">422 tests, no server needed</h2>
           <p>Everything that would reach another machine goes through one Transport interface, and the suite drives the fake one, which ships as public API so you can test your own programs the same way. An empty list of recorded calls is how a test proves a refusal never reached a host.</p>
         </div>
         <div class="tests">
@@ -404,7 +404,7 @@ could not log in, so these get no pane:
               <li><i class="t-dot" style="--c:var(--yellow)"></i><span><strong>Programs and the inventory:</strong> destructive consent, declining exits 130, prompts in order, CRLF, a group naming an unknown host, IPv6 addresses.</span></li>
               <li><i class="t-dot" style="--c:var(--water)"></i><span><strong>The terminal:</strong> shell completion in bash, zsh and fish, the picker, <code>doctor</code>, <code>--watch</code>, and a check that the README's command reference matches the parser.</span></li>
             </ul>
-            <p>CI runs ruff and the suite on Ubuntu and macOS across Python 3.10 to 3.13. All 419 pass on macOS; on Ubuntu 418 pass and one is skipped, a test that needs csh. A separate job drives a real sshd on localhost: key and password logins, an unknown host key, a tcsh account, a group of one.</p>
+            <p>CI runs ruff and the suite on Ubuntu and macOS across Python 3.10 to 3.13. All 422 pass on macOS; on Ubuntu 421 pass and one is skipped, a test that needs csh. A separate job drives a real sshd on localhost: key and password logins, an unknown host key, a tcsh account, a group of one.</p>
           </div>
         </div>
       </div>

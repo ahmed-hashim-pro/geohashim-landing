@@ -26,7 +26,7 @@ const sqlOf = e => JSON.parse(e.args).sql;
 })();
 
 /* Tests per package, from go test -race -count=1 -json ./... (65 tests plus 73 subtests) */
-PAGE.tests = [['internal/policy', 47, 'var(--blue)'], ['internal/mcpsrv', 27, 'var(--magenta)'], ['internal/approval', 21, 'var(--yellow)'], ['cmd/sqlguard', 21, 'var(--water)'], ['internal/db', 17, 'var(--green)'], ['internal/audit', 5, 'var(--ink-2)']];
+PAGE.tests = [['internal/policy', 48, 'var(--blue)'], ['internal/mcpsrv', 27, 'var(--magenta)'], ['internal/approval', 21, 'var(--yellow)'], ['cmd/sqlguard', 21, 'var(--water)'], ['internal/db', 17, 'var(--green)'], ['internal/audit', 5, 'var(--ink-2)']];
 
 /* 1. The classifier: ten real replies, highlighted with the scan rules of internal/policy/classify.go */
 (() => {

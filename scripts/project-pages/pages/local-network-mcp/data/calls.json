@@ -1,4 +1,5 @@
 {
+ "victim": 383470,
  "sessions": [
   {
    "name": "clean",
@@ -11,27 +12,7 @@
      },
      "isError": false,
      "text": "{\n  \"total_variables\": 0,\n  \"variables\": {}\n}",
-     "ms": 4
-    },
-    {
-     "tool": "check_port",
-     "args": {
-      "host": "127.0.0.1",
-      "port": 8765
-     },
-     "isError": false,
-     "text": "{\n  \"host\": \"127.0.0.1\",\n  \"port\": 8765,\n  \"open\": true,\n  \"status\": \"Open\"\n}",
-     "ms": 6
-    },
-    {
-     "tool": "check_port",
-     "args": {
-      "host": "127.0.0.1",
-      "port": 8766
-     },
-     "isError": false,
-     "text": "{\n  \"host\": \"127.0.0.1\",\n  \"port\": 8766,\n  \"open\": false,\n  \"status\": \"Closed\"\n}",
-     "ms": 7
+     "ms": 3.7
     },
     {
      "tool": "execute_local_command",
@@ -39,8 +20,8 @@
       "command": "echo hello"
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled because it can change or destroy state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 6
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 7
     },
     {
      "tool": "execute_local_command",
@@ -51,8 +32,18 @@
       }
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled because it can change or destroy state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 11
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 4.8
+    },
+    {
+     "tool": "ssh_connect",
+     "args": {
+      "host": "192.0.2.1",
+      "username": "nobody"
+     },
+     "isError": false,
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"ssh_connect\",\n  \"error\": \"ssh_connect is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_SSH_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 3
     },
     {
      "tool": "ssh_execute",
@@ -62,39 +53,17 @@
       "command": "echo hello"
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"ssh_execute\",\n  \"error\": \"ssh_execute is disabled because it can change or destroy state. Set LNMCP_ENABLE_SSH_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 17
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"ssh_execute\",\n  \"error\": \"ssh_execute is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_SSH_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 3
     },
     {
      "tool": "kill_process",
      "args": {
-      "pid": 11650
+      "pid": 383470
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"kill_process\",\n  \"error\": \"kill_process is disabled because it can change or destroy state. Set LNMCP_ENABLE_KILL=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 45
-    },
-    {
-     "tool": "scan_network",
-     "args": {
-      "network_prefix": "127.0.0",
-      "start_ip": 2,
-      "end_ip": 5
-     },
-     "isError": false,
-     "text": "{\n  \"network_scanned\": \"127.0.0.2-5\",\n  \"active_hosts\": [],\n  \"total_found\": 0\n}",
-     "ms": 10273
-    },
-    {
-     "tool": "scan_network",
-     "args": {
-      "network_prefix": "127.0.0",
-      "start_ip": 1,
-      "end_ip": 1
-     },
-     "isError": false,
-     "text": "{\n  \"network_scanned\": \"127.0.0.1-1\",\n  \"active_hosts\": [],\n  \"total_found\": 0\n}",
-     "ms": 62
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"kill_process\",\n  \"error\": \"kill_process is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_KILL=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 1.7
     }
    ],
    "tools": [
@@ -120,7 +89,7 @@
     ],
     [
      "ssh_connect",
-     "Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
+     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
     ],
     [
      "ssh_execute",
@@ -183,7 +152,7 @@
      },
      "isError": false,
      "text": "{\n  \"total_variables\": 1,\n  \"variables\": {\n    \"LNMCP_ENABLE_EXEC\": \"1\"\n  }\n}",
-     "ms": 13
+     "ms": 2.2
     },
     {
      "tool": "execute_local_command",
@@ -193,7 +162,7 @@
      },
      "isError": false,
      "text": "{\n  \"success\": true,\n  \"command\": \"echo hello\",\n  \"exit_code\": 0,\n  \"stdout\": \"hello\\n\",\n  \"stderr\": \"\",\n  \"cwd\": \"/\"\n}",
-     "ms": 32
+     "ms": 4.1
     },
     {
      "tool": "ssh_execute",
@@ -203,17 +172,17 @@
       "command": "echo hello"
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"ssh_execute\",\n  \"error\": \"ssh_execute is disabled because it can change or destroy state. Set LNMCP_ENABLE_SSH_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 4
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"ssh_execute\",\n  \"error\": \"ssh_execute is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_SSH_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 3.2
     },
     {
      "tool": "kill_process",
      "args": {
-      "pid": 11650
+      "pid": 383470
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"kill_process\",\n  \"error\": \"kill_process is disabled because it can change or destroy state. Set LNMCP_ENABLE_KILL=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 2
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"kill_process\",\n  \"error\": \"kill_process is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_KILL=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 1.8
     }
    ],
    "tools": [
@@ -239,7 +208,7 @@
     ],
     [
      "ssh_connect",
-     "Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
+     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
     ],
     [
      "ssh_execute",
@@ -301,10 +270,89 @@
       "command": "echo hello"
      },
      "isError": false,
-     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled because it can change or destroy state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
-     "ms": 3
+     "text": "{\n  \"success\": false,\n  \"policy\": \"default-deny\",\n  \"tool\": \"execute_local_command\",\n  \"error\": \"execute_local_command is disabled by default because it can run commands or change state. Set LNMCP_ENABLE_EXEC=1 in the server's environment (the \\\"env\\\" block of your MCP client config) and restart the server to enable it.\"\n}",
+     "ms": 2.2
     }
    ],
+   "tools": [
+    [
+     "get_local_ip",
+     "Get the local IP address of this machine"
+    ],
+    [
+     "scan_network",
+     "Scan the local network to discover active devices. Returns IP addresses, hostnames, and open ports."
+    ],
+    [
+     "ping_host",
+     "Ping a specific host to check if it's reachable"
+    ],
+    [
+     "check_port",
+     "Check if a specific port is open on a host"
+    ],
+    [
+     "scan_ports",
+     "Scan multiple ports on a specific host"
+    ],
+    [
+     "ssh_connect",
+     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
+    ],
+    [
+     "ssh_execute",
+     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Execute a command on a remote host via SSH. Will create connection if not exists."
+    ],
+    [
+     "ssh_disconnect",
+     "Close an SSH connection to a remote host"
+    ],
+    [
+     "ssh_list_connections",
+     "List all active SSH connections"
+    ],
+    [
+     "execute_local_command",
+     "[DISABLED - set LNMCP_ENABLE_EXEC=1 to enable] Execute a shell command on the local machine. Returns stdout, stderr, and exit code."
+    ],
+    [
+     "get_system_info",
+     "Get comprehensive system information including CPU, memory, disk, and network details"
+    ],
+    [
+     "list_processes",
+     "List running processes with CPU and memory usage"
+    ],
+    [
+     "kill_process",
+     "[DISABLED - set LNMCP_ENABLE_KILL=1 to enable] Terminate or kill a process by PID"
+    ],
+    [
+     "get_environment_variables",
+     "Get system environment variables"
+    ],
+    [
+     "get_directory_listing",
+     "List contents of a directory with detailed information"
+    ],
+    [
+     "get_disk_usage",
+     "Get disk usage information for a path"
+    ],
+    [
+     "find_files",
+     "Search for files matching a pattern in a directory"
+    ],
+    [
+     "get_network_connections",
+     "Get active network connections and listening ports"
+    ]
+   ]
+  },
+  {
+   "name": "ssh",
+   "start": "LNMCP_ENABLE_SSH_EXEC=1 python network_mcp_server.py",
+   "calls": [],
    "tools": [
     [
      "get_local_ip",
@@ -332,7 +380,7 @@
     ],
     [
      "ssh_execute",
-     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Execute a command on a remote host via SSH. Will create connection if not exists."
+     "Execute a command on a remote host via SSH. Will create connection if not exists."
     ],
     [
      "ssh_disconnect",
@@ -387,11 +435,11 @@
     {
      "tool": "kill_process",
      "args": {
-      "pid": 11650
+      "pid": 383470
      },
      "isError": false,
-     "text": "{\n  \"success\": true,\n  \"pid\": 11650,\n  \"process_name\": \"sleep\",\n  \"message\": \"Process 11650 (sleep) terminated successfully\"\n}",
-     "ms": 11
+     "text": "{\n  \"success\": true,\n  \"pid\": 383470,\n  \"process_name\": \"sleep\",\n  \"message\": \"Process 383470 (sleep) terminated successfully\"\n}",
+     "ms": 2.9
     }
    ],
    "tools": [
@@ -417,7 +465,7 @@
     ],
     [
      "ssh_connect",
-     "Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
+     "[DISABLED - set LNMCP_ENABLE_SSH_EXEC=1 to enable] Establish an SSH connection to a remote host. Connection is kept alive for subsequent commands."
     ],
     [
      "ssh_execute",
@@ -468,6 +516,55 @@
      "Get active network connections and listening ports"
     ]
    ]
+  },
+  {
+   "name": "look",
+   "start": "python network_mcp_server.py",
+   "calls": [
+    {
+     "tool": "check_port",
+     "args": {
+      "host": "127.0.0.1",
+      "port": 8765
+     },
+     "isError": false,
+     "text": "{\n  \"host\": \"127.0.0.1\",\n  \"port\": 8765,\n  \"open\": true,\n  \"status\": \"Open\"\n}",
+     "ms": 6
+    },
+    {
+     "tool": "check_port",
+     "args": {
+      "host": "127.0.0.1",
+      "port": 8766
+     },
+     "isError": false,
+     "text": "{\n  \"host\": \"127.0.0.1\",\n  \"port\": 8766,\n  \"open\": false,\n  \"status\": \"Closed\"\n}",
+     "ms": 7
+    },
+    {
+     "tool": "scan_network",
+     "args": {
+      "network_prefix": "127.0.0",
+      "start_ip": 2,
+      "end_ip": 5
+     },
+     "isError": false,
+     "text": "{\n  \"network_scanned\": \"127.0.0.2-5\",\n  \"active_hosts\": [],\n  \"total_found\": 0\n}",
+     "ms": 10273
+    },
+    {
+     "tool": "scan_network",
+     "args": {
+      "network_prefix": "127.0.0",
+      "start_ip": 1,
+      "end_ip": 1
+     },
+     "isError": false,
+     "text": "{\n  \"network_scanned\": \"127.0.0.1-1\",\n  \"active_hosts\": [],\n  \"total_found\": 0\n}",
+     "ms": 62
+    }
+   ],
+   "tools": []
   }
  ]
 }

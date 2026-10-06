@@ -98,7 +98,7 @@ frame @0: length=214 crc32=0x00f7902d</span></div>
               <div class="mini-term ag-calls" id="ag-ddl"><span class="ag-call">executeQuery(db, "CREATE INDEX ON :Person(name)")</span><span class="dim">(0 rows; stats {"rowsExamined":0,"elapsedMs":13})</span></div>
               <div class="mini-term ag-calls" id="ag-perr"><span class="ag-call">executeQuery(db, "MATCH (p:Person RETURN p.name")</span><span class="ag-err">AqlError PARSE_ERROR: expected ")", found "RETURN"</span><span class="ag-err">  at line 1, column 17</span><span>MATCH (p:Person RETURN p.name</span><span class="ag-caret">                ^</span></div>
             </div>
-            <figcaption class="demo-note">Real <code>EXPLAIN</code> output from <code>executeQuery</code> on the repo's bundled science-history dataset (500 nodes, 1,197 edges), run by a script written for this page that calls the public API. The plan is drawn from its JSON; the parse error is verbatim from the same run.</figcaption>
+            <figcaption class="demo-note">Real <code>EXPLAIN</code> output from <code>executeQuery</code> on the repo's bundled science-history dataset (500 nodes, 1,196 edges), run by a script written for this page that calls the public API. The plan is drawn from its JSON; the parse error is verbatim from the same run.</figcaption>
           </figure>
         </div>
       </div>

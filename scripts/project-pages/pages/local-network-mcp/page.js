@@ -1,8 +1,12 @@
-/* Real stdio captures: every tools/call and tools/list from four server starts, verbatim,
-   with response times measured at the client (data/calls.json, from captures/lnmcp/raw.log). */
+/* Real stdio captures, verbatim, with response times measured at the client around each call
+   (data/calls.json). Sessions clean, exec, typo, ssh and kill are one run at 5e4e27b on Linux,
+   driven with the mcp Python client. Session look holds the earlier scan_network and check_port
+   captures from a Mac; neither function has changed since. */
 const CAP = /*@@DATA:calls@@*/;
 const SES = Object.fromEntries(CAP.sessions.map(s => [s.name, s]));
 const callOf = (s, tool, n = 0) => SES[s].calls.filter(c => c.tool === tool)[n];
+const PID = CAP.victim;
+const msTxt = ms => `${Number(ms).toFixed(1)} ms`;
 
 // The shared tour bar links "See the answer" to #answer, which this page doesn't have.
 { const ta = $('#tour-ans'); if (ta) ta.remove(); }
@@ -19,20 +23,25 @@ const markVars = html => html.replace(/LNMCP_ENABLE_[A-Z_]+/g, '<mark>$&</mark>'
   const body = (c, okRe) => c.text.split('\n').map(l => [/"error":/.test(l) ? 'err' : okRe && okRe.test(l) ? 'ok' : 'out', l]);
   const deny = callOf('clean', 'execute_local_command', 0), override = callOf('clean', 'execute_local_command', 1);
   const ran = callOf('exec', 'execute_local_command'), sshNo = callOf('exec', 'ssh_execute');
-  const open = callOf('clean', 'check_port', 0), shut = callOf('clean', 'check_port', 1);
+  const open = callOf('look', 'check_port', 0), shut = callOf('look', 'check_port', 1);
   PAGE.terminal = {
     scenes: {
       deny: [['cmd', SES.clean.start], ['dim', reqLine(deny)], ...body(deny), ['out', ''], ['dim', reqLine(override)], ...body(override)],
       optin: [['cmd', SES.exec.start], ['dim', reqLine(ran)], ...body(ran, /"stdout"|"exit_code"/), ['out', ''], ['dim', reqLine(sshNo)], ...body(sshNo)],
-      read: [['cmd', SES.clean.start], ['dim', reqLine(open)], ...body(open, /"status"/), ['out', ''], ['dim', reqLine(shut)], ...body(shut)]
+      read: [['cmd', SES.look.start], ['dim', reqLine(open)], ...body(open, /"status"/), ['out', ''], ['dim', reqLine(shut)], ...body(shut)]
     },
     order: ['deny', 'optin', 'read'],
     first: 'deny'
   };
 })();
 
-/* Passing tests per class, from pytest --collect-only (all in tests/test_policy.py) */
-PAGE.tests = [['TestDefaultDeny', 50, 'var(--blue)'], ['TestTheGateIsReal', 5, 'var(--red)'], ['TestToolListing', 3, 'var(--water)'], ['TestNoDrift', 4, 'var(--magenta)']];
+/* Passing tests per class, from pytest --collect-only at 5e4e27b: the first four classes are in
+   tests/test_policy.py (82), the rest in tests/test_ssh_host_keys.py (12). 94 in all. */
+PAGE.tests = [
+  ['TestDefaultDeny', 67, 'var(--blue)'], ['TestTheGateIsReal', 7, 'var(--red)'], ['TestToolListing', 3, 'var(--water)'],
+  ['TestNoDrift', 5, 'var(--magenta)'], ['TestKnownHosts', 6, 'var(--green)'], ['TestTrustOnFirstUse', 5, 'var(--yellow)'],
+  ['test_no_policy_accepts_every_key', 1, 'var(--ink-2)']
+];
 
 const miniHTML = (start, c, pick) => {
   const lines = pick ? c.text.split('\n').filter(pick) : c.text.split('\n');
@@ -45,7 +54,7 @@ const miniHTML = (start, c, pick) => {
   const el = $('#d-switch'), chips = $('#sw-chips'), out = $('#sw-readout'), line = $('#sw-envline');
   const before = $('#sw-before'), after = $('#sw-after');
   const LINE = line.textContent;
-  // The test suite's own parameters (tests/test_policy.py:47 and :53), interleaved for the animation.
+  // The test suite's own parameters (tests/test_policy.py:48 and :54), interleaved for the animation.
   const VALUES = ['1', '', 'true', '0', 'TRUE', 'false', 'yes', 'no', 'on', 'off', ' 1 ', 'maybe', '2'];
   const TRUTHY = new Set(['1', 'true', 'yes', 'on']);
   const q = v => JSON.stringify(v);
@@ -130,7 +139,7 @@ const miniHTML = (start, c, pick) => {
       await wait(400, me);
       box.classList.remove('is-pre');
       await wait(1500, me);
-      for (const m of ['exec', 'kill', 'typo']) {
+      for (const m of ['exec', 'ssh', 'kill', 'typo']) {
         if (userPicked) return;
         setMode(m);
         await wait(1700, me);
@@ -146,8 +155,8 @@ const miniHTML = (start, c, pick) => {
   const el = $('#d-look'), grid = $('#pr-grid'), clock = $('#pr-clock'), term = $('#pr-term');
   const PORTS = [80, 443, 22, 445, 8080];
   const EMPTY = ['127.0.0.2', '127.0.0.3', '127.0.0.4', '127.0.0.5'];
-  const scanEmpty = callOf('clean', 'scan_network', 0), scanLo = callOf('clean', 'scan_network', 1);
-  const open = callOf('clean', 'check_port', 0), shut = callOf('clean', 'check_port', 1);
+  const scanEmpty = callOf('look', 'scan_network', 0), scanLo = callOf('look', 'scan_network', 1);
+  const open = callOf('look', 'check_port', 0), shut = callOf('look', 'check_port', 1);
   const row = (a, cls = '') => `<span class="lnm-addr${cls}">${a}</span>` + PORTS.map(() => `<span class="lnm-cell${cls}"><i></i></span>`).join('');
   grid.innerHTML = '<span class="lnm-ph">Port</span>' + PORTS.map(p => `<span class="lnm-ph">${p}</span>`).join('') +
     EMPTY.map(a => row(a)).join('') + row('127.0.0.1', ' lnm-gap');
@@ -195,9 +204,10 @@ const miniHTML = (start, c, pick) => {
 
 /* 4 to 6. Call lanes: each request meets the check, then stops at the line or crosses it */
 const GATE = {
-  execute_local_command: { v: 'LNMCP_ENABLE_EXEC', at: ':317', past: [':326', 'subprocess.run(command, shell=shell, …)'] },
-  ssh_execute: { v: 'LNMCP_ENABLE_SSH_EXEC', at: ':241', past: [':256', 'client.exec_command(command, timeout=timeout)'] },
-  kill_process: { v: 'LNMCP_ENABLE_KILL', at: ':436', past: [':446', 'process.terminate()'] }
+  execute_local_command: { v: 'LNMCP_ENABLE_EXEC', at: ':412', past: [':421', 'subprocess.run(command, shell=shell, …)'] },
+  ssh_connect: { v: 'LNMCP_ENABLE_SSH_EXEC', at: ':246', past: [':275', 'client = new_ssh_client()'] },
+  ssh_execute: { v: 'LNMCP_ENABLE_SSH_EXEC', at: ':336', past: [':351', 'client.exec_command(command, timeout=timeout)'] },
+  kill_process: { v: 'LNMCP_ENABLE_KILL', at: ':531', past: [':541', 'process.terminate()'] }
 };
 const argsHTML = a => '{' + Object.entries(a).map(([k, v]) => {
   const s = esc(`${JSON.stringify(k)}: ${py(v)}`);
@@ -216,7 +226,7 @@ function lanes(id, spec) {
   });
   if (envs) {
     const env = spec.env;
-    envs.innerHTML = '<span class="lnm-envs-h">Server environment</span>' + Object.values(GATE).map(({ v }) =>
+    envs.innerHTML = '<span class="lnm-envs-h">Server environment</span>' + [...new Set(Object.values(GATE).map(g => g.v))].map(v =>
       `<span class="lnm-var" data-var="${v}"><code>${v}</code><b class="${env[v] ? 'is-set' : ''}">${env[v] ? esc(JSON.stringify(env[v])) : 'unset'}</b></span>`).join('');
   }
   box.innerHTML = '<div class="lnm-lh" aria-hidden="true"><span>tools/call from the agent</span><span>The check</span><span></span><span>Past the line</span></div>' +
@@ -229,7 +239,7 @@ function lanes(id, spec) {
       <div class="lnm-check">
         <span class="lnm-reads"><span class="lnm-ln">${r.g.at}</span> reads <code>${r.g.v}</code></span>
         <span class="lnm-val">${r.val ? esc(JSON.stringify(r.val)) : 'unset'}</span>
-        <span class="lnm-verdict">${r.ran ? 'Allowed' : 'Refused'}<small>${r.call.ms} ms</small></span>
+        <span class="lnm-verdict">${r.ran ? 'Allowed' : 'Refused'}<small>${msTxt(r.call.ms)}</small></span>
       </div>
       <div class="lnm-line" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <div class="lnm-past">
@@ -284,15 +294,16 @@ function lanes(id, spec) {
   });
 }
 
-/* 4. A server with no opt-ins. pid checks are the capture script's, after each call (captures/lnmcp/pretty.log). */
+/* 4. A server with no opt-ins. pid checks are the capture script's, after each call. */
 lanes('d-refuse', {
   env: {},
   show: 1,
   rows: [
     { call: callOf('clean', 'execute_local_command', 0), env: {} },
     { call: callOf('clean', 'execute_local_command', 1), env: {} },
+    { call: callOf('clean', 'ssh_connect'), env: {} },
     { call: callOf('clean', 'ssh_execute'), env: {} },
-    { call: callOf('clean', 'kill_process'), env: {}, after: 'pid 11650 still running' }
+    { call: callOf('clean', 'kill_process'), env: {}, after: `pid ${PID} still running` }
   ]
 });
 
@@ -303,7 +314,7 @@ lanes('d-run', {
   rows: [
     { call: callOf('exec', 'execute_local_command'), env: { LNMCP_ENABLE_EXEC: '1' } },
     { call: callOf('exec', 'ssh_execute'), env: { LNMCP_ENABLE_EXEC: '1' } },
-    { call: callOf('exec', 'kill_process'), env: { LNMCP_ENABLE_EXEC: '1' }, after: 'pid 11650 still running' }
+    { call: callOf('exec', 'kill_process'), env: { LNMCP_ENABLE_EXEC: '1' }, after: `pid ${PID} still running` }
   ]
 });
 
@@ -314,9 +325,9 @@ lanes('d-run', {
   lanes('d-kill', {
     show: 2,
     rows: [
-      { server: 'No opt-ins', call: callOf('clean', 'kill_process'), env: {}, after: 'pid 11650 still running' },
-      { server: 'LNMCP_ENABLE_EXEC=1', call: callOf('exec', 'kill_process'), env: { LNMCP_ENABLE_EXEC: '1' }, after: 'pid 11650 still running' },
-      { server: 'LNMCP_ENABLE_KILL=1', call: callOf('kill', 'kill_process'), env: { LNMCP_ENABLE_KILL: '1' }, after: 'pid 11650 gone' }
+      { server: 'No opt-ins', call: callOf('clean', 'kill_process'), env: {}, after: `pid ${PID} still running` },
+      { server: 'LNMCP_ENABLE_EXEC=1', call: callOf('exec', 'kill_process'), env: { LNMCP_ENABLE_EXEC: '1' }, after: `pid ${PID} still running` },
+      { server: 'LNMCP_ENABLE_KILL=1', call: callOf('kill', 'kill_process'), env: { LNMCP_ENABLE_KILL: '1' }, after: `pid ${PID} gone` }
     ],
     onReset: () => alive(true),
     onRow: i => { if (i === 2) alive(false); }
