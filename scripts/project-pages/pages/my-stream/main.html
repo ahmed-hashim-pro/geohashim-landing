@@ -8,7 +8,7 @@
         <div class="grid p-row">
           <div class="p-intro">
             <p class="lede">A web app that pulls articles from RSS feeds, has an AI model score each one, and drafts only the ones that clear a quality threshold, in English and Arabic. Publishing is left to an editor.</p>
-            <p>Model calls cost money, and cheaper models score lower on the same rubric. So anything that can be rejected without a model call is rejected first, each remaining item gets one scoring call, and the threshold moves with the model, so one platform setting holds across seven providers.</p>
+            <p>Model calls cost money, and cheaper models score lower on the same rubric. So anything that can be rejected without a model call is rejected first, each remaining item gets one scoring call, and the threshold moves with the model, so one platform setting holds across ten providers.</p>
             <div class="ctas">
               {{TOUR_BUTTON}}
               <a class="btn" href="https://feed.geohashim.com">Open My Stream</a>
@@ -19,8 +19,8 @@
               <dt>Backend</dt><dd>Amplify Gen 2: AppSync GraphQL, 20 Lambda functions, DynamoDB</dd>
               <dt>Sign-in</dt><dd>Amazon Cognito, email or phone, optional MFA</dd>
               <dt>Billing</dt><dd>Stripe Checkout and the Stripe customer portal. <a href="/pricing/">Plans and prices</a></dd>
-              <dt>Models</dt><dd>7 providers. Anthropic works out of the box, the others with the workspace's own API key</dd>
-              <dt>Described here</dt><dd>The build live on feed.geohashim.com</dd>
+              <dt>Models</dt><dd>10 providers. Anthropic works out of the box, the others with the workspace's own API key</dd>
+              <dt>Described here</dt><dd>The build live on feed.geohashim.com, deployed 6 October 2026</dd>
             </dl>
           </div>
           <div class="term-wrap">
@@ -75,7 +75,7 @@
             <li>Before touching an article, the worker loads the workspace's AI profile and sends the chosen model a one-token probe. A retired model, an exhausted quota or a rejected key fails the job with a specific message; a transient error lets it continue.</li>
             <li>The page polls the job record every 1.5 seconds and stops waiting after 15 minutes, the Lambda's own time limit. A cancel request is checked before scoring and again before drafting.</li>
           </ul>
-          <p class="why">The other way in is the daily schedule. At 08:00 UTC, workspaces set to daily or weekdays get 1 to 10 articles written from their own topic list. That path skips scraping, scoring and the threshold. Its topic is still checked against the blocklist.</p>
+          <p class="why">The other way in is the daily schedule. At 08:00 UTC, workspaces set to daily or weekdays get up to 10 articles written from their own topic list, as many as the workspace sets. That path skips scraping, scoring and the threshold. Its topic is still checked against the blocklist.</p>
         </div>
         <div class="st-demo">
           <figure class="g-panel demo" id="d-start" style="margin:0">
@@ -195,7 +195,7 @@ Pro, 499 used: allowed, counter now 500
 <span class="err">Pro, 500 used: QuotaExceededError: AI generation cap reached (500/500 this period). Upgrade the plan to continue.</span>
 <span class="err">No plan, 10 used: QuotaExceededError: AI generation cap reached (10/10 this period). Upgrade the plan to continue.</span></pre>
             </div>
-            <figcaption class="demo-note">Offsets and the clamp are the deployed values, and every effective threshold on the slider was computed by the Lambda's own function; its copy in the web app agrees on all 261 model and threshold pairs checked. The slider has the product's own range, 0 to 100 in steps of 5. The five scores come from one illustrative Haiku run (stage 3); another model would score the items differently. The starting value of 60 is illustrative, and the plan counts in the quota run are fixtures.</figcaption>
+            <figcaption class="demo-note">Offsets and the clamp are the deployed values, and every effective threshold on the slider was computed by the Lambda's own function; its copy in the web app agrees on all 819 model and threshold pairs checked. The slider has the product's own range, 0 to 100 in steps of 5. The five scores come from one illustrative Haiku run (stage 3); another model would score the items differently. The starting value of 60 is illustrative, and the plan counts in the quota run are fixtures.</figcaption>
           </figure>
         </div>
       </div>
@@ -287,10 +287,10 @@ Pro, 499 used: allowed, counter now 500
         <div class="ms-stack">
           <article class="panel ms-node ms-n-web"><h3>Amplify Hosting</h3><p>The Angular and Ionic app, rendered on the server by a Node 20 compute function, with static files served alongside.</p></article>
           <article class="panel ms-node ms-n-auth"><h3>Cognito</h3><p>Sign-in by email or phone, with optional SMS or authenticator-app MFA. After sign-up, onboarding creates the user's workspace and makes them its Owner.</p></article>
-          <article class="panel ms-node ms-n-api"><h3>AppSync GraphQL</h3><p>25 data models, plus custom mutations backed by Lambda: start a run, manage members, check out, open the billing portal.</p></article>
-          <article class="panel ms-node ms-n-fn"><h3>Lambda</h3><p>20 functions. The pipeline runs in one of them, with a 900-second limit and 1 GB of memory. The others include membership, billing, email, webhooks, account deletion, the public API, the sitemap and the scheduled jobs.</p></article>
+          <article class="panel ms-node ms-n-api"><h3>AppSync GraphQL</h3><p>32 data models, plus custom mutations backed by Lambda: start a run, manage members, check out, open the billing portal.</p></article>
+          <article class="panel ms-node ms-n-fn"><h3>Lambda</h3><p>33 functions. The pipeline runs in one of them, with a 900-second limit and 1 GB of memory. The others include membership, billing, email, webhooks, account deletion, the public API, the sitemap and the scheduled jobs.</p></article>
           <article class="panel ms-node ms-n-db"><h3>DynamoDB</h3><p>The tables behind the GraphQL models. The pipeline writes its job, queue and article rows directly.</p></article>
-          <article class="panel ms-node ms-n-ev"><h3>EventBridge</h3><p>Three rules: scheduled generation at 08:00 UTC, trial reminders at 09:00 UTC, and a publishing check every 5 minutes.</p></article>
+          <article class="panel ms-node ms-n-ev"><h3>EventBridge</h3><p>Eight scheduled rules, among them scheduled generation at 08:00 UTC, trial reminders at 09:00 UTC and a publishing check every 5 minutes.</p></article>
           <article class="panel ms-node ms-n-pay"><h3>Stripe</h3><p>Checkout for subscriptions and the customer portal. A webhook with a verified signature keeps each workspace's plan and status in step.</p></article>
           <article class="panel ms-node ms-n-etc"><h3>S3 and SES</h3><p>Article images in S3, and transactional email through SES.</p></article>
         </div>
@@ -306,19 +306,19 @@ Pro, 499 used: allowed, counter now 500
         <div class="measured" id="measured" data-reveal>
           <article class="panel m-card">
             <h3>Two copies of one formula</h3>
-            <p>The effective threshold is computed in the web app, to preview it, and in the Lambda, to enforce it. Both were run on every catalog model at nine thresholds.</p>
-            <div class="tally"><span>29 models</span><span>9 thresholds</span><span>261 of 261 agree</span></div>
+            <p>The effective threshold is computed in the web app, to preview it, and in the Lambda, to enforce it. Both were run on every catalog model at every step of the product's slider, 0 to 100 in steps of 5.</p>
+            <div class="tally"><span>39 models</span><span>21 thresholds</span><span>819 of 819 agree</span></div>
             <p>The offsets on this page are the Lambda's values for the twelve models the landing page lists.</p>
           </article>
           <article class="panel m-card">
             <h3>One push, one deploy</h3>
             <p>Amplify builds the backend and the server-rendered front end in one job. The last three deploys of the main branch:</p>
             <div class="bars">
-              <div class="bar-row"><span>Latest</span><span class="bar"><i style="--w:91.3%"></i></span><span>864 s</span></div>
-              <div class="bar-row"><span>Before</span><span class="bar"><i style="--w:100%"></i></span><span>946 s</span></div>
-              <div class="bar-row"><span>Earlier</span><span class="bar"><i style="--w:90.6%"></i></span><span>857 s</span></div>
+              <div class="bar-row"><span>Latest</span><span class="bar"><i style="--w:51%"></i></span><span>827 s</span></div>
+              <div class="bar-row"><span>Before</span><span class="bar"><i style="--w:46.6%"></i></span><span>756 s</span></div>
+              <div class="bar-row"><span>Earlier</span><span class="bar"><i style="--w:100%"></i></span><span>1,622 s</span></div>
             </div>
-            <p>About 14 to 16 minutes each, all successful.</p>
+            <p>Between about 13 and 27 minutes each, all successful.</p>
           </article>
           <article class="panel m-card ms-cost">
             <h3>Scoring against drafting, estimated</h3>
@@ -344,7 +344,7 @@ Pro, 499 used: allowed, counter now 500
               <div><dt>Scoring on scheduled runs</dt><dd>The daily run writes from a topic and never meets the threshold. Only runs from the article queue are scored.</dd></div>
               <div><dt>A threshold per workspace</dt><dd>The base threshold is one platform setting. A workspace moves its line only by choosing a model.</dd></div>
               <div><dt>Live progress</dt><dd>The page polls the job record every 1.5 seconds. Nothing is pushed to it.</dd></div>
-              <div><dt>A spending cap in dollars</dt><dd>Plans cap the number of AI generations a month. They don't cap what those generations cost.</dd></div>
+              <div><dt>A way to set a dollar cap</dt><dd>The code checks a monthly AI spend limit in dollars when a plan carries one, but no screen or setup script sets it. The limit plans are set up with is a count of AI generations a month.</dd></div>
             </dl>
           </div>
           <div class="panel box">

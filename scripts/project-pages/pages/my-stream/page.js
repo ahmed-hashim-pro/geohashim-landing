@@ -1,9 +1,9 @@
-/* Data generated with the deployed code at commit 88d370f (scratchpad/ms/captures/make-page-data.js) */
+/* Data generated offline from the deployed code at commit 9dabcfc */
 const RUN = /*@@DATA:run@@*/;
 const MINUS = n => (n < 0 ? `−${-n}` : n > 0 ? `+${n}` : '0');
 
 
-/* Hero terminal: verbatim lines from the offline runs (scratchpad/ms/captures/out/offline-*.txt) */
+/* Hero terminal: verbatim lines from the offline runs at commit 9dabcfc */
 const ORC = '[Orchestrator]';
 const SC = {
   city: `| "City council approves new cycle lanes for the river district"`,
@@ -33,7 +33,7 @@ PAGE.terminal = {
       ['out', `${ORC}   Exit reason       : queue exhausted`],
       ['out', `${ORC} No non-duplicate articles available to draft`],
       ['out', 'Drafted: 0 articles'],
-      ['dim', '[harness] articleGenerator.generateDrafts calls: []']
+      ['dim', '[harness] articleGenerator.generateDraft calls: []']
     ],
     cleared: [
       ['cmd', 'node offline-cycle.js'],
@@ -48,9 +48,11 @@ PAGE.terminal = {
       ['out', `${ORC}   Unique to draft   : 1 / 1 max`],
       ['out', `${ORC}   Exit reason       : filled draft slots`],
       ['out', `${ORC} Generating 1 drafts...`],
+      ['ok', '[Article Generator] ✓ Generated 1/1 drafts'],
+      ['cut', '[save lines from the stubbed database trimmed]'],
       ['ok', `${ORC} ✓ Generated 1/1 drafts`],
       ['out', 'Drafted: 1 articles'],
-      ['dim', '[harness] articleGenerator.generateDrafts calls: [["City council approves new cycle lanes for the river district"]]']
+      ['dim', '[harness] articleGenerator.generateDraft calls: ["City council approves new cycle lanes for the river district"]']
     ],
     quota: [
       ['cmd', 'node offline-quota.js'],

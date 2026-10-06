@@ -202,7 +202,7 @@ export const SITE: SiteContent = {
       '/pricing': {
         title: 'My Stream pricing · Ahmed Hashim',
         description:
-          'My Stream plans and monthly prices as the product lists them, the one limit a plan enforces, and how billing works through Stripe.',
+          'My Stream plans and monthly prices as the product lists them, what a plan limits, and how billing works through Stripe.',
       },
     },
   },
@@ -718,15 +718,15 @@ export const SITE: SiteContent = {
       },
       {
         heading: 'What a plan limits',
-        body: 'The limit the code enforces is a count of AI drafts per workspace per calendar month. It is checked right before each draft the article queue writes, and at the cap the run stops and asks you to upgrade the plan. The number for each plan lives in the product and is not repeated here.',
+        body: 'The limit plans are set up with is a count of AI generations per workspace per calendar month. It is checked right before each article the AI writes, whether from the article queue or a scheduled run. At the cap no more articles are written, and the error asks you to upgrade the plan. The code can also stop AI generation at a monthly spend limit in dollars when a plan carries one. The number for each plan lives in the product and is not repeated here.',
       },
       {
         heading: 'Paying, changing plan and cancelling',
-        body: "Choosing a plan in the workspace's billing settings opens Stripe Checkout for a monthly subscription. Payment methods, invoices and cancelling are handled in Stripe's customer portal, opened from the same screen. Workspace owners and admins can open billing settings.",
+        body: "Choosing a plan in the workspace's billing settings opens Stripe Checkout for a monthly subscription. If the workspace already has one, the plan is switched on that subscription instead, with prorated charges. Payment methods, invoices and cancelling are handled in Stripe's customer portal, opened from the same screen. Workspace owners and admins can open billing settings.",
       },
       {
         heading: 'AI provider costs',
-        body: "Anthropic models run on the platform's own key. The other six providers (OpenAI, Google, xAI, DeepSeek, Mistral and Groq) run on the workspace's own API key, so that provider bills you for those calls directly.",
+        body: "Anthropic models run on the platform's own key. The other nine providers (OpenAI, Google, xAI, DeepSeek, Mistral, Groq, Cerebras, OpenRouter and SambaNova) run on the workspace's own API key, so any charge for those calls comes from that provider directly.",
       },
     ],
   },

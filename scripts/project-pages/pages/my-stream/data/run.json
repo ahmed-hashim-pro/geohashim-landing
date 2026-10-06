@@ -110,97 +110,73 @@
    "provider": "anthropic",
    "id": "claude-opus-4-7",
    "label": "Claude Opus 4.7",
-   "offset": 5,
-   "be": 24,
-   "fe": 78
+   "offset": 5
   },
   {
    "provider": "anthropic",
    "id": "claude-sonnet-4-6",
    "label": "Claude Sonnet 4.6",
-   "offset": 0,
-   "be": 28,
-   "fe": 102
+   "offset": 0
   },
   {
    "provider": "anthropic",
    "id": "claude-haiku-4-5",
    "label": "Claude Haiku 4.5",
-   "offset": -10,
-   "be": 33,
-   "fe": 154
+   "offset": -10
   },
   {
    "provider": "openai",
    "id": "gpt-5",
    "label": "GPT-5",
-   "offset": 5,
-   "be": 37,
-   "fe": 184
+   "offset": 5
   },
   {
    "provider": "openai",
    "id": "gpt-5-mini",
    "label": "GPT-5 mini",
-   "offset": -5,
-   "be": 38,
-   "fe": 194
+   "offset": -5
   },
   {
    "provider": "google",
    "id": "gemini-2.5-pro",
    "label": "Gemini 2.5 Pro",
-   "offset": 0,
-   "be": 48,
-   "fe": 250
+   "offset": 0
   },
   {
    "provider": "google",
    "id": "gemini-2.5-flash",
    "label": "Gemini 2.5 Flash",
-   "offset": -10,
-   "be": 49,
-   "fe": 262
+   "offset": -10
   },
   {
    "provider": "xai",
    "id": "grok-3",
    "label": "Grok 3",
-   "offset": -5,
-   "be": 55,
-   "fe": 308
+   "offset": -5
   },
   {
    "provider": "deepseek",
    "id": "deepseek-reasoner",
    "label": "DeepSeek R1",
-   "offset": 0,
-   "be": 59,
-   "fe": 344
+   "offset": 0
   },
   {
    "provider": "deepseek",
    "id": "deepseek-chat",
    "label": "DeepSeek V3",
-   "offset": -5,
-   "be": 58,
-   "fe": 332
+   "offset": -5
   },
   {
    "provider": "mistral",
    "id": "mistral-large-latest",
    "label": "Mistral Large",
-   "offset": -5,
-   "be": 61,
-   "fe": 358
+   "offset": -5
   },
   {
    "provider": "groq",
    "id": "llama-3.3-70b-versatile",
    "label": "Llama 3.3 70B",
-   "offset": -10,
-   "be": 65,
-   "fe": 390
+   "offset": -10
   }
  ],
  "table": {
@@ -482,12 +458,12 @@
   ]
  },
  "voices": {
-  "journalistic": "Tenant guidelines: Editorial voice: journalistic. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon.",
-  "casual": "Tenant guidelines: Editorial voice: casual. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon.",
-  "formal": "Tenant guidelines: Editorial voice: formal. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon.",
-  "academic": "Tenant guidelines: Editorial voice: academic. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon.",
-  "conversational": "Tenant guidelines: Editorial voice: conversational. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon.",
-  "opinion": "Tenant guidelines: Editorial voice: opinion. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable; end with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules from the tenant:\nShort paragraphs. Explain any jargon."
+  "journalistic": "Tenant guidelines: Editorial voice: journalistic. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon.",
+  "casual": "Tenant guidelines: Editorial voice: casual. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon.",
+  "formal": "Tenant guidelines: Editorial voice: formal. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon.",
+  "academic": "Tenant guidelines: Editorial voice: academic. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon.",
+  "conversational": "Tenant guidelines: Editorial voice: conversational. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon.",
+  "opinion": "Tenant guidelines: Editorial voice: opinion. Reading level: general. Target length: approximately 1200 words (±15%). Weave these SEO keywords in naturally: houseplants, winter care. Every factual claim must be attributable. End with a \"Sources:\" section listing the URLs you drew on.\n\nYou are an experienced journalist and storyteller. Write like a real human — with personality, natural rhythm, and depth. Vary your sentence lengths. Use vivid language and concrete details. Never sound robotic or formulaic. Always write at least 1000-1500 words. Your articles should feel like something from a quality publication, not AI-generated content.\n\nAdditional editorial rules:\nShort paragraphs. Explain any jargon."
  },
  "probe": [
   {

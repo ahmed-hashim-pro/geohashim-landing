@@ -77,7 +77,7 @@ export class LandingPage implements OnInit {
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
       description:
-        'AI publishing platform that scrapes, scores, and drafts articles using Claude, GPT, Gemini, Grok, DeepSeek, Mistral, or Groq.',
+        'AI publishing platform that scrapes, scores and drafts articles with models from 10 AI providers, including Claude, GPT and Gemini.',
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
       author: { '@type': 'Person', name: 'Ahmed Hashim' },
     });
