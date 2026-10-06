@@ -1,10 +1,10 @@
 /* Angular's host elements sit between <body> and the page; the mockup has none, so they generate no box. */
-app-root, app-landing, app-privacy, app-terms, app-not-found { display: contents; }
+app-root, app-landing, app-privacy, app-terms, app-pricing, app-not-found { display: contents; }
 
 /* The footer's legal links sit where the mockup had its "Design mockup" note. */
 .foot .mock a + a { margin-left: 18px; }
 
-/* Privacy, terms and 404: the landing's tokens, header and footer around one legend panel. */
+/* Privacy, terms, pricing and 404: the landing's tokens, header and footer around one legend panel. */
 .doc { padding: 56px 0 96px; }
 .doc-panel { max-width: 760px; padding: 30px 36px 36px; }
 .doc-meta { color: var(--ink-2); font-size: var(--fs-sm); }
@@ -12,10 +12,19 @@ app-root, app-landing, app-privacy, app-terms, app-not-found { display: contents
 .doc h2 { margin: 28px 0 8px; font-size: var(--fs-md); line-height: 1.25; }
 .doc section p, .doc-panel > p { max-width: 62ch; }
 .doc-cta { margin-top: 28px; }
+.doc-note { margin-top: 12px; color: var(--ink-2); font-size: var(--fs-sm); }
+.plan-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 22px 0 0; border: 1px solid var(--ink); }
+.plan-list > div { padding: 14px 16px 16px; border-left: 1px solid var(--rule); }
+.plan-list > div:first-child { border-left: 0; }
+.plan-list dt { color: var(--ink-2); font-size: var(--fs-sm); font-weight: 600; }
+.plan-list dd { margin: 4px 0 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.2; font-variation-settings: "wdth" 84; }
 @media (max-width: 599px) {
   .doc { padding: 32px 0 64px; }
   .doc-panel { padding: 22px 18px 26px; }
+  .plan-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plan-list > div:nth-child(odd) { border-left: 0; }
+  .plan-list > div:nth-child(n + 3) { border-top: 1px solid var(--rule); }
 }
 
 /* Landing panels link to their project pages beside the outside link. */
-.rp-actions, .prod .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.rp-actions, .prod .btn-row, .doc .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }

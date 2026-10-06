@@ -1,0 +1,31 @@
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header is-air" app-site-header [onLanding]="false"></header>
+<main id="main" tabindex="-1" class="doc">
+  <div class="wrap">
+    <article class="panel doc-panel">
+      <p class="doc-meta">My Stream · prices checked {{ content.checked }}</p>
+      <h1>My Stream pricing</h1>
+      <p>{{ content.intro }}</p>
+      <dl class="plan-list">
+        @for (plan of content.plans; track plan.name) {
+          <div>
+            <dt>{{ plan.name }}</dt>
+            <dd>{{ plan.price }}</dd>
+          </div>
+        }
+      </dl>
+      <p class="doc-note">{{ content.source }}</p>
+      @for (section of content.sections; track section.heading) {
+        <section>
+          <h2>{{ section.heading }}</h2>
+          <p>{{ section.body }}</p>
+        </section>
+      }
+      <p class="doc-cta btn-row">
+        <a class="btn btn-ink" [href]="productUrl">Open My Stream</a>
+        <a class="btn" href="/products/my-stream/">How My Stream works</a>
+      </p>
+    </article>
+  </div>
+</main>
+<footer class="site-footer" app-site-footer></footer>

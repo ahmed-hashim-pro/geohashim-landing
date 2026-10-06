@@ -18,6 +18,11 @@ export const routes: Routes = [
       import('./pages/terms/terms.page').then((m) => m.TermsPage),
   },
   {
+    path: 'pricing',
+    loadComponent: () =>
+      import('./pages/pricing/pricing.page').then((m) => m.PricingPage),
+  },
+  {
     path: '404',
     loadComponent: () =>
       import('./pages/not-found/not-found.page').then((m) => m.NotFoundPage),

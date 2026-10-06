@@ -41,7 +41,7 @@ const RUNWAY_EDGE = `<div class="runway-edge" aria-hidden="true">
     </div>`;
 const FOOT_NOTE = mockups
   ? '<p class="mock">Design mockup. Not the live site.</p>'
-  : '<p class="mock"><a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>';
+  : '<p class="mock"><a href="/pricing/">My Stream pricing</a> <a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></p>';
 
 // The landing page's stylesheet owns the design tokens; every project page reuses them as they are.
 function tokens() {

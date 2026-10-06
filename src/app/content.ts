@@ -93,7 +93,7 @@ export interface OpenSourceRepo {
   featured?: boolean;
 }
 
-export type RoutePath = '/' | '/privacy' | '/terms';
+export type RoutePath = '/' | '/privacy' | '/terms' | '/pricing';
 
 export interface SiteContent {
   brand: { name: string; wordmark: string; tagline: string };
@@ -149,6 +149,13 @@ export interface SiteContent {
     privacy: { updated: string; sections: { heading: string; body: string }[] };
     terms: { updated: string; sections: { heading: string; body: string }[] };
   };
+  pricing: {
+    checked: string;
+    intro: string;
+    plans: { name: string; price: string }[];
+    source: string;
+    sections: { heading: string; body: string }[];
+  };
 }
 
 const PRODUCT_URL = 'https://feed.geohashim.com';
@@ -191,6 +198,11 @@ export const SITE: SiteContent = {
       '/terms': {
         title: 'Terms of service · Ahmed Hashim',
         description: 'What this portfolio site is, which licences apply to the code it shows, and what its demos replay.',
+      },
+      '/pricing': {
+        title: 'My Stream pricing · Ahmed Hashim',
+        description:
+          'My Stream plans and monthly prices as the product lists them, the one limit a plan enforces, and how billing works through Stripe.',
       },
     },
   },
@@ -687,5 +699,35 @@ export const SITE: SiteContent = {
         },
       ],
     },
+  },
+  pricing: {
+    checked: '7 October 2026',
+    intro: 'My Stream is billed per workspace, by the month, through Stripe. These are the plans the product lists on its own pricing section.',
+    plans: [
+      { name: 'Free', price: '$0' },
+      { name: 'Pro', price: '$29 a month' },
+      { name: 'Business', price: '$149 a month' },
+      { name: 'Enterprise', price: 'Custom' },
+    ],
+    source:
+      'Copied from the pricing section at feed.geohashim.com on 7 October 2026. If this list and the billing screen inside a workspace ever differ, trust the billing screen.',
+    sections: [
+      {
+        heading: 'Start with a trial',
+        body: 'Creating a workspace starts a 14-day trial. No card is asked for until you choose a plan.',
+      },
+      {
+        heading: 'What a plan limits',
+        body: 'The limit the code enforces is a count of AI drafts per workspace per calendar month. It is checked right before each draft the article queue writes, and at the cap the run stops and asks you to upgrade the plan. The number for each plan lives in the product and is not repeated here.',
+      },
+      {
+        heading: 'Paying, changing plan and cancelling',
+        body: "Choosing a plan in the workspace's billing settings opens Stripe Checkout for a monthly subscription. Payment methods, invoices and cancelling are handled in Stripe's customer portal, opened from the same screen. Workspace owners and admins can open billing settings.",
+      },
+      {
+        heading: 'AI provider costs',
+        body: "Anthropic models run on the platform's own key. The other six providers (OpenAI, Google, xAI, DeepSeek, Mistral and Groq) run on the workspace's own API key, so that provider bills you for those calls directly.",
+      },
+    ],
   },
 };
