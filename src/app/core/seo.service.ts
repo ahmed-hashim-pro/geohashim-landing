@@ -18,7 +18,8 @@ export class SeoService {
   private readonly doc = inject(DOCUMENT);
 
   apply(input: SeoInput): void {
-    const url = `${SITE.urls.canonical}${input.path === '/' ? '' : input.path}`;
+    const path = input.path === '/' ? '' : input.path.replace(/\/?$/, '/');
+    const url = `${SITE.urls.canonical}${path}`;
     const ogImage = `${SITE.urls.canonical}${SITE.seo.ogImage}`;
 
     this.title.setTitle(input.title);
