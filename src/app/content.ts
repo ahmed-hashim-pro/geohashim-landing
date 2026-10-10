@@ -34,7 +34,7 @@ const MUSHAF_URL = 'https://mushaf.geohashim.com';
 const QURAN_ANDROID_URL = 'https://play.google.com/store/apps/details?id=com.medoapps.www.onlinequran';
 const GITHUB_URL = 'https://github.com/ahmed-hashim-pro';
 const LINKEDIN_URL = 'https://www.linkedin.com/in/ahmed-hashim-8760ab108/';
-const CANONICAL = 'https://landing.geohashim.com';
+const CANONICAL = 'https://geohashim.com';
 
 export const SITE: SiteContent = {
   brand: {
@@ -83,7 +83,7 @@ export const SITE: SiteContent = {
       sections: [
         {
           heading: 'What this page covers',
-          body: 'This page covers this site, landing.geohashim.com (geohashim.com redirects here). My Stream, Mushaf and the Android app are separate services and are not covered here.',
+          body: 'This page covers this site, geohashim.com (landing.geohashim.com serves the same pages). My Stream, Mushaf and the Android app are separate services and are not covered here.',
         },
         {
           heading: 'What this site collects',

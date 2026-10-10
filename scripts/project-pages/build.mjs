@@ -12,7 +12,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../..');
 const SHARED = join(HERE, 'shared');
 const PAGES = join(HERE, 'pages');
-const SITE = 'https://landing.geohashim.com';
+const SITE = 'https://geohashim.com';
 
 const args = process.argv.slice(2);
 const mockups = args.includes('--mockups');

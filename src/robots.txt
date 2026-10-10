@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://landing.geohashim.com/sitemap.xml
+Sitemap: https://geohashim.com/sitemap.xml
