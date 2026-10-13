@@ -257,16 +257,16 @@ PAGE.tests = [['analyze.test.ts', 8, 'var(--blue)'], ['cli.test.ts', 7, 'var(--m
   });
 })();
 
-/* 6. CI: job results and durations from GitHub's API for run 38340979145; the self-check run locally */
+/* 6. CI: job results and durations from GitHub's API for run 38476393699; the self-check run locally */
 (() => {
   const el = $('#d-ci'), list = $('#pm-jobs');
   const JOBS = [
-    ['test (20)', 'npm ci, prettier and tsc, npm test', 14],
-    ['test (22)', 'npm ci, prettier and tsc, npm test', 15],
-    ['examples-fresh', 'scripts/examples.py, then git diff --exit-code', 6],
-    ['self-check', 'uses: ./, the action on its own lockfile', 6]
+    ['test (20)', 'npm ci, prettier and tsc, npm test', 15],
+    ['test (22)', 'npm ci, prettier and tsc, npm test', 16],
+    ['examples-fresh', 'scripts/examples.py, then git diff --exit-code', 5],
+    ['self-check', 'uses: ./, the action on its own lockfile', 7]
   ];
-  list.innerHTML = JOBS.map(([n, what, s]) => `<li class="pm-job"><span class="pm-tick" aria-hidden="true"></span><span class="pm-job-n"><b>${esc(n)}</b><small>${esc(what)}</small></span><span class="pm-job-bar"><i style="--w:${(s / 15) * 100}%"></i></span><span class="pm-job-s">${s} s</span></li>`).join('');
+  list.innerHTML = JOBS.map(([n, what, s]) => `<li class="pm-job"><span class="pm-tick" aria-hidden="true"></span><span class="pm-job-n"><b>${esc(n)}</b><small>${esc(what)}</small></span><span class="pm-job-bar"><i style="--w:${(s / 16) * 100}%"></i></span><span class="pm-job-s">${s} s</span></li>`).join('');
   const jobs = $$('.pm-job', list);
   const term = miniTerm($('#pm-self'), [['dim', '# what self-check runs on a push to main'], ...runLines(CAP.self), ...exitLines(CAP.self)]);
   demo(el, {
