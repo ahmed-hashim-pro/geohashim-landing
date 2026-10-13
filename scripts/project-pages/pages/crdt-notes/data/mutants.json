@@ -1,0 +1,12 @@
+{
+  "seeds": 2000,
+  "rows": [
+    ["correct", 0, {}],
+    ["arrival-order-tie-break", 1892, {"convergence": 1892}],
+    ["no-causal-buffer", 2000, {"convergence": 2000}],
+    ["forget-tombstones", 1761, {"convergence": 1759, "order independence": 2}],
+    ["lww-by-arrival", 1767, {"convergence": 1766, "order independence": 1}],
+    ["remove-unobserved", 1406, {"convergence": 1385, "order independence": 21}],
+    ["accept-duplicates", 1861, {"convergence": 1001, "local intent": 860}]
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "title": "bench-mcp · Ahmed Hashim",
+  "description": "An MCP server that lets an AI agent drive lab instruments over SCPI, behind interlocks built from a signed-off limits file the agent cannot override. How it works end to end, with real sessions against the simulated bench.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#answer",
+    "label": "See the board without it"
+  }
+}

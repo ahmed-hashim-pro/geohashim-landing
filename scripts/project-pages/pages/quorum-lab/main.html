@@ -1,0 +1,330 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">quorum-lab</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Raft, written from scratch in Go, and a deterministic simulator that attacks it. The simulator partitions the network, crashes and restarts nodes, drops, duplicates and reorders messages, and checks Raft's safety properties after every event. Any failure replays exactly from its seed.</p>
+            <p>A distributed system rarely fails on the happy path. It fails when a leader dies halfway through replicating an entry, or a restarted node forgets a vote it already cast. A clean run only means something if the checker would have noticed a broken one, so the repository also carries six known ways to get Raft wrong, and the simulator has to catch every one.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/quorum-lab">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/quorum-lab#the-deliberate-bugs">The deliberate bugs</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.22+, standard library only</dd>
+              <dt>Tests</dt><dd>38 passing (32 tests plus 6 subtests)</dd>
+              <dt>Cluster</dt><dd>5 nodes, 4 clients, 240 commands a run</dd>
+              <dt>Checks</dt><dd>6 after every event, 2 at the end of a run</dd>
+              <dt>Bugs</dt><dd>6 deliberate, each caught</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="run">One seed</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="hunt">Hunt</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="replay">Replay</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">quorumlab run --seed 2</span>
+<span class="out">seed 2, 5 nodes, correct build</span>
+<span class="out">  14595 ms simulated, 14676 events, 6683 messages (906 dropped, 0 duplicated)</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs of <code>quorumlab</code> 0.1.0 built from commit <code>4e365b0</code>, output verbatim. Hunt timings are wall-clock on a 12-core Linux machine; everything else is simulated time and identical on any machine.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How quorum-lab tests Raft">
+          <div class="sign-group">
+            <p>Before the line: build it, then attack it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-node"><b>1</b> Node</a></li>
+              <li><a class="sign-link" href="#s-faults"><b>2</b> Faults</a></li>
+              <li><a class="sign-link" href="#s-run"><b>3</b> Run</a></li>
+              <li><a class="sign-link" href="#s-check"><b>4</b> Check</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: break it on purpose</p>
+            <ol>
+              <li><a class="sign-link" href="#s-mutants"><b>5</b> Mutants</a></li>
+              <li><a class="sign-link" href="#s-replay"><b>6</b> Replay</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-node" aria-labelledby="h-node">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-node"><span class="num" data-mark="1">1</span>A Raft node with no clock and no network</h2>
+          <p><code>raft.Node</code> doesn't send anything, sleep or read the time. Time arrives as <code>Tick()</code>, messages as <code>Step(m)</code> and client commands as <code>Propose(data)</code>. Everything the node wants done comes back from <code>Ready()</code>: state to persist, messages to send, committed entries to apply.</p>
+          <ul class="st-points">
+            <li>The driver must persist before it sends. A vote or a log entry that leaves the node before it is on disk can be forgotten by a crash.</li>
+            <li>A new leader appends an empty no-op entry, and commits by counting replicas only of entries from its own term.</li>
+            <li>The same code runs under the simulator and under a hand-driven harness in the unit tests, which replay the paper's scenarios message by message.</li>
+          </ul>
+          <p class="why">Not implemented: membership changes, snapshots, PreVote and leader leases. The cluster is fixed and the log grows forever.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-node" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three nodes, driven by hand <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="ql-node">
+              <ol class="ql-nstate" id="ql-nstate" aria-label="Node state"></ol>
+              <ol class="ql-steps" id="ql-steps" aria-live="polite"></ol>
+            </div>
+            <div class="legend-row ql-node-key"><span class="key"><i class="ql-k" data-k="in"></i>Input: Tick, Step or Propose</span><span class="key"><i class="ql-k" data-k="persist"></i>Ready: persist</span><span class="key"><i class="ql-k" data-k="send"></i>Ready: send</span><span class="key"><i class="ql-k" data-k="apply"></i>Ready: apply</span></div>
+            <figcaption class="demo-note">The scenario and the command <code>put x 1</code> were made up for this page: a short driver outside the repository builds three nodes with the repo's own <code>raft</code> package, delivers every message in order and prints each input and each <code>Ready</code>. Every line below the input is what the nodes returned, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-faults" aria-labelledby="h-faults">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-faults"><span class="num" data-mark="2">2</span>Cut the network four ways</h2>
+          <p>One event queue and one virtual clock that jumps from event to event. Every message gets a random delay, and 5% take a slow path that lets later traffic overtake them. Messages are dropped and duplicated, each node ticks at its own rate, and nodes crash, losing everything they hadn't persisted.</p>
+          <ul class="st-points">
+            <li>Partitions come in four shapes. A bridge and a ring aren't transitive: a bridge node hears candidates on both sides that can't hear each other, so it can vote in both elections.</li>
+            <li>Half of all crashes and isolations aim at the current leader, and half of the crashes bounce, restarting within 30 ms as under a supervisor.</li>
+            <li>Each seed draws its own fault profile: how lossy the network is, how often faults strike, how skewed the clocks are, how short election timeouts are against message delay.</li>
+          </ul>
+          <p class="why">The README records that two of the six bugs went uncaught in 5,000 seeds until bridges and rings were added.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-faults" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The four shapes, as seed 2 drew them</p>
+              {{REPLAY}}
+            </div>
+            <div class="ql-shapes" id="ql-shapes"></div>
+            <div class="legend-row ql-shape-key"><span class="key"><i class="ql-k" data-k="link"></i>Can exchange messages</span><span class="key"><i class="ql-k" data-k="cut"></i>Cut</span><span class="key"><i class="ql-k" data-k="minor"></i>Cannot reach a majority</span><span class="key"><i class="ql-k" data-k="bridge"></i>Hears both sides</span></div>
+            <figcaption class="demo-note">The labels are the simulator's own trace lines from <code>quorumlab run --seed 2 --trace</code>, with their times. Links are drawn from the rules in <code>sim/sim.go</code>, and the shading follows the same majority count the simulator uses for its timeline.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-run" aria-labelledby="h-run">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-run"><span class="num" data-mark="3">3</span>Ten seconds of chaos, then heal</h2>
+          <p>Four clients each run 60 commands (get, put and append) on three keys. They retry with the same sequence number when a reply doesn't come, and follow leader hints. After 10 simulated seconds the chaos phase ends: the network heals and becomes fast, every node comes back, and the clients get 10 more seconds to finish.</p>
+          <ul class="st-points">
+            <li>Every random choice comes from one generator seeded with the run's seed: delays, drops, fault times and victims, election timeouts, clock skew and client commands.</li>
+            <li>Nothing reads the wall clock, and the simulator never iterates over a map where order would matter. <code>TestSameSeedSameRun</code> runs seeds twice and compares the entire result.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-run" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seed 2, the correct build, start to finish</p>
+              {{REPLAY}}
+            </div>
+            <div class="ql-tl" id="ql-run-tl"></div>
+            <div class="legend-row ql-tl-key"><span class="key"><i class="ql-k" data-k="lead"></i>Leader</span><span class="key"><i class="ql-k" data-k="cand"></i>Candidate</span><span class="key"><i class="ql-k" data-k="down"></i>Crashed</span><span class="key"><i class="ql-k" data-k="part"></i>Partitioned</span></div>
+            <div class="vlog ql-log" id="ql-run-log" aria-live="polite"></div>
+            <dl class="gstats ql-stats" id="ql-run-stats"></dl>
+            <figcaption class="demo-note">Lanes come from the run's own timeline record, the data behind <code>--svg</code>, dumped as JSON by a driver outside the repository. The log lines are <code>--trace</code> output and the counts are the run's summary, verbatim. Played back about twice as fast as simulated time.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-check" aria-labelledby="h-check">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-check"><span class="num" data-mark="4">4</span>Check safety after every event</h2>
+          <p>On the live cluster, after every event: at most one leader per term, logs that match wherever they share an entry, every new leader holding the entries committed before its term, no two nodes applying different entries at one index, terms and commit indexes that never go back, and no panics.</p>
+          <ul class="st-points">
+            <li>At the end of each run the clients' history must be linearizable. The checker is the Wing and Gong search with memoisation, the algorithm behind Porcupine, run on each key separately.</li>
+            <li>A command that never got a reply may or may not have taken effect, and the checker considers both.</li>
+            <li>Liveness is checked only once the network is healed and fast. Raft promises progress only when message delays are well under the election timeout.</li>
+          </ul>
+          <p class="why">The end-of-run checks see what the per-event ones can't. Seed 2 with one bug switched on, applying a retried command twice, runs every one of the same events and passes every per-event check.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-check" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seed 2, twice: the same events, one different ending</p>
+              {{REPLAY}}
+            </div>
+            <div class="ql-twin" id="ql-twin">
+              <div class="ql-twin-col" data-col="a"><p class="ql-cap">Correct build</p><pre class="ql-pre"></pre></div>
+              <div class="ql-twin-col" data-col="b"><p class="ql-cap"><code>--bug no-dedup</code></p><pre class="ql-pre"></pre></div>
+            </div>
+            <ol class="ql-checks" id="ql-checks"></ol>
+            <figcaption class="demo-note">Both columns are verbatim output of <code>quorumlab run --seed 2</code>, without and with <code>--bug no-dedup</code>; the bug's run then printed its last 12 trace lines, left out here. The check list restates the README's two tables, which match the checks in <code>sim/sim.go</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line the correct build is attacked and holds. Below it, the same checker meets six deliberate bugs, and each one has to be caught and replayed from its seed.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-mutants" aria-labelledby="h-mutants">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-mutants"><span class="num" data-mark="5">5</span>Six ways to get Raft wrong, each caught</h2>
+          <p>Each bug is a real mistake people make implementing Raft, kept behind a switch in <code>raft.Bugs</code>, or <code>NoDedup</code> for the state machine. <code>quorumlab mutants</code> hunts the correct build and every bug, and fails if the correct build breaks or any bug gets away.</p>
+          <ul class="st-points">
+            <li><code>forget-vote</code> is the hardest. A node must vote, crash, restart and vote again for a rival in the same term, and the rival must still win. That usually takes a bridge partition.</li>
+            <li><code>TestEveryBugIsCaught</code> fails if any bug stops being found within about twice the seeds it needs today.</li>
+            <li>The bugs are also pinned down by directed unit tests. <code>TestFigure8</code> replays Figure 8 of the paper message by message, with and without the bug.</li>
+          </ul>
+          <p class="why">A clean hunt is evidence, not proof. The mutants show the search has teeth, not that it reaches every bug.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-mutants" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>quorumlab mutants</code>, then each bug over 3,000 seeds</p>
+              {{REPLAY}}
+            </div>
+            <ol class="ql-muts" id="ql-muts"></ol>
+            <p class="ql-mut-foot" id="ql-mut-foot"></p>
+            <figcaption class="demo-note">The first seed and the violation kind are from <code>quorumlab mutants</code>, which runs 5,000 seeds of the correct build. The bars are from <code>quorumlab hunt --bug NAME --seeds 3000</code>, one run per bug; all six counts match the README's table. Descriptions are from <code>quorumlab bugs</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-replay" aria-labelledby="h-replay">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-replay"><span class="num" data-mark="6">6</span>Replay Figure 8 from seed 258</h2>
+          <p>With <code>commit-previous-term</code> switched on, the hunt first fails at seed 258. The leader of term 50 counts replicas of the term-19 leader's entry at index 52 and calls it committed. Node 2, holding the term-20 leader's entry at that index, then wins term 51 and would overwrite it.</p>
+          <ul class="st-points">
+            <li>This is Figure 8 of the Raft paper, found by random search. Correct Raft never counts replicas of an earlier term's entry (§5.4.2).</li>
+            <li>A ring partition leaves nodes 2 and 4 trading leadership through dozens of short terms. Leader Completeness fails the moment node 2 takes office.</li>
+            <li>A failure found by <code>hunt</code> on a 12-core machine replays identically on a laptop with <code>quorumlab run --seed N --bug NAME --trace</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-replay" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seed 258 with the bug, 3.0 to 4.8 s</p>
+              {{REPLAY}}
+            </div>
+            <div class="ql-tl ql-tl-fig8" id="ql-fig-tl"></div>
+            <div class="vlog ql-log" id="ql-fig-log" aria-live="polite"></div>
+            <dl class="ql-same" id="ql-same">
+              <div><dt>SHA-256 of the full <code>--trace</code> output, run 1</dt><dd><code>12c7df704b401337…</code></dd></div>
+              <div><dt>Run 2</dt><dd><code>12c7df704b401337…</code></dd></div>
+            </dl>
+            <figcaption class="demo-note">Lanes are the run's timeline record, dumped as JSON by a driver outside the repository; the log lines and the violation are the run's own output, verbatim. Both hashes were taken on this machine; regenerating <code>docs/figure8.svg</code> from the same seed also left the committed file byte for byte unchanged.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Every number here was re-run from a clean clone of commit <code>4e365b0</code> with Go 1.27 on one 12-core Linux machine. The seed counts are deterministic and match the README; the times are this machine's.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>The correct build</h3>
+            <p>CI runs the 20,000-seed hunt and the mutant table on every push to main.</p>
+            <div class="tally"><span>20,000 seeds</span><span>0 violations</span><span>87.1 s</span></div>
+            <p>The correct build also passed 2,000 seeds in 12.9 s and the 5,000 seeds inside <code>quorumlab mutants</code>, which took 16.2 s with all six bugs.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>How rare the bugs are</h3>
+            <p>The first seed that fails, out of seeds tried in order from 1.</p>
+            <div class="bars">
+              <div class="bar-row"><span>forget-vote</span><span class="bar"><i style="--w:100%"></i></span><span>674</span></div>
+              <div class="bar-row"><span>Figure 8</span><span class="bar"><i style="--w:38.3%"></i></span><span>258</span></div>
+              <div class="bar-row"><span>stale term</span><span class="bar"><i style="--w:.9%"></i></span><span>6</span></div>
+              <div class="bar-row"><span>no-dedup</span><span class="bar"><i style="--w:.3%"></i></span><span>2</span></div>
+            </div>
+            <p>The other two bugs fail on seed 1. <code>forget-vote</code> broke only 3 of 3,000 seeds, the Figure 8 bug 29.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What it found in itself</h3>
+            <p>The README records two mistakes in the harness, both fixed. The first Leader Completeness check was too strict: a ring partition produced a legal run where a node won an old term after a later term had committed entries.</p>
+            <p>The second was a message storm. Under duplication, one run of <code>keep-conflicts</code> grew to seven million messages in 20 simulated seconds, until the leader probed again only when a rejection moved its estimate backwards.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">38 tests in about 13 seconds</h2>
+          <p>Counted with <code>go test -count=1 -json ./...</code>: 32 tests plus 6 subtests, all passing. The README counts the 32 top-level tests; the subtests are one per deliberate bug.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Hand-built scenarios, then random ones</h3>
+            <ul>
+              <li><strong>Raft:</strong> election, replication and commit, stale-leader rejection, the vote's log check, votes surviving a restart, conflict truncation, reordered appends that must not truncate, a bogus reply that must not crash a leader, and Figure 8.</li>
+              <li><strong>Linearizability:</strong> hand-built histories with stale reads, values going back in time, duplicated appends and pending operations, then 300 random histories that are linearizable by construction, each also corrupted so it must fail.</li>
+              <li><strong>Simulator:</strong> determinism, the correct build on 400 seeds, floors on partitions, crashes, elections, drops and duplicates so the runs are really hostile, every bug caught within its bound, a quiet network, a single-node cluster.</li>
+              <li><strong>Store and CLI:</strong> retries take effect once, exit codes, replays that match byte for byte, traces, SVG output and usage errors.</li>
+            </ul>
+            <p>CI runs vet, gofmt, the suite on Go 1.22 and stable, the short suite under <code>-race</code>, the 20,000-seed hunt with the mutant table, and a check that the pictures in <code>docs/</code> are what the current code draws.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-runit">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Membership changes and snapshots</dt><dd>The cluster is fixed and the log grows forever. Each is a substantial addition with its own known bugs.</dd></div>
+              <div><dt>PreVote and CheckQuorum</dt><dd>A partitioned node keeps raising its term and disrupts the cluster when it rejoins. That costs liveness, not safety, and the timelines show it.</dd></div>
+              <div><dt>Fast reads</dt><dd>Every get is a log entry: simple and linearizable. Lease or read-index reads would be faster and worth simulating, precisely because they're easy to get wrong.</dd></div>
+              <div><dt>Torn writes</dt><dd>A message arrives whole or not at all, and a persisted state survives a crash whole. Torn writes and fsync lies are a different simulator.</dd></div>
+              <div><dt>A proof</dt><dd>20,000 hostile seeds are strong evidence, not verification the way TLA+ or a proof assistant would give.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-runit">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/quorum-lab
+cd quorum-lab
+go build -o quorumlab ./cmd/quorumlab
+
+./quorumlab run --seed 2 --trace   <span class="c"># every election, fault and restart</span>
+./quorumlab hunt --seeds 2000      <span class="c"># many seeds, on every core</span>
+./quorumlab mutants                <span class="c"># the six bugs, each caught</span>
+./quorumlab run --seed 258 --bug commit-previous-term --trace
+
+go test ./...</pre>
+            <p>Go 1.22 or later and nothing else: no dependencies outside the standard library. <code>make check</code> adds the full 20,000-seed hunt and the mutant table, as CI does. Exit codes: 0 no violation, 1 a violation, 2 a usage error.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

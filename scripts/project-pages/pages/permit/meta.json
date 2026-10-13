@@ -1,0 +1,9 @@
+{
+  "title": "permit · Ahmed Hashim",
+  "description": "A CLI and GitHub Action that diffs what an npm dependency upgrade newly gets access to, and blocks the pull request until a person allows it. How it works end to end, with real runs.",
+  "tour_seconds": "80",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the live registry run"
+  }
+}

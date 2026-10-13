@@ -1,0 +1,356 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">strata</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A command-line tool that turns borehole logs into a layered model of the ground. For any point it gives the elevation of every contact with a 95% interval, and where that interval would be too wide to use, it refuses to answer.</p>
+            <p>A site investigation might drill forty holes over a square kilometre, so most of the ground has never been seen. Most tools still draw smooth, confident layers through it, and the section looks just as certain 150 m from a hole as it does next to one. strata says which parts are measured and which are guesses, and it checks its own intervals: of its 95% intervals, about 95% contain the truth.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/strata">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/strata#how-the-intervals-are-checked">How the intervals are checked</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Rust 1.74+, no dependencies</dd>
+              <dt>Tests</dt><dd>46 passing with <code>cargo test</code>, in a few seconds</dd>
+              <dt>Model</dt><dd>Ordinary kriging of the ground and each unit's thickness</dd>
+              <dt>Checked</dt><dd>95.3% and 94.0% inside the 95% intervals, 100 synthetic sites each</dd>
+              <dt>Refuses</dt><dd>Any contact with σ over 1.5 m, and exits 1</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="near">Near a hole</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="far">120 m out</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="bench">Bench</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="typo">Bad input</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">strata query examples/site.csv 490 440</span>
+<span class="out">at (490, 440), max sigma 1.5 m</span>
+<span class="out">surface               elevation        95% interval   sigma</span>
+<span class="out">ground surface            63.63     63.28 .. 63.97       0.17</span>
+</div>
+            </div>
+            <p class="term-cap">All four are real runs of the release binary, output verbatim. <code>examples/site.csv</code> is the repo's 40-hole synthetic site, made by <code>strata synth --seed 7</code>. The first query is 4.9 m from hole BH16, the second 120.7 m from it, and BH16 is the nearest hole to both.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a borehole log becomes an answer">
+          <div class="sign-group">
+            <p>On this machine: parse, fit, measure</p>
+            <ol>
+              <li><a class="sign-link" href="#s-parse"><b>1</b> Parse</a></li>
+              <li><a class="sign-link" href="#s-stack"><b>2</b> Stack</a></li>
+              <li><a class="sign-link" href="#s-krige"><b>3</b> Krige</a></li>
+              <li><a class="sign-link" href="#s-cal"><b>4</b> Calibrate</a></li>
+              <li><a class="sign-link" href="#s-refuse"><b>5</b> Refuse</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: an answer you can check</p>
+            <ol>
+              <li><a class="sign-link" href="#s-answer"><b>6</b> Answer</a></li>
+              <li><a class="sign-link" href="#s-check"><b>7</b> Check</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-parse" aria-labelledby="h-parse">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-parse"><span class="num" data-mark="1">1</span>Read the logs, and refuse to guess</h2>
+          <p>The input is one CSV of interval logs: a <code>units:</code> line listing the column from top to bottom, then one row per logged interval, with depths below the collar. The parser fails closed. Anything ambiguous is an error that names the line, never a silent fix.</p>
+          <ul class="st-points">
+            <li>A misspelt unit, a gap or overlap between intervals, a unit logged twice or out of order, a hole that moves between rows, a hole's rows split up by another hole, and two holes at one spot.</li>
+            <li>A unit a hole skips between two units it did log is pinched out there: thickness 0, which is real information.</li>
+            <li>The unit a hole stops in has an unknown base. It is not used to fit anything, only checked afterwards by <code>strata validate</code>.</li>
+          </ul>
+          <p class="why">Every bad file exits 2. A model built on a typo would still look like a model, so a typo has to stop the run.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-parse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Eight bad files, eight line numbers</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="st-chips" id="st-chips" role="group" aria-label="Bad file"></div>
+              <ol class="st-csv" id="st-csv" aria-label="The file, with line numbers"></ol>
+              <div class="cli"><pre id="st-parse-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note"><code>typo.csv</code> is the repo's own test file. The other seven are <span class="tag-ill">Illustrative input</span>, written for this page in the same shape. Each error and exit code is what <code>strata validate</code> printed for that file.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-stack" aria-labelledby="h-stack">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-stack"><span class="num" data-mark="2">2</span>Model thicknesses, so layers can't cross</h2>
+          <p>Interpolating each contact's elevation on its own lets layers cross: base of sand above base of clay, between two holes where neither does. strata interpolates the ground surface and each unit's thickness instead, clamps every thickness at zero, and stacks them.</p>
+          <ul class="st-points">
+            <li>Base of unit k is the ground minus every thickness down to k. Layers can't cross by construction, and a unit can thin out to nothing.</li>
+            <li>The variance of a contact is the sum of the variances above it, so uncertainty only grows downward.</li>
+            <li>The property tests look for a crossing at 400 random points on each of 25 random sites, smooth and rough, including up to 500 m outside the site. They find none.</li>
+          </ul>
+          <p class="why">Adding the variances assumes the thickness errors are independent. Real thicknesses often aren't, which is one reason the intervals are measured in stage 4 instead of trusted.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-stack" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two columns from <code>strata query --json</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="st-cols" id="st-cols"></div>
+              <div class="legend-row" id="st-units-key"></div>
+            </div>
+            <figcaption class="demo-note">Elevations and σ are the query's own output at each point; each thickness is the difference between two of its elevations. At BH26 the log goes from topsoil straight to sand, so clay's thickness there is 0 and its σ is 0: the model passes through every hole exactly.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-krige" aria-labelledby="h-krige">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-krige"><span class="num" data-mark="3">3</span>Krige each variable, with its error variance</h2>
+          <p>Each variable is interpolated by ordinary kriging: the best linear estimate under a fitted variogram, with the variance of its error. The bands below are estimate ± 1.96σ, and they widen wherever the holes thin out.</p>
+          <ul class="st-points">
+            <li>The variogram is fitted by weighted least squares over a fixed grid of ranges, exponential or spherical, so the same data always gives the same model.</li>
+            <li>The kriging system is factored once per variable, with LU and partial pivoting, and each query is one solve.</li>
+            <li>The numerics, the variogram fit and the random number generator are all in the crate. It has no dependencies, and every result is reproducible from a seed.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-krige" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Section A to B, 944 m through six holes</p>
+              <div class="seg" role="group" aria-label="Show">
+                <button type="button" data-truth="off" aria-pressed="false">Model only</button>
+                <button type="button" data-truth="on" aria-pressed="true">With the true contacts</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="st-plot"><svg id="st-krige-svg" role="img" aria-label="Cross-section: five contacts with grey 95% bands that widen between the holes, six projected holes, and dashed true contacts that stay inside the bands"></svg></div>
+            <div class="legend-row st-pad" id="st-krige-key"></div>
+            <figcaption class="demo-note">95 stations along the line from (40, 470) to (980, 560), each one <code>strata query --json</code> on <code>examples/site.csv</code>, with no σ limit so every band shows. Holes within 60 m are projected onto the line, as <code>strata section</code> does. The site is synthetic, so the truth is known: the dashed lines are the seed-7 geology, from the crate's own <code>Truth::new(7)</code>. At all 475 points drawn, the truth is inside the band.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-cal" aria-labelledby="h-cal">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-cal"><span class="num" data-mark="4">4</span>Measure the variance before trusting it</h2>
+          <p>Kriging variance assumes the fitted variogram is exactly right, and a variogram fitted to forty holes isn't. So each variable is measured before it's used: each hole is kriged from the others, and the variance is scaled by the mean squared standardised error.</p>
+          <ul class="st-points">
+            <li>On smooth geology the fitted models overstate short-range variation, so raw intervals are too wide. On rough geology the sill comes out a little low, so they are slightly narrow.</li>
+            <li>The factor is clamped to [0.25, 4], so a handful of holes can't make the model wildly sure or wildly unsure.</li>
+            <li><code>strata validate</code> prints every factor and marks any that hit a limit. On the example site, the ground elevation does.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-cal" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">100 sites each, before and after the correction</p>
+              <div class="seg" role="group" aria-label="Variance">
+                <button type="button" data-cal="raw" aria-pressed="false">Raw kriging variance</button>
+                <button type="button" data-cal="fixed" aria-pressed="true">Measured correction</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="st-dots" id="st-cal-dots"></div>
+              <div class="st-cal-grid">
+                <div>
+                  <p class="st-k">The query 120 m from a hole</p>
+                  <div class="cli"><pre class="st-tab" id="st-cal-pre" aria-live="polite"></pre></div>
+                </div>
+                <div>
+                  <p class="st-k">What <code>strata validate</code> measured on the example</p>
+                  <div class="cli"><pre class="st-tab" id="st-cal-val"></pre></div>
+                </div>
+              </div>
+            </div>
+            <figcaption class="demo-note">Measured correction is the current code. Raw is the same code with the factor fixed at 1, built in a scratch copy only for this comparison. Both columns are <code>strata bench --sites 100</code>, smooth and <code>--rough</code>; the shaded band is the 92 to 98% that CI's <code>--check</code> accepts. The validate table is verbatim; the asterisk marks a factor at its limit.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-refuse" aria-labelledby="h-refuse">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-refuse"><span class="num" data-mark="5">5</span>Refuse where the interval is too wide</h2>
+          <p>This is the line. A contact is answered only if its σ is at most <code>--max-sigma</code>, 1.5 m by default, which is a 95% interval of about ± 2.9 m. Past that, strata says REFUSED and gives the σ instead of a number someone might design to.</p>
+          <ul class="st-points">
+            <li>Errors only accumulate downward, so once one contact is refused, every contact below it is refused too. An answer is always a prefix of the column.</li>
+            <li>A unit that fewer than six holes got through isn't modelled at all, and nothing below it is answered.</li>
+            <li>A looser limit never answers less. The property tests check that at seven limits, from 0.1 m to no limit at all.</li>
+          </ul>
+          <p class="why">The answer to “where do we need another borehole?” is the hatching. The limit is a flag, so the person who carries the risk sets it, not the tool.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-refuse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same section under three limits</p>
+              <div class="seg" role="group" aria-label="--max-sigma">
+                <button type="button" data-lim="1" aria-pressed="false">1.0 m</button>
+                <button type="button" data-lim="1.5" aria-pressed="true">1.5 m, the default</button>
+                <button type="button" data-lim="2" aria-pressed="false">2.0 m</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="st-plot"><svg id="st-refuse-svg" role="img" aria-label="The cross-section with refused areas hatched: at 1.5 m, the deepest contacts between about 530 and 640 m along the line"></svg></div>
+            <p class="st-tally st-pad" id="st-ref-tally" aria-live="polite"></p>
+            <div class="st-pad"><div class="cli"><pre class="st-tab" id="st-ref-pre"></pre></div></div>
+            <figcaption class="demo-note">The hatching applies the rule in <code>Column::answer</code> to the σ the CLI returned at each station: hatched below the deepest contact it would still answer. The query is real at each limit, at (600, 480), which is 120.7 m from BH16 and 44 m off the section line.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line strata builds and measures the model. Below it, an elevation leaves the tool only with its interval, and the intervals are held to account against holes it never saw.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-answer" aria-labelledby="h-answer">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-answer"><span class="num" data-mark="6">6</span>Answer with an exit code a script can't misread</h2>
+          <p><code>strata query</code> exits 1 if anything was refused, so a script can't mistake a partial answer for a full one. Bad input or usage exits 2. The same answers come out as a table, as JSON, or as SVG sections and maps.</p>
+          <ul class="st-points">
+            <li>The JSON gives each surface a status: <code>known</code> with its elevation, σ and 95% bounds, <code>too_uncertain</code> with the σ and the limit, or <code>no_data</code>.</li>
+            <li><code>strata section</code> draws the layers and bands with the refused column hatched; <code>strata map</code> shades σ across the site and hatches where the chosen surface is refused.</li>
+            <li>Rust ignores SIGPIPE, so piping a section into <code>head</code> would panic. strata restores the default and exits quietly, and a test holds it to that.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-answer" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four runs, three exit codes</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="st-exits" id="st-exits" role="group" aria-label="Question"></div>
+              <div class="cli"><pre class="st-tab" id="st-exit-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">Real runs on <code>examples/site.csv</code>, output verbatim; the exit code is the shell's. Choose a card to see its run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-check" aria-labelledby="h-check">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-check"><span class="num" data-mark="7">7</span>Check the intervals against the truth</h2>
+          <p>Real boreholes can't show what lies between them, so the intervals are tested two ways. <code>strata bench</code> builds synthetic sites whose geology is known everywhere and scores the model at 200 random points per site, between the holes. <code>strata cv</code> takes each hole out in turn, refits everything without it, and predicts it.</p>
+          <ul class="st-points">
+            <li>The truth isn't from the model's family. Smooth sites are Matérn 3/2, which strata can't fit; rough sites are exponential. Both must pass.</li>
+            <li>In the test suite every surface must pass on its own, not only the pooled figure. CI also runs both 100-site benches on every push and fails if the pooled coverage leaves 92 to 98%.</li>
+            <li>Rough contacts are refused far more often, 95% at the base of gravel against 32%. They really are less predictable from 40 holes, and the model says so.</li>
+          </ul>
+          <p class="why">Forty holes give a noisy coverage figure: one miss moves it by 2.5 points. So <code>cv --check</code> only fails outside 85 to 99.5%, which still catches a model that's badly off.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-check" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Inside the 95% interval, surface by surface</p>
+              <div class="seg" role="group" aria-label="Check">
+                <button type="button" data-chk="cv" aria-pressed="true">cv on the example</button>
+                <button type="button" data-chk="smooth" aria-pressed="false">bench, smooth</button>
+                <button type="button" data-chk="rough" aria-pressed="false">bench, rough</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <p class="st-k" id="st-chk-cmd"></p>
+              <div class="st-dots st-dots-chk" id="st-chk-dots"></div>
+            </div>
+            <figcaption class="demo-note">Every number is from the command shown, run on the release binary: <code>strata cv examples/site.csv</code>, and <code>strata bench --sites 100</code> with and without <code>--rough</code>, 20,000 scored points per surface. The shaded band is what that command's <code>--check</code> accepts. Refused is the share of points whose σ was over 1.5 m; they are still scored.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">46 tests, in a few seconds</h2>
+          <p><code>cargo test</code> runs unit tests, properties over random sites, calibration against synthetic truth, and the real binary as a program. CI runs them on Rust 1.74 and on stable.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the claim</h3>
+            <ul>
+              <li><strong>Properties, on up to 25 random sites:</strong> layers never cross anywhere, every hole is honoured exactly, variance only grows downward, a looser limit never answers less, and far from every hole the model refuses.</li>
+              <li><strong>Calibration, 40 sites × 150 points:</strong> every surface inside 90 to 98.5%, pooled 93 to 97% on smooth sites and 92 to 97% on rough ones, msse 0.75 to 1.25. More holes must give lower error and fewer refusals.</li>
+              <li><strong>Numerics:</strong> LU against random systems, including the zero diagonal of a kriging matrix; kriging exact at the data, weights summing to 1, variance growing with distance.</li>
+              <li><strong>The parser's 19 ways to reject a file</strong>, each with its line number.</li>
+              <li><strong>The CLI:</strong> exit codes and output, a closed pipe, and a check that <code>examples/site.csv</code> is exactly what <code>strata synth --seed 7</code> produces.</li>
+            </ul>
+            <p>CI also runs rustfmt and clippy with warnings as errors, both 100-site benches, and a check that <code>examples/</code> and <code>docs/</code> match what the current code generates.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Faults, lenses and repeated units</dt><dd>Layer-cake stratigraphy only: each unit is one layer, in one order. The parser rejects a unit logged twice in a hole instead of guessing.</dd></div>
+              <div><dt>Cokriging</dt><dd>Thicknesses are kriged independently, and adding their variances assumes uncorrelated errors. The leave-one-out correction and <code>strata cv</code> catch the effect on the intervals; cokriging would model it.</dd></div>
+              <div><dt>Non-stationary variograms</dt><dd>One variogram per variable for the whole site. A site that is really two settings should be split into two files.</dd></div>
+              <div><dt>Censored data</dt><dd>A hole that stopped early contributes nothing to the unit it stopped in. It is checked against the model, not used to fit it.</dd></div>
+              <div><dt>A non-Gaussian 95%</dt><dd>Intervals are estimate ± 1.96σ. The benches show this holds for the fields tested, not for every real site, so run <code>strata cv</code> on yours.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/strata &amp;&amp; cd strata
+cargo build --release
+export PATH=$PWD/target/release:$PATH
+
+strata validate examples/site.csv
+strata query    examples/site.csv 490 440
+strata section  examples/site.csv --from 40,470 --to 980,560 -o section.svg
+strata cv       examples/site.csv
+strata bench
+
+<span class="c"># The full suite, then the checks CI adds.</span>
+cargo test
+make check</pre>
+            <p>Rust 1.74 or newer and nothing else: the crate has no dependencies. Depths are vertical, so inclined holes need converting to true vertical depth first.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

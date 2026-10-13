@@ -1,0 +1,116 @@
+{
+ "run2": {
+  "cmd": "quorumlab run --seed 2",
+  "out": [
+   "seed 2, 5 nodes, correct build",
+   "  14595 ms simulated, 14676 events, 6683 messages (906 dropped, 0 duplicated)",
+   "  9 partitions, 10 crashes, 13 leaders elected, highest term 27",
+   "  268 entries committed; 240 client operations completed, 0 left pending",
+   "  no violation: safety held after every event, the history is linearizable, all work finished after healing"
+  ],
+  "exit": 0
+ },
+ "run2nodedup": {
+  "cmd": "quorumlab run --seed 2 --bug no-dedup",
+  "out": [
+   "seed 2, 5 nodes, bug no-dedup",
+   "  14595 ms simulated, 14676 events, 6683 messages (906 dropped, 0 duplicated)",
+   "  9 partitions, 10 crashes, 13 leaders elected, highest term 27",
+   "  268 entries committed; 240 client operations completed, 0 left pending",
+   "VIOLATION: linearizability at 14595 ms: the history of key \"k1\" (70 operations) has no valid order",
+   "",
+   "last events:",
+   "    8664 ms  partition: bridge: node 2 alone links {3,4} and {5,1}",
+   "    8876 ms  node 3 restarts (term 19, 79 entries on disk)",
+   "    9079 ms  partition: split {2,3,5} | {1,4}",
+   "    9147 ms  node 2 is leader of term 24",
+   "    9292 ms  partition: split {1,3} | {2,4,5}",
+   "    9446 ms  network healed",
+   "    9644 ms  network healed",
+   "    9653 ms  node 2 is leader of term 27",
+   "    9797 ms  network healed",
+   "   10000 ms  network healed",
+   "   10000 ms  chaos ends: network healed, every node up",
+   "   14595 ms  VIOLATION linearizability: the history of key \"k1\" (70 operations) has no valid order"
+  ],
+  "exit": 1
+ },
+ "run258bug": {
+  "cmd": "quorumlab run --seed 258 --bug commit-previous-term",
+  "out": [
+   "seed 258, 5 nodes, bug commit-previous-term",
+   "  4823 ms simulated, 10958 events, 8780 messages (2475 dropped, 158 duplicated)",
+   "  2 partitions, 0 crashes, 25 leaders elected, highest term 51",
+   "  53 entries committed; 45 client operations completed, 4 left pending",
+   "VIOLATION: leader completeness at 4823 ms: node 2 leads term 51 without entry 52 (the term-19 leader's no-op), committed in term 50; it has the term-20 leader's no-op",
+   "",
+   "last events:",
+   "    4012 ms  node 4 is leader of term 35",
+   "    4043 ms  node 2 is leader of term 36",
+   "    4139 ms  node 4 is leader of term 38",
+   "    4268 ms  node 2 is leader of term 39",
+   "    4342 ms  node 4 is leader of term 42",
+   "    4389 ms  node 2 is leader of term 43",
+   "    4416 ms  node 4 is leader of term 44",
+   "    4516 ms  node 2 is leader of term 45",
+   "    4651 ms  node 2 is leader of term 48",
+   "    4720 ms  node 4 is leader of term 50",
+   "    4823 ms  node 2 is leader of term 51",
+   "    4823 ms  VIOLATION leader completeness: node 2 leads term 51 without entry 52 (the term-19 leader's no-op), committed in term 50; it has the term-20 leader's no-op"
+  ],
+  "exit": 1
+ },
+ "hunt2000": {
+  "cmd": "quorumlab hunt --seeds 2000",
+  "out": [
+   "2000 seeds (1..2000) in 12.9s: 0 with a violation"
+  ],
+  "exit": 0
+ },
+ "huntbug": {
+  "cmd": "quorumlab hunt --bug commit-previous-term --seeds 2000",
+  "out": [
+   "2000 seeds (1..2000) in 5.1s: 17 with a violation",
+   "  leader completeness    17",
+   "first: seed 258, leader completeness at 4823 ms: node 2 leads term 51 without entry 52 (the term-19 leader's no-op), committed in term 50; it has the term-20 leader's no-op",
+   "replay: quorumlab run --seed 258 --bug commit-previous-term --trace"
+  ],
+  "exit": 1
+ },
+ "mutants": {
+  "cmd": "quorumlab mutants",
+  "out": [
+   "variant                  result      first seed   caught as",
+   "correct build            clean       -            5000 seeds, no violation",
+   "vote-without-log-check   caught      1            leader completeness",
+   "commit-previous-term     caught      258          leader completeness",
+   "forget-vote              caught      674          election safety",
+   "keep-conflicts           caught      1            state machine safety",
+   "accept-stale-term        caught      6            leader completeness",
+   "no-dedup                 caught      2            linearizability",
+   "",
+   "16.2s. Replay any line with: quorumlab run --seed N --bug NAME --trace"
+  ],
+  "exit": 0
+ },
+ "bugs": {
+  "cmd": "quorumlab bugs",
+  "out": [
+   "vote-without-log-check   grant votes without checking the candidate's log is up to date (§5.4.1)",
+   "commit-previous-term     commit an earlier term's entry by counting replicas (Figure 8)",
+   "forget-vote              do not persist votedFor, so a restarted node can vote twice in a term",
+   "keep-conflicts           on a conflicting entry, keep the follower's own instead of truncating",
+   "accept-stale-term        accept AppendEntries from the leader of an older term",
+   "no-dedup                 apply a retried client command again instead of answering from the session table"
+  ],
+  "exit": 0
+ },
+ "hunt3000": {
+  "vote-without-log-check": "3000 seeds (1..3000) in 1.8s: 2618 with a violation",
+  "commit-previous-term": "3000 seeds (1..3000) in 7.2s: 29 with a violation",
+  "forget-vote": "3000 seeds (1..3000) in 7.9s: 3 with a violation",
+  "keep-conflicts": "3000 seeds (1..3000) in 4.0s: 2039 with a violation",
+  "accept-stale-term": "3000 seeds (1..3000) in 6.5s: 929 with a violation",
+  "no-dedup": "3000 seeds (1..3000) in 18.3s: 1980 with a violation"
+ }
+}

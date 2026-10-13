@@ -1,0 +1,377 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">slo-proof</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Replays past SLI data through a proposed alert rule before it goes live. For each rule it reports which incidents it would have caught and how late, how much error budget burned before it paged, and how often it would have woken someone for nothing.</p>
+            <p>Alert rules are usually tested by waiting. Ship the rule, then learn at 3 a.m. that it pages on every overnight traffic dip, or learn in a post-mortem that it slept through the slow burn that ate half the month's budget. The data to answer both questions is already in your metrics.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/slo-proof">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/slo-proof#how-it-decides">How it decides</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11+</dd>
+              <dt>Tests</dt><dd>67 passing, the evaluator checked against a reference</dd>
+              <dt>Dependencies</dt><dd>None at runtime, standard library only</dd>
+              <dt>Inputs</dt><dd>A per-minute CSV, an incidents CSV, rules in TOML</dd>
+              <dt>Prometheus</dt><dd><code>from-prom</code> converts two range-query exports</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="compare">Compare</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="gate">Gate</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="refused">Refused</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">slo-proof compare examples/sli.csv examples/incidents.csv examples/rules.toml</span>
+<span class="out">28.0 days, 6 incidents that deserved a page, SLO 99.9%</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs of slo-proof 0.1.0 on the repo's example month. Refused feeds it two small files written for this page: a CSV with a missing minute and a rules file with a misspelt key.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an alert rule moves through slo-proof">
+          <div class="sign-group">
+            <p>On this machine: replay the past</p>
+            <ol>
+              <li><a class="sign-link" href="#s-input"><b>1</b> Input</a></li>
+              <li><a class="sign-link" href="#s-eval"><b>2</b> Evaluate</a></li>
+              <li><a class="sign-link" href="#s-window"><b>3</b> Windows</a></li>
+              <li><a class="sign-link" href="#s-score"><b>4</b> Score</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a verdict before it pages anyone</p>
+            <ol>
+              <li><a class="sign-link" href="#s-budget"><b>5</b> Budget</a></li>
+              <li><a class="sign-link" href="#s-rank"><b>6</b> Rank</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>7</b> Gate</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-input" aria-labelledby="h-input">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-input"><span class="num" data-mark="1">1</span>Refuse a gap instead of guessing</h2>
+          <p>The SLI is one CSV row per minute: good events and total events. Incidents are a second CSV, and the rules are TOML. Every file is parsed strictly, and a bad one stops the run with exit code 2 and a message that names the file.</p>
+          <ul class="st-points">
+            <li>Rows must sit on minute boundaries, carry a timezone, and run one minute apart. A missing minute could mean no traffic or a dead exporter, and the two give different answers, so a quiet minute has to be written as a row of zeros.</li>
+            <li>An unknown key in the rules is an error. A misspelt <code>windows</code> would otherwise make a rule that silently never fires.</li>
+            <li>A burn rate that needs an error ratio above 100% is refused, and so are overlapping incidents, because a page during both could not be attributed to either.</li>
+          </ul>
+          <p class="why">CSV errors carry a line number. Rules errors name the rule and the condition instead, since TOML tables don't map to one line.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-input" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five files it won't replay <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="sp-refs" id="sp-refs"></ol>
+            </div>
+            <figcaption class="demo-note">The five files were written for this page. Each error line is exactly what slo-proof 0.1.0 printed to stderr, and every run exited 2 without replaying anything.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-eval" aria-labelledby="h-eval">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-eval"><span class="num" data-mark="2">2</span>Evaluate every minute, the way Prometheus would</h2>
+          <p>The rule is evaluated at the end of every minute. A window of W minutes covers the last W complete minutes, and its error ratio is bad events over total events, what <code>sum(increase(bad[W])) / sum(increase(total[W]))</code> gives over per-minute recording rules.</p>
+          <ul class="st-points">
+            <li><code>for</code> works as in Prometheus: the first true evaluation makes the alert pending, it fires at the first evaluation at least <code>for</code> later, and every evaluation in between must hold. A false one resets the clock.</li>
+            <li>A window with no traffic has no ratio and never fires. In PromQL 0/0 is NaN, and NaN &gt; x is false.</li>
+            <li>Each transition to firing is one page. Alertmanager's grouping and repeat intervals change how often you are reminded, not when the first page goes out, so they are left out.</li>
+          </ul>
+          <p class="why">One stated simplification: Prometheus's <code>increase()</code> extrapolates to the window's edges, while slo-proof sums whole minutes exactly. The difference is a fraction of a minute's events at each edge.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-eval" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A 4-minute outage against <code>for = "5m"</code></p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip"><span>Rule</span><span><code>static-1pct</code>: error ratio above 1% over 5m, for 5m</span></p>
+            <div class="demo-body">
+              <div class="sp-ev-scroll">
+                <div class="sp-ev" id="sp-ev"></div>
+              </div>
+              <div class="sp-legend"><span><i class="sp-sq sp-sq-inc"></i>Hard outage, 13:41 to 13:45</span><span><i class="sp-sq sp-sq-pend"></i>Pending</span><span><i class="sp-sq sp-sq-fire"></i>Firing</span></div>
+              <p class="sp-verdict" id="sp-ev-verdict" aria-live="polite"></p>
+            </div>
+            <figcaption class="demo-note">Minutes 13:36 to 13:51 on 4 March from the committed example month, with each evaluation computed by slo-proof's own <code>holds()</code> and <code>evaluate()</code>. Bars are the share of that minute's requests that failed. The row for <code>fast-burn-only</code> is the same data under the second rule in <code>examples/rules.toml</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-window" aria-labelledby="h-window">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-window"><span class="num" data-mark="3">3</span>Give a long window a short one to reset it</h2>
+          <p>A rule fires if any of its <code>when</code> conditions holds, and a condition holds only if the error ratio is above its threshold over every one of its windows. That one rule shape covers a static threshold, a single-window burn rate and the SRE Workbook's multiwindow, multi-burn-rate alert.</p>
+          <ul class="st-points">
+            <li>A burn rate is a multiple of the budget rate. At a 99.9% target the budget rate is 0.1% errors, so 6x means 0.6%.</li>
+            <li>A 6-hour window remembers a 4-minute outage for 6 hours. Alone, it keeps firing long after users stopped noticing.</li>
+            <li>Pairing it with a 30-minute window, as the Workbook recommends, lets the alert clear soon after recovery.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-window" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The eight hours after the outage</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="sp-plot" id="sp-win-plot"><svg id="sp-win-svg" role="img" aria-label="Error ratio over the last 6 hours and the last 30 minutes, on a log scale, from 13:00 to 21:00, with the 6x threshold and when each rule was firing"></svg></div>
+              <dl class="sp-pair" id="sp-win-stats">
+                <div><dt><code>6x-over-6h</code></dt><dd>firing 6h00m</dd></div>
+                <div><dt><code>workbook-multiwindow</code></dt><dd>firing 33m</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">Window ratios sampled every 5 minutes from the committed example month, and firing spans from slo-proof's <code>evaluate()</code>. The outage lasted from 13:41 to 13:45. Over the month this one shape costs <code>6x-over-6h</code> 18h43m of firing with no incident open.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-score" aria-labelledby="h-score">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-score"><span class="num" data-mark="4">4</span>Score every page against what happened</h2>
+          <p>This is the line. Before a rule can wake anyone, each page it would have sent is held against the incidents you know about. A page during an incident is true. One within an hour after an incident ended is late: about something real, but nobody could act on it. Anything else is false.</p>
+          <ul class="st-points">
+            <li>Incidents marked <code>page</code> are the ones a rule has to catch. <code>ticket</code> incidents were real but could wait: a page during one isn't false, and missing one isn't held against the rule.</li>
+            <li>An incident is caught if the rule is firing at any moment while it is open. The delay runs from the incident's start, and a late page catches nothing.</li>
+            <li>Firing with no incident open is counted in time as well as pages, which is where a long window without a short one shows its cost.</li>
+          </ul>
+          <p class="why">The incident records are taken as true. If a recorded start is when someone noticed rather than when users did, every delay is measured from the wrong moment, which is why the repo ships a synthetic month where the truth is known.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-score" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every page <code>static-1pct</code> would have sent in 28 days</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="sp-month" id="sp-month" aria-hidden="true"></div>
+              <dl class="sp-tally" id="sp-tally">
+                <div class="is-true"><dt>True</dt><dd data-k="0">8</dd></div>
+                <div class="is-late"><dt>Late</dt><dd data-k="1">2</dd></div>
+                <div class="is-false"><dt>False</dt><dd data-k="2">3</dd></div>
+              </dl>
+              <div class="sp-dip" id="sp-dip">
+                <p class="sp-k">The first false page: 8 March, 02:00 to 02:40, requests per minute</p>
+                <div class="sp-dipbars" id="sp-dipbars" aria-hidden="true"></div>
+                <p class="sp-dipnote" id="sp-dipnote"></p>
+              </div>
+            </div>
+            <figcaption class="demo-note">Pages and their classes come from slo-proof's <code>score()</code> on the committed example month. Incidents are drawn above the axis, pages below it. Traffic in the month averages 548 requests a minute; during the three night dips it falls to about 6 while health checks fail, which the synthetic month adds on purpose.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line slo-proof only replays the past. Below it, each rule leaves with its record: what it missed, what the delay cost, and an exit code that can keep it off the pager.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-budget" aria-labelledby="h-budget">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-budget"><span class="num" data-mark="5">5</span>Price every delay in error budget</h2>
+          <p>Catching an incident isn't the whole answer. For each incident the replay reports the bad events from its start until the page, as a share of the period's error budget at the data's average traffic, next to what the whole incident cost.</p>
+          <ul class="st-points">
+            <li>The budget is one SLO period's allowance of bad events: <code>(1 - target)</code> times average traffic per minute times the minutes in the period, 30 days unless the rules say otherwise.</li>
+            <li>A missed incident spends its whole cost before anyone is told.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-budget" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The slow burn: 0.7% errors for 8 hours</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="sp-plot" id="sp-slow-plot"><svg id="sp-slow-svg" role="img" aria-label="Error budget spent during the slow burn on 18 March, climbing from 0 to 10.2 percent between 07:06 and 15:06, with each rule's firing spans below"></svg></div>
+            </div>
+            <dl class="gstats" id="sp-slow-stats">
+              <div><dt>Incident</dt><dd>8h</dd></div>
+              <div><dt>Paged after</dt><dd>4h53m</dd></div>
+              <div><dt>Spent before the page</dt><dd class="is-neg">5.5%</dd></div>
+              <div><dt>Spent in all</dt><dd>10.2%</dd></div>
+              <div><dt>Rules that missed it</dt><dd class="is-neg">2 of 4</dd></div>
+            </dl>
+            <figcaption class="demo-note">Budget spent and firing spans are computed by slo-proof's own <code>score()</code> and <code>evaluate()</code> on 18 March of the committed example month; the four percentages match <code>slo-proof replay</code>. Even the rule that catches everything lets 5.5% of the month's budget go first. The table says so before an incident does.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-rank" aria-labelledby="h-rank">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-rank"><span class="num" data-mark="6">6</span>Rank the rules on the same month</h2>
+          <p><code>compare</code> replays every rule in the file and ranks them: incidents caught first, then false pages per week, then median delay. It is a default order, not a verdict, and the table carries the numbers for any other.</p>
+          <ul class="st-points">
+            <li>Precision counts true pages over all pages, so late pages lower it as well as false ones.</li>
+            <li>Under the table, each rule that missed something lists what it missed by name.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-rank" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four rules from <code>examples/rules.toml</code>, ranked</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="sp-rank-scroll">
+                <div class="sp-rank" id="sp-rank" role="table" aria-label="slo-proof compare output"></div>
+              </div>
+              <div class="cli sp-missed" id="sp-missed"><pre></pre></div>
+            </div>
+            <figcaption class="demo-note">Rows enter in the order the rules file defines them, then sort into the order <code>slo-proof compare</code> printed. Every number is from that run, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-gate"><span class="num" data-mark="7">7</span>Fail the change before the rule goes live</h2>
+          <p>With <code>--fail-on-miss</code>, <code>replay</code> and <code>compare</code> exit 1 when a rule misses an incident that deserved a page. A pull request that changes an alert rule can then be gated in CI on last quarter's incidents.</p>
+          <ul class="st-points">
+            <li>Exit 0: every page-worthy incident caught. 1: something was missed, with <code>--fail-on-miss</code>. 2: bad input.</li>
+            <li>The replay covers the past. A rule that caught last quarter's incidents can still miss a new kind, which is what the synthetic month is for.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three runs, three exit codes</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="sp-exits" id="sp-exits" role="group" aria-label="Run"></div>
+              <div class="cli sp-cli"><pre id="sp-exit-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">Real runs on the committed example month, output verbatim and exit codes from the shell. The bad input is the gap file from stage 1. Choose a card to see its run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Not one lucky month</h2>
+          <p><code>slo-proof synth</code> builds a month with a daily and weekly traffic rhythm, Poisson noise, and one of each kind of trouble that tells rules apart. The seed moves every incident by up to an hour. The cards below replay the four example rules on seeds 1 to 8 with the real CLI.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Same misses, every seed</h3>
+            <p>On all eight months, the multiwindow rule caught all six page-worthy incidents with no false pages, and fast-burn-only missed exactly the slow burn.</p>
+            <div class="tally"><span>8 of 8 seeds</span><span>6/6 caught</span><span>0.0 false a week</span></div>
+            <p>The static threshold missed the hard outage, the slow burn and the short blip on every seed. A repo test checks the same claims on the same eight seeds.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Firing with no incident</h3>
+            <p>Hours <code>6x-over-6h</code> spent firing with no incident open, by seed.</p>
+            <div class="bars" id="sp-seed-bars"></div>
+            <p>Every month: over 18 hours. The multiwindow rule stayed between 1h38m and 1h41m.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The traffic dips</h3>
+            <p>Each synthetic month has three overnight dips where traffic falls to about 6 requests a minute while health checks fail. A 1% static threshold reads them as outages.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Seven seeds</span><span class="bar"><i style="--w:80%"></i></span><span>0.8/wk</span></div>
+              <div class="bar-row"><span>Seed 4</span><span class="bar"><i style="--w:100%"></i></span><span>1.0/wk</span></div>
+            </div>
+            <p>False pages a week from <code>static-1pct</code>. The dip on 8 March spent 0.19% of the month's budget.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">67 tests, no network</h2>
+          <p>The evaluator is checked against a second implementation written another way: it sums each window by hand and fires wherever the expression held at every evaluation of the last <code>for</code> minutes. Hypothesis feeds both up to 400 random series and rules, with up to three conditions of up to three windows each.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward refusing bad input</h3>
+            <ul>
+              <li><strong>Parsers:</strong> 41 cases of input that must be refused: gaps, duplicates, missing timezones, typos in rule keys, impossible burn rates, overlapping incidents, malformed Prometheus exports. Most of the CSV cases also pin the line number.</li>
+              <li><strong>Evaluation:</strong> firing at once with no <code>for</code>, a false evaluation resetting the pending clock, still firing at the end of the data, all windows required, any condition enough, no traffic never firing.</li>
+              <li><strong>Properties:</strong> alerts come out ordered and disjoint, and a longer <code>for</code> never pages more.</li>
+              <li><strong>Scoring:</strong> true, late and false pages on a built timeline, detection when the rule was already firing, budget arithmetic, ranking order.</li>
+              <li><strong>The example month:</strong> it is what <code>synth --seed 7</code> writes, and the README's findings hold on eight seeds.</li>
+            </ul>
+            <p>CI runs the tests on Python 3.11 and 3.13, ruff and <code>mypy --strict</code>, and checks that the committed examples and pictures match what the current code generates.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>The future</dt><dd>It replays the past. A rule that would have caught last quarter's incidents can still miss a new kind; the synthetic month covers kinds your history hasn't produced yet.</dd></div>
+              <div><dt>Alertmanager</dt><dd>Inhibition, grouping, silences and repeat intervals are outside the model, and so is evaluation jitter.</dd></div>
+              <div><dt>Extrapolation</dt><dd>Window sums are exact whole minutes. For windows of an hour or more the difference is negligible; for a 1-minute window it isn't.</dd></div>
+              <div><dt>Several SLIs at once</dt><dd>One series per run. Rules that combine services or route by label need one replay per series.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/slo-proof &amp;&amp; cd slo-proof
+pip install -e .
+
+slo-proof compare examples/sli.csv examples/incidents.csv examples/rules.toml
+slo-proof replay  examples/sli.csv examples/incidents.csv examples/rules.toml --rule workbook-multiwindow
+slo-proof check   examples/rules.toml
+slo-proof synth   --seed 3 --out mymonth/
+
+<span class="c"># Tests</span>
+pip install -e '.[dev]'
+pytest</pre>
+            <p>Python 3.11 or newer, in a virtualenv. The tool itself has no dependencies; the dev extra adds pytest, Hypothesis, ruff and mypy, all pinned.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

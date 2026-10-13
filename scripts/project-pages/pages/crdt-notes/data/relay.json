@@ -1,0 +1,21 @@
+[
+  ["A", "relay", "{\"type\":\"hello\",\"have\":{\"a\":3}}", 0],
+  ["relay", "A", "{\"type\":\"ops\",\"ops\":[]}", 0],
+  ["relay", "A", "{\"type\":\"welcome\",\"have\":{}}", 0],
+  ["A", "relay", "{\"type\":\"ops\",\"ops\":[\"create 1@a seq 1\",\"set 2@a seq 2\",\"ins 3@a seq 3\"]}", 3],
+  ["B", "relay", "{\"type\":\"hello\",\"have\":{}}", 3],
+  ["relay", "B", "{\"type\":\"ops\",\"ops\":[\"create 1@a seq 1\",\"set 2@a seq 2\",\"ins 3@a seq 3\"]}", 3],
+  ["relay", "B", "{\"type\":\"welcome\",\"have\":{\"a\":3}}", 3],
+  ["note", "", "B text \"milk\\n\"", 3],
+  ["B", "relay", "{\"type\":\"ops\",\"ops\":[\"ins 8@b seq 1\"]}", 4],
+  ["relay", "A", "{\"type\":\"ops\",\"ops\":[\"ins 8@b seq 1\"]}", 4],
+  ["note", "", "A text \"milk\\neggs\\n\" | B text \"milk\\neggs\\n\"", 4],
+  ["B", "relay", "{\"type\":\"ops\",\"ops\":[\"ins 8@b seq 1\"]}", 4],
+  ["note", "", "relay stores 4 ops; data file lines 4", 4],
+  ["note", "", "restarted relay reloads 4 ops", 4],
+  ["C", "relay", "{\"type\":\"hello\",\"have\":{\"a\":2}}", 4],
+  ["relay", "C", "{\"type\":\"ops\",\"ops\":[\"ins 3@a seq 3\",\"ins 8@b seq 1\"]}", 4],
+  ["relay", "C", "{\"type\":\"welcome\",\"have\":{\"a\":3,\"b\":1}}", 4],
+  ["D", "relay", "not json", 4],
+  ["note", "", "D socket closed 1003", 4]
+]

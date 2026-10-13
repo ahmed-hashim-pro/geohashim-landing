@@ -1,0 +1,9 @@
+{
+  "title": "schema-drift · Ahmed Hashim",
+  "description": "A contract checker for JSON event streams that decides whether a schema change breaks readers or writers, blocks the pull request, and proves each breaking verdict with a concrete event. How it works end to end, with real runs.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#verdicts",
+    "label": "See how the verdicts are checked"
+  }
+}

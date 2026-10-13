@@ -1,0 +1,376 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">permit</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A CLI and GitHub Action that reads a dependency upgrade the way a security reviewer would. It asks one question: what can the new code do that the old code couldn't? Anything new blocks the pull request until a person allows it.</p>
+            <p>Most supply-chain attacks on npm arrive as an ordinary-looking version bump, and a lockfile diff only shows version numbers. permit fetches the versions the lockfile changed, parses their code, and subtracts what the package could already do. Opening a network connection, running an install script or reading the environment is a capability the upgrade has to be granted.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/permit">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/permit#what-it-detects">What it detects</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>TypeScript, <code>tsc --strict</code>, Node 20 or newer</dd>
+              <dt>Tests</dt><dd>35 passing with <code>node:test</code>, all offline</dd>
+              <dt>Dependencies</dt><dd>acorn and acorn-walk, pinned</dd>
+              <dt>Detects</dt><dd>10 capabilities, from <code>install-script</code> to <code>unanalyzable</code></dd>
+              <dt>Runs as</dt><dd>A CLI, and a composite GitHub Action</dd>
+              <dt>Lockfiles</dt><dd>npm <code>package-lock.json</code>, versions 2 and 3</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="ua">Patch release</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="es">New dependency</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="policy">Policy</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="live">Live registry</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">permit diff before.json after.json --fixtures ../../fixtures/packages</span>
+<span class="out">1 package version added or changed; 1 with something new, 1 blocked by policy</span>
+<span class="out"></span>
+<span class="out">ua-sniff 0.7.28 -> 0.7.29</span>
+<span class="err">  NEW     install-script  package.json  preinstall: node preinstall.js</span>
+<span class="err">  NEW     network         preinstall.js:5  requires 'https'</span>
+<span class="err">  NEW     exec            preinstall.js:7  requires 'child_process'</span>
+<span class="err">  NEW     fs-write        preinstall.js:13  calls fs createWriteStream()</span>
+<span class="err">  NEW     env             preinstall.js:10  reads process.env</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of permit 0.1.0, output verbatim; <code>permit</code> stands for <code>node dist/src/cli.js</code>. The first three tabs are the repository's own examples, which use small synthetic packages shaped like the event-stream and ua-parser-js incidents and do nothing when run. The last tab upgrades esbuild and node-fetch against the live npm registry.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an upgrade moves through permit">
+          <div class="sign-group">
+            <p>Before the line: read, fetch, parse, subtract</p>
+            <ol>
+              <li><a class="sign-link" href="#s-lock"><b>1</b> Lockfiles</a></li>
+              <li><a class="sign-link" href="#s-fetch"><b>2</b> Fetch</a></li>
+              <li><a class="sign-link" href="#s-parse"><b>3</b> Parse</a></li>
+              <li><a class="sign-link" href="#s-subtract"><b>4</b> Subtract</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person allows it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-allow"><b>5</b> Allow</a></li>
+              <li><a class="sign-link" href="#s-ci"><b>6</b> Every PR</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-lock" aria-labelledby="h-lock">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-lock"><span class="num" data-mark="1">1</span>Read both lockfiles, strictly</h2>
+          <p>permit compares two <code>package-lock.json</code> files, the base branch's and the pull request's. It reads only the <code>packages</code> section, which lists what actually lands in <code>node_modules</code>.</p>
+          <ul class="st-points">
+            <li>Every package version installed after but not before is looked at. A name that existed before at another version is <em>changed</em>.</li>
+            <li>A name that is new to the tree is <em>new</em>, and everything it can do counts as new, because a fresh transitive dependency is how most attacks arrive.</li>
+            <li>Only lockfile versions 2 and 3. A v1 lockfile, a malformed entry or a version that isn't semver is an error that names the entry, with exit code 2.</li>
+            <li>Workspace links and workspace packages are local code, not downloads, and are skipped.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-lock" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The event-stream example, entry by entry</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="pm-lk-head" aria-hidden="true"><span>Package</span><span>before.json</span><span>after.json</span><span>Looked at as</span></div>
+              <ol class="pm-lk" id="pm-lk"></ol>
+              <p class="pm-k">Lockfiles permit refuses <span class="tag-ill">Illustrative input</span></p>
+              <div class="pm-mt" id="pm-lk-err"></div>
+            </div>
+            <figcaption class="demo-note">The rows come from <code>examples/event-stream/before.json</code> and <code>after.json</code> in the repository, and the outcome line is permit's own summary for them. The two broken lockfiles were made for this page, a v1 file and the ua-sniff example with its version set to <code>latest</code>; the refusals and exit codes are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-fetch" aria-labelledby="h-fetch">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-fetch"><span class="num" data-mark="2">2</span>Fetch the bytes npm would install</h2>
+          <p>Each changed version is downloaded, along with every version of that package installed before, from the URL the lockfile resolved to, or the registry's usual one. The tarball must match the lockfile's <code>integrity</code> hash, so the code analysed is the code npm would install.</p>
+          <ul class="st-points">
+            <li>A hash mismatch is an error, never a warning.</li>
+            <li>Unpacking writes regular files only. Symlinks and hard links are skipped, and an entry whose path would leave the package directory makes the whole tarball refused.</li>
+            <li>Downloads run eight at a time, with three attempts on a network error or a 5xx and none on a 4xx. Good tarballs are cached by name, version and hash in <code>~/.cache/permit</code>.</li>
+            <li>A package that can't be fetched or read doesn't pass. It is reported as <code>unanalyzable</code> and blocks like any other gain.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-fetch" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four upgrades from a local registry <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="pm-fx" id="pm-fx" role="table" aria-label="What happened to each package">
+                <div class="pm-fx-row pm-fx-head" role="row"><span role="columnheader">Package</span><span role="columnheader">Download</span><span role="columnheader">Integrity</span><span role="columnheader">Unpack</span><span role="columnheader">Profile</span></div>
+              </div>
+              <div class="vlog pm-fx-log" id="pm-fx-log"></div>
+              <dl class="pm-reqs">
+                <div><dt>Requests, first run</dt><dd>7</dd></div>
+                <div><dt>Requests, run again</dt><dd>3</dd></div>
+                <div><dt>Escaping entries written</dt><dd>0</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">The packages are made up, packed with <code>npm pack</code> and served by <code>python3 -m http.server</code> on 127.0.0.1. For this page, glob-lite 0.2.9 was rebuilt after the lockfile recorded its hash, tick-ms 2.1.3 carries an entry named <code>package/../../.bashrc</code>, and pad-start was removed from the server. The output and the request counts are real, from the server's own log. The second run asked only for the three that failed, because a failure is never cached.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-parse" aria-labelledby="h-parse">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-parse"><span class="num" data-mark="3">3</span>Parse the code, don't grep it</h2>
+          <p>Every <code>.js</code>, <code>.cjs</code> and <code>.mjs</code> file is parsed with acorn and walked. A comment or a string that mentions <code>child_process</code> isn't a use of it, and a use that never spells the word is still found.</p>
+          <ul class="st-points">
+            <li><code>require</code> and <code>process</code> are followed through aliases such as <code>var r = require</code>, because that is how obfuscated payloads hide them.</li>
+            <li>What can't be resolved is reported, not dropped: a <code>require()</code> of a computed name is <code>dynamic-require</code>, and any computed property of <code>process</code> counts as <code>env</code>.</li>
+            <li>Package-level checks too: install scripts in <code>package.json</code>, a <code>binding.gyp</code>, and ELF, Mach-O, PE or <code>.node</code> binaries by their magic bytes.</li>
+            <li>A file that doesn't parse, or one over 4 MB, is <code>unanalyzable</code>. Each capability keeps the file and line where it was first seen.</li>
+          </ul>
+          <p class="why">In the repository's event-stream example the network code sits inside an encrypted string, so <code>network</code> can't be seen. An aliased <code>require</code> of a decoded name and a computed read of <code>process</code> can, and that is enough to block it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-parse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two files, a grep and permit <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="pm-files" id="pm-files"></div>
+              <dl class="pm-score" id="pm-score">
+                <div data-k="grep"><dt><code>grep -nE "child_process|https|eval|process\.env"</code></dt><dd>5 lines matched, 4 of them in comments or strings</dd></div>
+                <div data-k="permit"><dt><code>permit scan pkg</code></dt><dd>4 capabilities, all in <code>loud.js</code>; 3 on lines the grep didn't match</dd></div>
+              </dl>
+              <div class="legend-row"><span class="key"><i class="pm-key pm-key-g"></i>Matched by grep</span><span class="key"><i class="pm-key pm-key-p"></i>Found by permit</span></div>
+            </div>
+            <figcaption class="demo-note">Both files were written for this page. The grep pattern is the obvious one, run on the two files as shown. permit's findings are its real output for a package holding both files; on <code>quiet.js</code> alone it prints <code>no capabilities found</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-subtract" aria-labelledby="h-subtract">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-subtract"><span class="num" data-mark="4">4</span>Subtract what was already there</h2>
+          <p>The gains are the new version's capabilities minus everything any previously installed version of that package had. A package that always used the network, or always ran an install script, is not news. A patch release that starts to is.</p>
+          <ul class="st-points">
+            <li>The subtraction is per capability, not per file or line, so moving code around inside a package doesn't raise anything.</li>
+            <li>A changed package also lists its new dependencies, which then appear as new packages in their own right.</li>
+            <li>Any gain the policy doesn't allow blocks: permit exits 1 and prints the line to add to <code>permit.json</code>. It never edits the policy itself.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-subtract" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Before, after, and what is new</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="pm-sub" id="pm-sub"></ol>
+              <div class="legend-row"><span class="key"><i class="pm-chip pm-key-c">cap</i>Had it before</span><span class="key"><i class="pm-chip pm-chip-old">cap</i>Already there, not new</span><span class="key"><i class="pm-chip pm-chip-gain">cap</i>Gained: blocks unless allowed</span></div>
+              <div class="pm-mt" id="pm-sub-block"></div>
+            </div>
+            <figcaption class="demo-note">Every set is real <code>permit scan</code> output for that version. esbuild and node-fetch were fetched from the npm registry; the other three are the repository's synthetic fixtures. The terminal lines are the end of the ua-sniff example's report, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Allowed</span>Above this line permit reads, fetches and subtracts, and any new capability blocks the merge. Below it, a gain a person allowed by name passes, and is still printed.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-allow" aria-labelledby="h-allow">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-allow"><span class="num" data-mark="5">5</span>A person allows it, by name</h2>
+          <p><code>permit.json</code> in the repository root lists, per package, the capabilities a person has reviewed and expects. <code>"*"</code> applies to every package. Only what is listed passes.</p>
+          <ul class="st-points">
+            <li>An allowed gain is still printed, marked <code>allowed</code>, so the review trail stays in every report.</li>
+            <li>Allowing <code>network</code> doesn't allow <code>env</code>. Each capability is granted on its own.</li>
+            <li>A misspelt capability or an unknown key is an error with exit code 2, not a silent allow or a silent deny.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-allow" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The monday example under four policies</p>
+              {{REPLAY}}
+            </div>
+            <div class="pm-pol-tabs">
+              <div class="seg" id="pm-pol-seg" role="group" aria-label="Policy"></div>
+            </div>
+            <div class="pm-pol">
+              <div class="pm-pol-file">
+                <p class="pm-k" id="pm-pol-name"></p>
+                <pre class="pm-pol-json" id="pm-pol-json"></pre>
+              </div>
+              <div class="pm-pol-out">
+                <p class="pm-exit" id="pm-exit"><span>exit</span><b>1</b></p>
+                <div class="pm-mt pm-pol-term" id="pm-pol-term" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="pm-mt pm-typo" id="pm-typo"></div>
+            <figcaption class="demo-note">The first two policies are the repository's: none, and <code>examples/monday/permit.json</code>. The narrow and reviewed files, and the misspelt one, were written for this page <span class="tag-ill">Illustrative input</span>. The last two runs used <code>--base main</code> in a scratch Git repository whose main branch holds the old lockfile. Every report and exit code is real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ci" aria-labelledby="h-ci">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ci"><span class="num" data-mark="6">6</span>Run it on every pull request</h2>
+          <p>As a GitHub Action, permit compares the base branch's lockfile with the pull request's, writes the report to the job summary, and fails the check when anything new isn't allowed. Inputs: <code>base</code>, <code>lockfile</code> and <code>policy</code>.</p>
+          <ul class="st-points">
+            <li><code>permit diff --base &lt;ref&gt;</code> reads the old lockfile with <code>git show</code>, so the same check runs locally before a push.</li>
+            <li>The action builds permit from its own source with <code>npm ci</code>, then runs the same <code>diff --base</code>.</li>
+            <li>The repository runs its own action on its own lockfile in CI, as a user would.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ci" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The workflow, and CI on the repository</p>
+              {{REPLAY}}
+            </div>
+            <pre class="pm-yaml"><span class="c"># .github/workflows/permit.yml</span>
+on: pull_request
+jobs:
+  permit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ahmed-hashim-pro/permit@main</pre>
+            <div class="pm-ci">
+              <p class="pm-ci-head"><span>CI run 38340979145 on <code>8b23ecd</code></span><b>4 jobs, all passed</b></p>
+              <ol class="pm-jobs" id="pm-jobs"></ol>
+            </div>
+            <div class="pm-mt pm-self" id="pm-self"></div>
+            <figcaption class="demo-note">The workflow is the README's. Job names, results and durations come from GitHub's API for that run, rounded to whole seconds. The terminal is a local run of what the <code>self-check</code> job runs on a push to main: the repository's lockfile at <code>HEAD</code> against its working tree.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>A real upgrade against the live npm registry, and the cost of checking it. Run on one Linux machine; the README's own figures for the same upgrade were 54 s cold and 1 s warm.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>A real upgrade, one block</h3>
+            <p>esbuild 0.17.19 to 0.18.20 and node-fetch 2.6.7 to 3.3.2 change 29 package versions. permit fetched and profiled 53, both sides.</p>
+            <div class="tally"><span>29 changed</span><span>27 gained nothing</span><span>1 blocked</span></div>
+            <p>esbuild's install script and binaries were already there in 0.17, and node-fetch already used <code>http</code>. The one block is <code>node-domexception</code>, which publishes an editor history file that doesn't parse. permit can't know that is harmless, so it says so.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Cold, then cached</h3>
+            <p>Wall time for the same diff, with an empty cache and then again.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Empty cache</span><span class="bar"><i style="--w:100%"></i></span><span>76.3 s</span></div>
+              <div class="bar-row"><span>Cached</span><span class="bar"><i style="--w:2.3%"></i></span><span>1.8 s</span></div>
+            </div>
+            <p>The cold run is mostly esbuild's binaries for every platform: 22 platform packages, each fetched at both versions. The cache came to 556 MB.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The suite runs offline</h3>
+            <p><code>npm test</code> compiles with <code>tsc</code>, then runs the 35 tests. Three runs in a row:</p>
+            <div class="tally"><span>1.39 s</span><span>1.40 s</span><span>1.53 s</span></div>
+            <p>That is <code>node:test</code>'s own duration. Most of it is one test: the retry check waits out the real backoff, 250 ms and then 1 s, for 1.26 s in all.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">35 tests, no network</h2>
+          <p>Counted with <code>npm test</code>, which runs <code>tsc -p .</code> and then <code>node --test dist/test/*.test.js</code>: 35 tests, all passing. The download and cache test starts a local HTTP server inside the test, and the retry test swaps in a fetch that fails on cue.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward what an attacker would try</h3>
+            <ul>
+              <li><strong>Analyser:</strong> 26 snippets, one per detection route, and code that must not trigger: comments, strings, look-alikes such as <code>obj.writeFileSync</code>.</li>
+              <li><strong>Property test:</strong> 500 files assembled at random from snippets with known capabilities, mixed with harmless code and decoys. The detected set must equal the union exactly.</li>
+              <li><strong>Sources:</strong> a tar writer in the tests makes pax long names, symlinks, hard links and path-traversal entries; a real <code>npm pack</code> tarball; SRI hashes; download, cache, 404, and retry on a network error and on 503.</li>
+              <li><strong>Lockfiles and policy:</strong> nested, scoped and aliased packages, workspace links, and every class of malformed input.</li>
+              <li><strong>Diff and CLI:</strong> the three examples end to end, a capability any earlier version had, an unfetchable package, exit codes 0, 1 and 2, <code>--json</code>, and <code>--base</code> against a temporary Git repository.</li>
+            </ul>
+            <p>CI runs prettier, <code>tsc --strict</code> and the tests on Node 20 and 22, checks that <code>examples/</code> matches its generator, and runs the action on the repository's own lockfile.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A guarantee</dt><dd>It is static analysis and can be evaded, for example by building <code>require</code> from <code>globalThis["req" + "uire"]</code>. It raises the cost of a quiet upgrade; it doesn't replace <code>--ignore-scripts</code> or reviewing what it flags.</dd></div>
+              <div><dt>Call paths</dt><dd>Capabilities are per package. A package that uses <code>https</code> only in a CLI you never call still has <code>network</code>; allow it once.</dd></div>
+              <div><dt>Other lockfiles</dt><dd>npm only, for now. No yarn, pnpm or bun. Packages from git or local paths can't be fetched as tarballs and are reported as <code>unanalyzable</code>.</dd></div>
+              <div><dt>A vulnerability database</dt><dd>It says what a version can newly do, not whether it has a known CVE. That is <code>npm audit</code>'s job.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/permit
+cd permit
+npm ci &amp;&amp; npm run build
+npm test            <span class="c"># 35 tests, offline</span>
+
+<span class="c"># The examples, offline:</span>
+cd examples/ua-sniff
+node ../../dist/src/cli.js diff before.json after.json \
+  --fixtures ../../fixtures/packages
+cd ../..
+
+<span class="c"># Your project, against the real registry:</span>
+node dist/src/cli.js diff --base origin/main</pre>
+            <p>Node 20 or newer. The examples need no network. Against the registry, tarballs are cached in <code>~/.cache/permit</code>, so the second run of the same diff is fast.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

@@ -1,0 +1,9 @@
+{
+  "title": "crdt-notes · Ahmed Hashim",
+  "description": "A local-first notes app on a CRDT written from scratch in TypeScript, with a fuzzer that attacks convergence over a hostile network and six deliberate bugs it must catch. How it works end to end, with real runs.",
+  "tour_seconds": "75",
+  "tour_end": {
+    "href": "#tests",
+    "label": "See the tests"
+  }
+}

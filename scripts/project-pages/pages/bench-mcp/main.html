@@ -1,0 +1,364 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">bench-mcp</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An MCP server that lets an AI agent drive lab instruments over SCPI: power supplies, multimeters and oscilloscopes. Every change passes an interlock built from limits a person signed off, and the agent has no tool that reaches around it.</p>
+            <p>An agent that brings a board up rail by rail is useful until one <code>VOLT 12</code> meant for the 12 V rail lands on the 5 V one. Asking it to be careful does not stop that, and neither does a model that is usually right. So the limits live in a file the agent never sees, and a pure function checks every tool call against them before a byte reaches the instrument.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/bench-mcp">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/bench-mcp#how-the-interlock-works">How the interlock works</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11+, mypy <code>--strict</code></dd>
+              <dt>Tests</dt><dd>135 passing, about 25 seconds</dd>
+              <dt>Protocol</dt><dd>MCP Python SDK, ten typed tools, stdio</dd>
+              <dt>Instruments</dt><dd>SCPI over TCP; a VISA path, written but untested</dd>
+              <dt>Run against</dt><dd>The bundled simulated bench, not real hardware yet</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="refused">Refused</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="ramped">Ramped</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="stopped">Stopped</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">bench-mcp demo</span>
+<span class="out">▸ set_voltage(instrument="psu", channel=1, volts=12)</span>
+<span class="err">  ✗ REFUSED: voltage 12 V exceeds the signed-off limit of 5.5 V</span>
+</div>
+            </div>
+            <p class="term-cap">One real run of <code>bench-mcp demo</code>, split into three tabs. The simulated supply, meter and scope run on TCP, the server runs as a real stdio subprocess, and the agent is a fixed list of tool calls, so no model is involved. Output is verbatim, without its colours.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a tool call reaches the bench">
+          <div class="sign-group">
+            <p>Before the line: checked, nothing sent</p>
+            <ol>
+              <li><a class="sign-link" href="#s-signoff"><b>1</b> Sign off</a></li>
+              <li><a class="sign-link" href="#s-types"><b>2</b> Types</a></li>
+              <li><a class="sign-link" href="#s-decide"><b>3</b> Decide</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: on the wire</p>
+            <ol>
+              <li><a class="sign-link" href="#s-ramp"><b>4</b> Ramp</a></li>
+              <li><a class="sign-link" href="#s-readback"><b>5</b> Read back</a></li>
+              <li><a class="sign-link" href="#s-stop"><b>6</b> Stop</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-signoff" aria-labelledby="h-signoff">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-signoff"><span class="num" data-mark="1">1</span>A person signs off the limits</h2>
+          <p>The limits come from <code>bench.toml</code>: who signed it off and when, each supply channel's maximum voltage, current, ramp step and slew, and the device under test. The server reads it once, at start-up. No tool can read it back or change it.</p>
+          <ul class="st-points">
+            <li>The device under test tightens the channels that power it. Channel 1 is rated for 12 V, but the board on it is a 5 V part, so its effective limit is 5.5 V.</li>
+            <li>The parser fails closed. An unknown key is an error, because a typo like <code>max_voltge</code> would otherwise mean no limit at all.</li>
+            <li><code>bench-mcp check</code> prints the effective limits and the file's SHA-256. The same hash goes into the audit log when the server starts.</li>
+          </ul>
+          <p class="why">It cannot know whether 5.5 V is right for the board. It enforces what a person signed off, and the file is where that judgement lives.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-signoff" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The example bench, then six broken copies</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="bm-check">
+                <p class="bm-cap">$ bench-mcp check examples/bench.toml</p>
+                <pre class="bm-term" id="bm-check"></pre>
+              </div>
+              <ol class="bm-bad" id="bm-bad"></ol>
+            </div>
+            <figcaption class="demo-note">Real output of <code>bench-mcp check</code>. Each broken copy is <code>examples/bench.toml</code> with the one edit shown; every one exited with status 2 before anything could start. The test suite rejects thirty such files.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-types" aria-labelledby="h-types">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-types"><span class="num" data-mark="2">2</span>Typed tools, and no raw SCPI</h2>
+          <p>The agent gets ten tools and none of them takes a command string. A voltage is a JSON number of volts, a channel is an integer from 1 to 16, an instrument name must match <code>^[a-z][a-z0-9_-]*$</code>, and a measurement is picked from a fixed list.</p>
+          <ul class="st-points">
+            <li>The only values that reach an instrument are numbers the interlock approved and channel numbers the schema bounded.</li>
+            <li><code>"5V"</code> fails the schema. <code>3300</code>, millivolts meant as volts, passes the schema and fails the limit in stage 3.</li>
+            <li>An extra key such as <code>limit_override</code> is ignored. The call runs on its typed arguments alone.</li>
+          </ul>
+          <p class="why">This is also the defence against a prompt injection in a document the agent read: there is no field where text it was told to send could travel to the wire.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-types" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Hostile calls to a live output at 1 V</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ul class="bm-tools" id="bm-tools" aria-label="The ten tools"></ul>
+              <ol class="bm-adv" id="bm-adv"></ol>
+              <p class="bm-sum" id="bm-sum"><b>0</b> changes sent to the supply by the refused calls</p>
+            </div>
+            <figcaption class="demo-note">Sent by the repo's own test rig: a real MCP client, the real tools, simulated instruments on TCP. Messages are the server's replies, cut to the field and the reason. “Changes sent” counts lines the simulated supply received that set something, not channel selects or queries.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-decide" aria-labelledby="h-decide">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-decide"><span class="num" data-mark="3">3</span>One pure function decides</h2>
+          <p><code>interlock.decide(state, request, limits, latched)</code> takes what the server believes a channel is set to, the request and the signed-off limits. It returns a refusal, or the exact steps that carry the request out. It does no I/O and has no clock and no randomness.</p>
+          <ul class="st-points">
+            <li>A voltage must be a finite number from 0 up to the limit. A current limit must be positive and within its limit.</li>
+            <li>The output cannot come on until a current limit has been chosen since the last reset.</li>
+            <li>After a reconnect or a reset, every request is refused until the channel has been driven to a known safe state: output off, 0 V, 0 A.</li>
+          </ul>
+          <p class="why">Because it is pure, the property tests drive it with 400 sequences of up to 60 requests on every run, garbage included, and check every step it emits.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-decide" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The demo's requests against channel 1's limits</p>
+              {{REPLAY}}
+            </div>
+            <p class="q-strip"><span id="bm-d-n">Call 1 of 7</span><code id="bm-d-call"></code></p>
+            <div class="bm-scale" id="bm-scale" aria-hidden="true">
+              <div class="bm-axis">
+                <i class="bm-ok-zone"></i>
+                <i class="bm-mark bm-mark-lim"><b>5.5 V<br>signed off</b></i>
+                <i class="bm-mark bm-mark-dmg"><b>6.0 V<br>damaged</b></i>
+                <span class="bm-puck" id="bm-puck"></span>
+              </div>
+              <ol class="bm-ticks"><li>0 V</li><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li><li>6</li><li>7 V</li></ol>
+            </div>
+            <div class="vlog bm-dlog" id="bm-dlog" aria-live="polite"></div>
+            <figcaption class="demo-note">Calls and replies are verbatim from the hero terminal's run, in order. The 6.0 V damage line is the simulated board's rating, and the 5.5 V line is the signed-off limit from stage 1. Requests past the scale, like 12 V and 3300 V, are pinned to its right edge.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line a request is only checked, and nothing it carries reaches an instrument. Below it, approved steps go out one SCPI line at a time, and each is read back.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-ramp" aria-labelledby="h-ramp">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ramp"><span class="num" data-mark="4">4</span>Ramp, never jump</h2>
+          <p>On a live output, a change larger than <code>ramp_step</code> becomes several steps no larger than that, each followed by a wait that keeps the average slew under <code>max_slew</code>. Switching on into a setpoint above one step starts at 0 V and ramps up.</p>
+          <ul class="st-points">
+            <li>Channel 1 allows 0.5 V steps at 5 V/s, so 3.3 V takes 7 steps of 0.471 V with about 94 ms after each.</li>
+            <li>The server holds the instrument's lock from the decision to the last step, so two concurrent calls cannot both be approved against the same starting state.</li>
+            <li>After every step it reads the error queue and the setting back. An instrument that does not obey drops the connection and is reset to a safe state on next use.</li>
+          </ul>
+          <p class="why">The simulated board is damaged by an instant step up of more than 1 V while powered. Sent as raw SCPI to a fresh simulated supply, <code>CURR 0.25</code>, <code>VOLT 3.3</code> and <code>OUTP ON</code> left it reporting <code>INRUSH DAMAGE</code>.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ramp" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What the supply was told, and when</p>
+              {{REPLAY}}
+            </div>
+            <div class="bm-chart">
+              <svg id="bm-ramp" viewBox="0 0 760 280" role="img" aria-label="Supply voltage over time: two ramps in 0.47 and 0.43 volt steps, below the 5.5 volt limit"></svg>
+            </div>
+            <div class="vlog bm-wire" id="bm-wire" aria-live="polite"></div>
+            <figcaption class="demo-note">Every <code>VOLT</code> and <code>OUTP</code> line and its readback come from the audit log of the hero terminal's run, with milliseconds counted from each decision. The wait is a minimum, so the 184 ms gap after the second step is the machine being slow, not the interlock.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-readback" aria-labelledby="h-readback">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-readback"><span class="num" data-mark="5">5</span>Catch a change behind its back</h2>
+          <p>Before every change, the server asks the supply what it holds and compares that with what it last told it. A front-panel change, another program or a <code>*RST</code> shows up here.</p>
+          <ul class="st-points">
+            <li>On a mismatch, the channel goes back to the safe state and the request is refused with an explanation.</li>
+            <li>The safe state also clears the current limit, so nothing switches on again until the agent chooses one.</li>
+            <li>A <code>*RST</code> sent behind its back was caught the same way, with the same refusal.</li>
+          </ul>
+          <p class="why">With <code>verify_readback = false</code> none of this runs, and the server could believe a current limit is set after the supply has gone back to its default. The example file leaves it on.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-readback" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Someone turns the knob to 2.4 V <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="bm-sync" id="bm-sync">
+              <div class="bm-side" data-side="srv"><p>bench-mcp last told it</p><dl></dl></div>
+              <div class="bm-side" data-side="psu"><p>The supply holds</p><dl></dl></div>
+            </div>
+            <ol class="bm-steps" id="bm-steps"></ol>
+            <figcaption class="demo-note">The front-panel change is made up: the test rig wrote <code>INST:NSEL 1;VOLT 2.4</code> straight to the simulated supply, as a person or another program might. Every tool call, reply and line sent to the supply is real, from the same run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-stop" aria-labelledby="h-stop">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-stop"><span class="num" data-mark="6">6</span>Stop mid-ramp, and stay stopped</h2>
+          <p><code>emergency_stop</code> is never refused and never rate limited. It latches first, then switches every supply output off. After it, only “output off” reaches an instrument, until a person restarts the server. No tool clears it.</p>
+          <ul class="st-points">
+            <li>It does not wait for the instrument's main lock. It takes each connection's short I/O lock, and every ramp step re-checks the latch under that same lock, so a ramp in progress stops at its next step.</li>
+            <li>A supply it cannot reach is reported as failed with “Switch it off by hand”, not as done.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-stop" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A switch-on to 5 V, stopped at 300 ms</p>
+              {{REPLAY}}
+            </div>
+            <div class="bm-chart">
+              <svg id="bm-stop" viewBox="0 0 760 240" role="img" aria-label="A planned ramp to 5 volts in ten steps, cut off after three steps by the emergency stop"></svg>
+            </div>
+            <div class="vlog bm-slog" id="bm-slog" aria-live="polite"></div>
+            <figcaption class="demo-note">From the audit log of a run through the test rig at the example's real 5 V/s, with the stop sent 300 ms into the switch-on as the repo's own test does. The faded steps are the rest of the plan the interlock had approved; none of them was sent. Times are milliseconds from the <code>output_on</code> call.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="answer" aria-labelledby="h-answer">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-answer">The same requests, with nothing in between</h2>
+          <p>The demo ends by sending the agent's intent straight to a fresh simulated supply as raw SCPI. The simulator damages its board above 6.0 V, over 0.4 A for more than 0.2 s, or on a jump of more than 1 V while powered, so the tests can check that the board survived, not just that the server said no. Both cards are lines from the hero terminal's run, verbatim; the ellipsis marks calls left out.</p>
+        </div>
+        <div class="bm-vs" data-reveal>
+          <div class="panel bm-vs-card" data-t="ok">
+            <h3>Through bench-mcp</h3>
+            <pre class="bm-term" id="bm-vs-ok"></pre>
+          </div>
+          <div class="panel bm-vs-card" data-t="err">
+            <h3>Raw SCPI, no bench-mcp</h3>
+            <pre class="bm-term" id="bm-vs-raw"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">The property test is tested</h2>
+          <p>A Hypothesis state machine sends arbitrary request sequences, garbage included, while a model of the instrument follows every step the interlock emits. To show that test can fail, the suite breaks the interlock six ways and requires a violation each time.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card bm-mut-card">
+            <h3>Six mutations, six caught</h3>
+            <ul class="bm-muts" id="bm-muts"></ul>
+            <p>Each line is the first violation the property test reported against that mutated interlock, re-run on this machine with the suite's settings: derandomized, 300 examples of up to 50 steps.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Waits are minimums</h3>
+            <div class="bars bm-waits">
+              <div class="bar-row"><span>3.3 V on, planned</span><span class="bar"><i style="--w:86.96%"></i></span><span>660 ms</span></div>
+              <div class="bar-row"><span>3.3 V on, took</span><span class="bar"><i style="--w:100%"></i></span><span>759 ms</span></div>
+              <div class="bar-row"><span>3.3 to 5 V, planned</span><span class="bar"><i style="--w:44.8%"></i></span><span>340 ms</span></div>
+              <div class="bar-row"><span>3.3 to 5 V, took</span><span class="bar"><i style="--w:45.06%"></i></span><span>342 ms</span></div>
+            </div>
+            <p>Planned time is the sum of the interlock's waits, voltage change over 5 V/s. Took is decision to result in the audit log of the hero's run. A ramp can run slow, never fast.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Every line, in order</h3>
+            <div class="tally"><span>203 SCPI lines</span><span>239 audit entries</span></div>
+            <p>The hero's run wrote 239 entries to <code>audit.jsonl</code>, 203 of them SCPI lines in either direction, each with a sequence number. One test checks that the lines logged as sent match what the simulated supply received, exactly.</p>
+            <p>A call the schema rejects never reaches the tool, so the <code>"5V"</code> call is not in the log.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">135 tests, judged from the wire</h2>
+          <p>Counted with <code>pytest -q</code>: 135 passed in about 25 seconds on Python 3.12. Safety is judged from what the simulated supply actually received, replayed line by line, not from what the server reports.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward what an agent might send</h3>
+            <ul>
+              <li><strong>Adversarial:</strong> instrument names like <code>psu; OUTP ON</code>, CRLF, NUL, 10,000 characters and Unicode lookalikes; voltages like <code>"5000mV"</code>, NaN, ±Infinity and <code>1e308</code>; injection inside measurement names. None may put a byte of its own on the wire.</li>
+              <li><strong>Config:</strong> thirty ways a bench file is rejected, and the packaged example kept identical to the one in <code>examples/</code>.</li>
+              <li><strong>Interlock:</strong> unit tests for each rule, the Hypothesis state machine and a ramp property, and the six mutations above.</li>
+              <li><strong>End to end:</strong> 60 concurrent tool calls, the stop mid-ramp, changes behind the server's back, a dropped connection, the wrong instrument at an address, the rate limit on an injected clock. After each, the board must still be OK.</li>
+              <li><strong>Simulator and CLI:</strong> SCPI forms, units, error queue overflow, each damage model, and the demo run end to end over stdio with nothing on stderr.</li>
+            </ul>
+            <p>CI runs ruff, mypy <code>--strict</code> and the suite on Python 3.11 and 3.13, then <code>bench-mcp check</code> and <code>bench-mcp demo</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A hardware interlock</dt><dd>It is software between an agent and an instrument. It cannot stop a person at the front panel or firmware that ignores commands. A real board still needs fuses and the supply's own OVP and OCP.</dd></div>
+              <div><dt>Real instruments, proven</dt><dd>It has only run against the simulator. Real supplies differ in their SCPI, so a driver needs checking against each one. The VISA transport is untested.</dd></div>
+              <div><dt>More than one server per bench</dt><dd>Locks are in-process. A second server on the same instrument would be caught only by the readback check on its next change.</dd></div>
+              <div><dt>Scope and meter settings</dt><dd>Timebases, triggers and ranges are not exposed. The agent can only take readings.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/bench-mcp
+cd bench-mcp
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+
+bench-mcp demo                        <span class="c"># the session above</span>
+bench-mcp check examples/bench.toml   <span class="c"># effective limits</span>
+pytest -q                             <span class="c"># 135 tests</span>
+
+<span class="c"># A simulated bench for a real agent:</span>
+bench-mcp sim --config examples/bench.toml
+claude mcp add bench -- "$PWD/.venv/bin/bench-mcp" \
+  serve --config "$PWD/examples/bench.toml"</pre>
+            <p>Python 3.11 or later. No API key and no hardware: <code>sim</code> runs a supply, a meter and a scope on 127.0.0.1, ports 5025 to 5027. For real instruments, point the addresses in a copy of <code>bench.toml</code> at their LAN ports.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

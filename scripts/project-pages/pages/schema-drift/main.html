@@ -1,0 +1,360 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">schema-drift</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A contract checker for JSON event streams. It reads the schema each producer publishes per topic, decides whether a new version breaks anyone reading the old one, and blocks the pull request before the change ships.</p>
+            <p>An event stream couples teams who never call each other. Change <code>amount</code> from integer cents to a decimal string, and your own tests pass while a consumer on another team fails to decode. Every breaking verdict here comes with an event that proves it: the old schema accepts it and the new one rejects it.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/schema-drift">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/schema-drift#how-the-verdicts-are-checked">How the verdicts are checked</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.22+</dd>
+              <dt>Tests</dt><dd>29 passing, two of them property tests</dd>
+              <dt>Dependencies</dt><dd>None outside the standard library</dd>
+              <dt>Commands</dt><dd>check, verify, infer, history, gate</dd>
+              <dt>Modes</dt><dd>7, named as in Confluent Schema Registry</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="check">Check</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="gate">Gate</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="verify">Verify</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">schema-drift check examples/contracts/orders/v2.json examples/contracts/orders/v3.json</span>
+<span class="out">v2 -> v3: NONE (breaking both ways)</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs of schema-drift 0.1.0 on the repo's own examples, output verbatim. The gate session is <code>examples/gate-demo.sh</code>, a pull request against a throwaway git repository, shortened where marked.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a schema change moves through schema-drift">
+          <div class="sign-group">
+            <p>In the pull request: parse, compare, prove</p>
+            <ol>
+              <li><a class="sign-link" href="#s-strict"><b>1</b> Strict</a></li>
+              <li><a class="sign-link" href="#s-contain"><b>2</b> Contain</a></li>
+              <li><a class="sign-link" href="#s-witness"><b>3</b> Witness</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>4</b> Gate</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: events consumers decode</p>
+            <ol>
+              <li><a class="sign-link" href="#s-verify"><b>5</b> Verify</a></li>
+              <li><a class="sign-link" href="#s-consumer"><b>6</b> Consumer</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-strict" aria-labelledby="h-strict">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-strict"><span class="num" data-mark="1">1</span>Refuse what it can't reason about</h2>
+          <p>schema-drift supports a subset of JSON Schema: the part whose compatibility it can decide exactly. Anything outside it is an error with a JSON Pointer, never skipped.</p>
+          <ul class="st-points">
+            <li>A checker that ignored a keyword it didn't understand would call changes compatible that aren't. That is the dangerous direction, so the parser fails closed.</li>
+            <li>A misspelt keyword gets a suggestion. A keyword outside the subset, such as <code>pattern</code>, <code>$ref</code>, <code>oneOf</code> or OpenAPI's <code>nullable</code>, gets a hint about what to write instead.</li>
+            <li>Duplicate keys are refused, because <code>encoding/json</code> would quietly keep the last one. So are schemas no value can satisfy, and enum values the rest of the schema rejects.</li>
+          </ul>
+          <p class="why">The subset is <code>type</code>, <code>enum</code>, properties, <code>required</code>, <code>additionalProperties</code>, <code>items</code>, numeric bounds, string and array lengths, and four formats, which are asserted rather than treated as annotations.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-strict" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six schemas the parser refuses <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="sd-bad" id="sd-bad"></ol>
+              <dl class="sd-tally" id="sd-tally">
+                <div><dt>Schemas refused</dt><dd>6 of 6</dd></div>
+                <div><dt>Exit code, each time</dt><dd>2</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">The six schemas were written for this page; the errors are real. Each one was passed to <code>schema-drift check</code> with <code>examples/contracts/orders/v1.json</code> as the other side, and the error lines are printed exactly as they came back.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-contain" aria-labelledby="h-contain">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-contain"><span class="num" data-mark="2">2</span>Ask one question, in both directions</h2>
+          <p>Every compatibility mode comes down to one question: is every event valid under schema A also valid under schema B? Backward asks it with the old schema as the writer, so consumers on the new schema can read old events. Forward asks it the other way round. Full asks both.</p>
+          <ul class="st-points">
+            <li>Checked keyword by keyword: types, enum values, numeric bounds, string lengths including the length a format implies, formats, required properties, declared properties against <code>additionalProperties</code>, and array items and sizes.</li>
+            <li>It recurses through nested objects and arrays and reports each break at its path, with <code>*</code> standing for any array item.</li>
+            <li>A writer that can never send a value, like a date capped at three characters, breaks nothing, and isn't reported.</li>
+          </ul>
+          <p class="why">Which mode you need depends on who upgrades first. Consumers first: backward. Producers first: forward. Either, or old events replayed from a retained topic: full.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-contain" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The repo's example contracts, pair by pair</p>
+              <div class="seg" role="group" aria-label="Schema pair" id="sd-pairs"></div>
+            </div>
+            <p class="sd-ctx" id="sd-ctx"></p>
+            <div class="demo-body">
+              <div class="sd-tbl-wrap">
+                <table class="sd-tbl" id="sd-tbl">
+                  <thead><tr><th scope="col">Field</th><th scope="col" data-k="old">Old</th><th scope="col" data-k="new">New</th><th scope="col">Backward<small>new consumers, old events</small></th><th scope="col">Forward<small>old consumers, new events</small></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="cli sd-cli"><pre id="sd-check-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">The schemas are the repo's <code>examples/contracts</code>; the table restates what each file declares, and the output under it is the real <code>schema-drift check</code> run on that pair, verbatim, with its exit code. Payments is checked with <code>--mode FULL</code>, the mode its topic folder names; the others use the default, <code>BACKWARD</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-witness" aria-labelledby="h-witness">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-witness"><span class="num" data-mark="3">3</span>Prove every break with an event</h2>
+          <p>A checker that cries wolf teaches people to ignore it. So for each reason it finds, schema-drift builds a whole event and checks it with its own validator: the writer's schema has to accept it and the reader's has to reject it. Only then is it printed as the <code>e.g.</code> line.</p>
+          <ul class="st-points">
+            <li>The witness is built at the level of the break and wrapped by each parent object or array on the way up, so it is always a complete event, not a fragment.</li>
+            <li>Numbers, strings and arrays are searched from candidates near the bounds, so the example sits right at the edge the reader added.</li>
+            <li>A property test generates thousands of schema pairs and fails on any reason without a validated witness.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-witness" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">An <code>e.g.</code> event, fed back through <code>verify</code></p>
+              <div class="seg" role="group" aria-label="Witness">
+                <button type="button" data-w="orders" aria-pressed="true">orders v2 to v3</button>
+                <button type="button" data-w="payments" aria-pressed="false">payments v1 to v2</button>
+              </div>
+            </div>
+            <div class="demo-body">
+              <span class="sd-k" id="sd-w-k">The witness, copied from the check output</span>
+              <code class="sd-ev" id="sd-ev"></code>
+              <div class="sd-sides">
+                <div class="sd-side" id="sd-w0"><p class="sd-side-h"><b></b><span class="sd-mark"></span></p><pre class="sd-t"></pre></div>
+                <div class="sd-side" id="sd-w1"><p class="sd-side-h"><b></b><span class="sd-mark"></span></p><pre class="sd-t"></pre></div>
+              </div>
+              <p class="sd-proof" id="sd-proof">Proven: the writer accepts it and the reader rejects it.</p>
+            </div>
+            <figcaption class="demo-note">Each event is the <code>e.g.</code> line from the real <code>check</code> output in stage 2, saved to a file and run through <code>schema-drift verify</code> against both schemas. The verify output and exit codes are verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-gate"><span class="num" data-mark="4">4</span>Hold the pull request at the line</h2>
+          <p>Contracts live in the repository, one folder per topic: <code>v1.json</code>, <code>v2.json</code> and so on, plus an optional <code>mode</code> file. <code>schema-drift gate</code> compares that folder in the working tree with the same folder at the base branch, read from git, and exits 1 on any problem.</p>
+          <ul class="st-points">
+            <li>A new version has to pass the topic's mode against the previous version, or against every earlier one for a <code>_TRANSITIVE</code> mode.</li>
+            <li>A published version is immutable. An edit is judged both ways against what was published, so rewording a title or a description passes and any change to what it accepts fails.</li>
+            <li>Deleting a published version or a whole topic fails, and so do gaps in numbering and files that aren't <code>vN.json</code> or <code>mode</code>.</li>
+          </ul>
+          <p class="why">It reads only git and the working tree. There is no registry to run and nothing to fetch, so the check is one step in the pull request workflow.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two pull requests against the same main</p>
+              <div class="seg" role="group" aria-label="Pull request">
+                <button type="button" data-pr="bad" aria-pressed="true">Three classic mistakes</button>
+                <button type="button" data-pr="ok" aria-pressed="false">A safe change</button>
+              </div>
+            </div>
+            <div class="demo-body sd-gate">
+              <div class="sd-pr">
+                <span class="sd-k">Files changed in the pull request</span>
+                <ul class="sd-files" id="sd-files"></ul>
+                <div class="sd-exit" id="sd-exit"><b></b><span></span></div>
+              </div>
+              <div class="sd-out">
+                <span class="sd-k"><code>schema-drift gate --base main</code></span>
+                <pre class="sd-t sd-sum" id="sd-sum"></pre>
+                <ol class="sd-probs" id="sd-probs"></ol>
+              </div>
+            </div>
+            <figcaption class="demo-note" id="sd-gate-note">Three classic mistakes is the repo's <code>examples/gate-demo.sh</code>, run for real. A safe change is <span class="tag-ill">Illustrative input</span>: a pull request written for this page that rewords the title of orders v1 and adds v3 with one new optional field, run through the same command. Output is verbatim, except that the <code>e.g.</code> lines are left out here; stage 3 shows what they prove.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Merged</span>Above this line the contract change is still a pull request. Below it the schema is published, producers write events under it, and consumers on other teams decode them.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-verify" aria-labelledby="h-verify">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-verify"><span class="num" data-mark="5">5</span>Hold real events to the same standard</h2>
+          <p>A contract only protects consumers if producers actually honour it. <code>schema-drift verify</code> reads newline-delimited JSON events you've captured and reports every problem at its JSON Pointer, with the line it came from.</p>
+          <ul class="st-points">
+            <li>Formats are asserted: <code>"not-a-uuid"</code> is not a uuid and <code>"yesterday"</code> is not a date-time.</li>
+            <li>Integers follow JSON semantics, so <code>1.0</code> is an integer, and enum values compare by value.</li>
+            <li>A duplicate key is reported, not silently resolved to its last value as <code>encoding/json</code> would.</li>
+          </ul>
+          <p class="why"><code>verify</code> checks samples you capture. It doesn't watch a live topic or talk to a broker.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-verify" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five captured events against orders v2</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="sd-evs" id="sd-evs"></ol>
+              <p class="sd-vsum" id="sd-vsum"><code></code><span></span></p>
+            </div>
+            <figcaption class="demo-note">The events are the repo's <code>examples/events/orders-mixed.ndjson</code>, and the problems under each are the real output of <code>schema-drift verify examples/contracts/orders/v2.json</code> on that file, line for line.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-consumer" aria-labelledby="h-consumer">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-consumer"><span class="num" data-mark="6">6</span>What a missed break looks like downstream</h2>
+          <p>The repo ships an ordinary Go consumer written against orders v2: it decodes each event into a struct and adds up revenue per currency. It is what stage 4 protects, and what happens when nothing does.</p>
+          <ul class="st-points">
+            <li>On v2 events it works. On the first v3 event it stops, because <code>amount</code> is now a string and its struct field is an <code>int64</code>.</li>
+            <li>The producer's own tests would pass. The failure only appears in a service owned by someone else, reading a topic.</li>
+            <li>The same break, caught by <code>verify</code> before any consumer sees it, and by <code>gate</code> before v3 is ever published.</li>
+          </ul>
+          <p class="why">Semantics stay invisible. If <code>amount</code> kept type integer and changed from cents to dollars, every check would pass. A schema can only carry what it states.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-consumer" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One consumer, two producers, one check</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="sd-steps" id="sd-steps"></ol>
+            </div>
+            <figcaption class="demo-note">All three are real runs: <code>examples/consumer</code> built with <code>go build</code>, fed the repo's <code>examples/events/orders-v2.ndjson</code> and <code>orders-v3.ndjson</code>, then <code>schema-drift verify</code> on the v3 events. Output and exit codes are verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="verdicts" aria-labelledby="h-verdicts">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-verdicts">How the verdicts are checked</h2>
+          <p>A compatibility checker can be wrong in two directions, and both are tested against the validator as an independent oracle. The numbers are from the default test run, read from the test log.</p>
+        </div>
+        <div class="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Calling a break compatible</h3>
+            <p>The dangerous mistake. <code>TestSoundness</code> generates random schema pairs, most of them by mutating one schema into the next the way people edit contracts. For every pair judged compatible, it generates events valid under the writer and checks each against the reader.</p>
+            <div class="tally"><span>12,918 pairs judged compatible</span><span>2,543,839 events</span><span>0 counterexamples</span></div>
+          </article>
+          <article class="panel m-card">
+            <h3>Calling a compatible change breaking</h3>
+            <p>The noisy mistake, the one that teaches people to ignore a tool. <code>TestEveryBreakIsProven</code> fails on any reason whose witness the validator doesn't confirm on both sides.</p>
+            <div class="tally"><span>7,261 pairs judged breaking</span><span>15,031 reasons</span><span>0 unproven</span></div>
+          </article>
+          <article class="panel m-card">
+            <h3>What the two tests caught</h3>
+            <p>The README lists real fixes these two tests forced:</p>
+            <ul class="sd-fixes">
+              <li>A writer allowing exactly 2.5 was judged compatible with a reader whose maximum is 0: fractional-only writers skipped the range check.</li>
+              <li>“Shorter than 2 characters” was reported against formats that can't be, such as an email (at least 5) or a date-time (at least 20).</li>
+              <li>Writers that admit no value at all were reported as breaking.</li>
+              <li>A reader property like <code>{"minLength": 0}</code> was treated as a constraint.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">29 tests, standard library only</h2>
+          <p>Counted with <code>go test -v ./...</code>: 29 tests, all passing, no subtests. No network, and the gate tests build real git repositories in temporary directories.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the verdict</h3>
+            <ul>
+              <li><strong>Property tests:</strong> soundness, every break proven, and every generated schema compatible with itself.</li>
+              <li><strong>Gate:</strong> a compatible addition passes, a breaking version is blocked, published versions are immutable, edits that change nothing pass, transitive modes check every earlier version, deleted topics and bad layouts fail, a bad base ref is an error.</li>
+              <li><strong>Parser and validator:</strong> the parser fails closed, JSON Pointers with escaped <code>/</code> and <code>~</code>, <code>1.0</code> as an integer, nullable type lists, each format, enum equality by value.</li>
+              <li><strong>Infer:</strong> 2,000 random samples, and every draft must accept its sample and pass the strict parser.</li>
+              <li><strong>The CLI:</strong> check, verify, infer and history with their exit codes, usage errors, and a test that fails if the README stops quoting the CLI's current output.</li>
+            </ul>
+            <p>CI runs vet, gofmt, the short suite under the race detector and the full suite on Go 1.22 and the current stable release, plus a job that regenerates the README's quoted output and fails on any difference.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt><code>$ref</code>, <code>oneOf</code>, <code>pattern</code> and friends</dt><dd>Containment is easy to decide exactly for the supported keywords and hard for regular expressions and unions of object shapes. A checker that guessed there would be wrong in the dangerous direction, so each is rejected with a hint.</dd></div>
+              <div><dt>Semantics</dt><dd>An integer that changes from cents to dollars passes every check. A schema can only carry what it states.</dd></div>
+              <div><dt>Several event types per topic</dt><dd>That needs <code>oneOf</code>. Split the topic, or use one schema with the union of fields.</dd></div>
+              <div><dt>A registry or broker</dt><dd>Contracts live in git and the gate reads git. It doesn't fetch from Confluent Schema Registry or watch a live topic.</dd></div>
+              <div><dt>Certainty from <code>infer</code></dt><dd>It drafts a schema from samples. A field present in every sample is marked required, though the samples may simply never have left it out.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/schema-drift
+cd schema-drift
+go build -o schema-drift ./cmd/schema-drift
+
+./schema-drift check examples/contracts/orders/v2.json examples/contracts/orders/v3.json
+./schema-drift history examples/contracts
+./schema-drift verify examples/contracts/orders/v2.json examples/events/orders-mixed.ndjson
+./schema-drift infer examples/events/orders-v2.ndjson
+
+<span class="c"># A pull request, as CI sees it</span>
+SCHEMA_DRIFT=$PWD/schema-drift examples/gate-demo.sh
+
+go test ./...</pre>
+            <p>Go 1.22 or newer, no dependencies outside the standard library. In CI it is one step: <code>schema-drift gate --base origin/main</code> after a checkout with full history.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

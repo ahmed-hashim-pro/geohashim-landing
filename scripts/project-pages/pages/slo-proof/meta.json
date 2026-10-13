@@ -1,0 +1,5 @@
+{
+  "title": "slo-proof · Ahmed Hashim",
+  "description": "Replays past SLI data through a proposed alert rule before it goes live: which incidents it would have caught, how late, how much error budget burned first, and how often it would have paged for nothing. How it works, with real runs.",
+  "tour_seconds": "75"
+}

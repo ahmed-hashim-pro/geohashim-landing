@@ -1,0 +1,337 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">geofence-guard</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A ROS 2 node that sits between whatever decides where an aircraft should go and the autopilot that takes it there. It forwards a position setpoint only when it can show that the whole straight path to it stays inside the flight envelope.</p>
+            <p>Autopilots have geofences, but they act after the breach: the vehicle crosses the line, then it returns to launch. Meanwhile the thing sending setpoints keeps getting less trustworthy: a planner that replans in flight, a teleop bridge, a language model with a <code>goto</code> tool. geofence-guard refuses the setpoint before the vehicle moves.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/geofence-guard">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/geofence-guard#the-decision">The decision rules</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>C++17, built with CMake</dd>
+              <dt>Core</dt><dd>No dependencies, no ROS; GoogleTest for the tests</dd>
+              <dt>Node</dt><dd>ROS 2 Jazzy, rclcpp</dd>
+              <dt>Tests</dt><dd>93 core and CLI tests, plus 10 node tests that run in a ROS 2 container in CI</dd>
+              <dt>Simulation</dt><dd>PX4 1.15 SITL, flown in CI on every push</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="shortcut">Shortcut</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="survey">Survey</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="typo">Typo</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">geofence-guard check examples/field.fence examples/shortcut.csv</span>
+<span class="out">leg 1   (10.0, 10.0, 0.0) -> (20.0, 20.0, 30.0)  ok</span>
+<span class="out">leg 2   (20.0, 20.0, 30.0) -> (20.0, 230.0, 30.0)  ok</span>
+<span class="err">leg 3   (20.0, 230.0, 30.0) -> (280.0, 100.0, 30.0)  REFUSED</span>
+<span class="err">        path_leaves_fence: path crosses the boundary of the fence</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs of the repo's own CLI on its own example files, built from commit <code>882828f</code>. The CLI makes every decision with the same core the ROS 2 node runs.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a setpoint moves through geofence-guard">
+          <div class="sign-group">
+            <p>Before the autopilot: read, check, prove</p>
+            <ol>
+              <li><a class="sign-link" href="#s-envelope"><b>1</b> Envelope</a></li>
+              <li><a class="sign-link" href="#s-checks"><b>2</b> Checks</a></li>
+              <li><a class="sign-link" href="#s-path"><b>3</b> Path</a></li>
+              <li><a class="sign-link" href="#s-recover"><b>4</b> Recovery</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: what the autopilot gets</p>
+            <ol>
+              <li><a class="sign-link" href="#s-hold"><b>5</b> Hold</a></li>
+              <li><a class="sign-link" href="#s-sitl"><b>6</b> SITL</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-envelope" aria-labelledby="h-envelope">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-envelope"><span class="num" data-mark="1">1</span>Refuse an envelope that could be misread</h2>
+          <p>The envelope is a small text file: a frame, a margin, an altitude band, a keep-in fence polygon and any number of keep-out zones. Together they describe a prism, a polygon extruded between two altitudes.</p>
+          <ul class="st-points">
+            <li>A misspelt key is an error, not a skipped line. If <code>max_alitude 60</code> were ignored, a limit someone wrote down would silently not be enforced.</li>
+            <li>A key set twice, a number with units like <code>5m</code>, <code>nan</code>, a zero margin, or a polygon that crosses or touches itself all stop the node from starting.</li>
+            <li>Numbers are read with <code>from_chars</code>, not <code>strtod</code>, so a node started under a decimal-comma locale still reads <code>2.5</code> as two and a half.</li>
+          </ul>
+          <p class="why">The node also refuses to start with no envelope at all. A guard with no limits looks like protection and gives none.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-envelope" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One field, six ways to get it wrong <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="seg gg-seg" role="group" aria-label="Envelope file" id="gg-env-seg"></div>
+            <div class="demo-body">
+              <ol class="gg-file" id="gg-file" aria-label="Envelope file contents"></ol>
+              <div class="mini-term gg-out" id="gg-env-out" aria-live="polite"></div>
+              <dl class="gg-tally" id="gg-env-tally">
+                <div><dt>Files accepted</dt><dd data-k="ok">0</dd></div>
+                <div><dt>Files refused, exit 2</dt><dd data-k="bad">0</dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note"><code>field.fence</code> and <code>typo.fence</code> are the repo's own files. The five other variants were made for this page by changing one thing in <code>field.fence</code>; every error is the real output of <code>geofence-guard validate</code>, verbatim, with the shell's exit code.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-checks" aria-labelledby="h-checks">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-checks"><span class="num" data-mark="2">2</span>Run every check, and report every failure</h2>
+          <p>Each setpoint is checked against the vehicle's last known position, through nine checks with stable reason codes. All the violations are reported, not just the first, so a log line says everything that was wrong with a move.</p>
+          <ul class="st-points">
+            <li>Three checks end the decision on the spot: a NaN or infinite value, a frame other than the envelope's, and a vehicle position older than <code>max_state_age</code>. After any of them, nothing else can be reasoned about.</li>
+            <li>The rest all run: altitude band, leg length, target in the fence, path in the fence, target clear of each exclusion zone, path clear of each.</li>
+            <li>The guard is stateless. Every input is an argument, so a decision can be replayed exactly from its log line.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-checks" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same bad setpoint, fresh and stale <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Vehicle state">
+                <button type="button" data-mode="fresh" aria-pressed="true">Position 0.2 s old</button>
+                <button type="button" data-mode="stale" aria-pressed="false">Position 1.2 s old</button>
+              </div>
+            </div>
+            <p class="q-strip"><span>Setpoint</span><span>Vehicle at (20, 230, 30), asked to go to (280, 100, 150) in <code>map</code></span></p>
+            <div class="demo-body">
+              <ol class="gg-checks" id="gg-checks"></ol>
+              <div class="mini-term gg-out" id="gg-chk-out" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The setpoint was made up for this page. The decision is real: the repo's core <code>Guard::check</code>, called from a small harness compiled against it, with the reason codes and details as it returned them. The envelope is <code>examples/field.fence</code>, where <code>max_state_age</code> is 0.5 s.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-path" aria-labelledby="h-path">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-path"><span class="num" data-mark="3">3</span>Prove the whole path, not just the target</h2>
+          <p>This is the line. A setpoint crosses it only when every point on the straight segment from the vehicle to the target stays at least <code>margin</code> from every boundary. The vehicle starts at least that far inside, and a segment can't cross a boundary it never gets within <code>margin</code> of, so this proves the whole leg, target included.</p>
+          <ul class="st-points">
+            <li>The check is exact segment-to-edge distance. It doesn't sample points along the path, so a thin keep-out zone can't slip between two samples.</li>
+            <li>The fence can be any simple polygon, convex or not. Non-convex is where a target-only check fails: both ends inside, the line between them outside.</li>
+            <li>Exclusion zones run from the ground to the ceiling, so flying over the mast is refused too.</li>
+          </ul>
+          <p class="why">The autopilot doesn't fly a perfect straight line. The margin is what covers tracking error, so the README says to set it from the vehicle's measured cross-track error, not from a guess.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-path" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">An L-shaped field with a mast near its south edge</p>
+              <div class="seg" role="group" aria-label="Mission">
+                <button type="button" data-mode="shortcut" aria-pressed="true">The repo's shortcut</button>
+                <button type="button" data-mode="near" aria-pressed="false">Near miss</button>
+              </div>
+            </div>
+            <div class="gg-mapwrap">
+              <div class="gg-map" id="gg-path-map"><svg id="gg-path-svg" role="img" aria-label="Map of the field with the mission legs, coloured by the guard's decision"></svg></div>
+              <div class="gg-side">
+                <ul class="gg-legend">
+                  <li><i class="gg-k gg-k-fence"></i>Fence</li>
+                  <li><i class="gg-k gg-k-band"></i>5 m margin band</li>
+                  <li><i class="gg-k gg-k-mast"></i>Mast, keep out</li>
+                  <li><i class="gg-k gg-k-ok"></i>Accepted leg</li>
+                  <li><i class="gg-k gg-k-bad"></i>Refused leg</li>
+                </ul>
+                <p class="gg-note" id="gg-path-note"></p>
+              </div>
+            </div>
+            <div class="mini-term gg-out gg-pad" id="gg-path-out" aria-live="polite"></div>
+            <figcaption class="demo-note" id="gg-path-cap">Geometry from <code>examples/field.fence</code>. The shortcut is the repo's <code>examples/shortcut.csv</code>; the <span class="tag-ill">Illustrative input</span> near miss is a one-leg mission written for this page. Both outputs are real <code>geofence-guard check</code> runs, verbatim. The map is drawn by this page from those files and those decisions.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-recover" aria-labelledby="h-recover">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-recover"><span class="num" data-mark="4">4</span>Let a vehicle in the margin find its way back</h2>
+          <p>The path rule has a trap. If wind pushes the vehicle 2 m from the fence with a 5 m margin, every path out of that spot starts inside the margin, so every setpoint is refused, including the one that would bring it back. A guard that pins the vehicle against the fence is not safe.</p>
+          <ul class="st-points">
+            <li>When the vehicle isn't safely inside a region, a recovery rule applies to that region, and the decision says <code>recovery</code>.</li>
+            <li>The target must still be fully safe. The path may cross the boundary only as often as it needs to on the way back: never from inside the band, once from outside it.</li>
+            <li>A path that comes back in, leaves across the notch and comes in again counts three crossings, and is refused. Through a vertex counts as two, conservative on purpose.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-recover" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four ways back <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="seg gg-seg" role="group" aria-label="Recovery case" id="gg-rec-seg"></div>
+            <div class="gg-mapwrap">
+              <div class="gg-map" id="gg-rec-map"><svg id="gg-rec-svg" role="img" aria-label="Map of the field with one recovery move and the points where it crosses the fence"></svg></div>
+              <div class="gg-side">
+                <dl class="gg-cross" id="gg-cross">
+                  <div><dt>Vehicle starts</dt><dd data-k="where"></dd></div>
+                  <div><dt>Boundary crossings</dt><dd data-k="n">0</dd></div>
+                  <div><dt>Allowed</dt><dd data-k="max"></dd></div>
+                  <div><dt>Decision</dt><dd data-k="verdict"></dd></div>
+                </dl>
+              </div>
+            </div>
+            <div class="mini-term gg-out gg-pad" id="gg-rec-out" aria-live="polite"></div>
+            <figcaption class="demo-note">The four one-leg missions were written for this page; the field is the repo's <code>examples/field.fence</code>. Each output line is a real <code>geofence-guard check</code> run, verbatim. Crossing points are drawn by this page; the counts in the output are the guard's.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line a setpoint is only a request. Below it, the autopilot gets an answer: the setpoint unchanged, a hold, or nothing at all.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-hold" aria-labelledby="h-hold">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-hold"><span class="num" data-mark="5">5</span>Hold where the refusal began, or go quiet</h2>
+          <p>An accepted setpoint goes out unchanged. A refused one is replaced by a hold at the vehicle's position when the first refusal happened, and every decision is published as one JSON line on <code>~/decisions</code>, with every reason.</p>
+          <ul class="st-points">
+            <li>The hold point is latched until a setpoint is accepted. Recomputed from each new odometry message, a stream of refusals would chase the drift instead of stopping it.</li>
+            <li>If the guard doesn't know where the vehicle is (no odometry yet, odometry too old, or in the wrong frame), it publishes nothing. A hold from a stale position could be anywhere; silence lets the autopilot's offboard-loss failsafe take over.</li>
+            <li>Freshness is timed on the guard's own clock from when odometry arrived, not from the message stamp, which a bridge may set on a different time base.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-hold" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The CI smoke test's four setpoints, vehicle at (20, 230, 30)</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="gg-lanes" aria-hidden="true"><span>setpoint_in</span><span>guard</span><span>setpoint_out</span></div>
+              <ol class="gg-events" id="gg-events"></ol>
+            </div>
+            <figcaption class="demo-note">Inputs are the ones <code>scripts/smoke.sh</code> publishes in CI. ROS 2 isn't installed where this page was made, so the node itself was not run: each line is the core <code>Guard</code>'s real decision, printed in the node's JSON format with the node's forward, hold or drop rule copied from <code>guard_node.cpp</code>. The position ages, 0.2 s and then 1.2 s once odometry stops, are <span class="tag-ill">Illustrative input</span>. The shortcut line matches the README's example byte for byte.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-sitl" aria-labelledby="h-sitl">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-sitl"><span class="num" data-mark="6">6</span>Fly it in PX4 SITL, with and without the guard</h2>
+          <p>CI flies one mission twice in PX4 1.15 software-in-the-loop through MAVROS, with the same naive planner: once straight to the autopilot, once through geofence-guard. The pass condition is about where the vehicle went, measured from the logged odometry, not from what the guard says it did.</p>
+          <ul class="st-points">
+            <li>Every airborne odometry sample of the guarded run must be inside the fence and outside the exclusion zone.</li>
+            <li>The guarded run must have refused something, or it didn't exercise the guard. The unguarded run must leave the fence, or the scenario has drifted and the guarded result proves nothing.</li>
+            <li>The first SITL run caught a fault in the test's planner, not the guard: it switched to <code>AUTO.LAND</code> while still moving fast, and the landing overshot to 4.9 m from the fence, inside the margin. In that mode the guard has no authority, so the planner now waits until the vehicle has nearly stopped.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-sitl" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The committed SITL run, <code>docs/sitl-results.json</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="gg-twin">
+              <div class="gg-run"><p class="gg-run-h">Without the guard</p><div class="gg-map"><svg id="gg-sitl-a" role="img" aria-label="Planned mission without the guard: the shortcut leg is flown across the notch"></svg></div><p class="gg-run-n" id="gg-sitl-na"></p></div>
+              <div class="gg-run"><p class="gg-run-h">With geofence-guard</p><div class="gg-map"><svg id="gg-sitl-b" role="img" aria-label="Planned mission with the guard: the shortcut leg is refused and the planner moves on to the next waypoint"></svg></div><p class="gg-run-n" id="gg-sitl-nb"></p></div>
+            </div>
+            <dl class="gstats gg-sstats" id="gg-sstats">
+              <div><dt>Outside the fence</dt><dd><span class="is-neg">11.8 s</span> / <span class="is-pos">0 s</span></dd></div>
+              <div><dt>Furthest outside</dt><dd><span class="is-neg">42.7 m</span> / n/a</dd></div>
+              <div><dt>Closest to the fence</dt><dd>n/a / 8.25 m</dd></div>
+              <div><dt>Waypoints refused</dt><dd>0 / 1</dd></div>
+              <div><dt>Margin</dt><dd>5 m</dd></div>
+            </dl>
+            <figcaption class="demo-note">Numbers are the repo's committed <code>docs/sitl-results.json</code> (without / with), measured by <code>sitl/analyze.py</code> from logged odometry; this page didn't re-fly it (it needs Docker and a 5 GB PX4 image). Lines show the planned legs from <code>sitl/mission.csv</code> on <code>sitl/field.fence</code>, the example field shifted 10 m; they are not flown tracks.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">93 tests in the core, 10 more for the node</h2>
+          <p>The core suite is 85 GoogleTest cases and 8 tests that run the CLI as a program, since its exit codes and output are its interface. All 93 pass with <code>make test</code>, and again under AddressSanitizer and UBSan with <code>make check</code>. The 10 node tests need ROS 2 and run in CI.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Checked against brute force</h3>
+            <ul>
+              <li><strong>Property tests:</strong> 20,000 random worlds, each with a non-convex fence, an optional exclusion zone, a random margin and a random move. Each decision is compared with a 2,000-step walk along the actual line.</li>
+              <li><strong>Soundness:</strong> everything the guard accepts, the walk confirms. <strong>Usefulness:</strong> every move the walk shows has clearance to spare, the guard accepts. A guard that refused everything would pass the first and fail the second.</li>
+              <li><strong>Minimum counts:</strong> the first generator made almost no safe moves, so soundness had too few accepted cases to mean anything. Each branch now asserts a minimum count, so a generator change that hollows the tests out fails the build.</li>
+              <li><strong>The node:</strong> 10 gtest cases drive it over real topics: forwarding, the hold and its latch, dropping before odometry, stale odometry, both frame mismatches, NaN, hold disabled, and no envelope.</li>
+              <li><strong>The launched package:</strong> CI starts the installed node with <code>ros2 launch</code> and drives it with <code>ros2 topic pub</code>.</li>
+            </ul>
+            <p>CI builds the core with GCC and Clang with <code>-Werror</code>, runs the sanitizer build, the ROS 2 job in <code>ros:jazzy</code>, and the two SITL flights.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately not done</h3>
+            <dl>
+              <div><dt>Real flight</dt><dd>It has flown in simulation only: PX4 1.15, a simulated quadcopter, no wind, one mission. A real aircraft in gusts will track worse, and nothing here measures by how much. ArduPilot hasn't been tried.</dd></div>
+              <div><dt>Speed and attitude limits</dt><dd>It limits where, not how fast. Those belong to the autopilot.</dd></div>
+              <div><dt>Latitude and longitude</dt><dd>It works in a local metric frame. Projecting a geodetic fence into the odometry frame is left to the user.</dd></div>
+              <div><dt>Velocity setpoints</dt><dd>Only position setpoints are checked, so velocity and acceleration setpoints must not be routed through it.</dd></div>
+              <div><dt>Being the last line</dt><dd>Keep the autopilot's own geofence on, set slightly outside this one. The guard prevents breaches; the autopilot contains the ones that happen anyway.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/geofence-guard.git
+cd geofence-guard
+
+<span class="c"># The core and CLI: a C++17 compiler, CMake, GoogleTest.</span>
+make test
+./build/geofence-guard check examples/field.fence examples/shortcut.csv
+./build/geofence-guard render examples/field.fence examples/survey.csv &gt; survey.svg
+
+<span class="c"># The ROS 2 node: needs Docker, not a ROS install.</span>
+make ros</pre>
+            <p><code>check</code> exits 0 when every leg passes, 1 when any is refused, and 2 when a file is unusable. <code>make sitl</code> flies the PX4 comparison; it needs Docker and pulls an image of about 5 GB.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

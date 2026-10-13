@@ -1,0 +1,998 @@
+{
+ "demo": [
+  [
+   "dim",
+   "Simulated supply, meter and scope on 127.0.0.1; bench-mcp on stdio; the agent is scripted."
+  ],
+  [
+   "out",
+   ""
+  ],
+  [
+   "out",
+   "▸ list_instruments()"
+  ],
+  [
+   "out",
+   "  psu:1 powers sensor-board-revB: ≤ 5.5 V, ≤ 0.3 A, steps ≤ 0.5 V at 5.0 V/s"
+  ],
+  [
+   "out",
+   "▸ output_on(instrument=\"psu\", channel=1)"
+  ],
+  [
+   "err",
+   "  ✗ REFUSED: set a current limit before turning the output on"
+  ],
+  [
+   "out",
+   "▸ set_current_limit(instrument=\"psu\", channel=1, amps=0.25)"
+  ],
+  [
+   "ok",
+   "  ✓ current limit 0.25 A"
+  ],
+  [
+   "out",
+   "▸ set_voltage(instrument=\"psu\", channel=1, volts=12)"
+  ],
+  [
+   "err",
+   "  ✗ REFUSED: voltage 12 V exceeds the signed-off limit of 5.5 V"
+  ],
+  [
+   "out",
+   "▸ set_voltage(instrument=\"psu\", channel=1, volts=\"5V\")"
+  ],
+  [
+   "err",
+   "  ✗ rejected by the tool schema: Input should be a valid number"
+  ],
+  [
+   "out",
+   "▸ set_voltage(instrument=\"psu\", channel=1, volts=3300)"
+  ],
+  [
+   "err",
+   "  ✗ REFUSED: voltage 3300 V exceeds the signed-off limit of 5.5 V"
+  ],
+  [
+   "out",
+   "▸ set_voltage(instrument=\"psu\", channel=1, volts=3.3)"
+  ],
+  [
+   "ok",
+   "  ✓ voltage 3.3 V (output is off)"
+  ],
+  [
+   "out",
+   "▸ output_on(instrument=\"psu\", channel=1)"
+  ],
+  [
+   "ok",
+   "  ✓ output on at 0 V, then ramped to 3.3 V in 7 steps"
+  ],
+  [
+   "out",
+   "▸ measure_dmm(instrument=\"dmm\", quantity=\"current_dc\")"
+  ],
+  [
+   "ok",
+   "  ✓ 0.1500 A drawn by the board"
+  ],
+  [
+   "out",
+   "▸ measure_scope(instrument=\"scope\", channel=2, quantity=\"frequency\")"
+  ],
+  [
+   "ok",
+   "  ✓ 25 MHz: the board's clock is running"
+  ],
+  [
+   "out",
+   "▸ set_voltage(instrument=\"psu\", channel=1, volts=5.0)"
+  ],
+  [
+   "ok",
+   "  ✓ voltage ramped 3.3 → 5 V in 4 steps over 0.34 s"
+  ],
+  [
+   "out",
+   "▸ emergency_stop()"
+  ],
+  [
+   "ok",
+   "  ✓ every output off; latched until a person restarts the server"
+  ],
+  [
+   "out",
+   "▸ output_on(instrument=\"psu\", channel=1)"
+  ],
+  [
+   "err",
+   "  ✗ REFUSED: emergency stop is latched; only a person restarting the server clears it"
+  ],
+  [
+   "out",
+   ""
+  ],
+  [
+   "dim",
+   "Audit log: 203 SCPI lines, every call and decision, in /tmp/bench-mcp-demo-5ysnurvz/audit.jsonl"
+  ],
+  [
+   "ok",
+   "Simulated board after the session: OK"
+  ],
+  [
+   "out",
+   ""
+  ],
+  [
+   "dim",
+   "The same requests as raw SCPI to a fresh simulated bench, no bench-mcp:"
+  ],
+  [
+   "out",
+   "> INST:NSEL 1"
+  ],
+  [
+   "out",
+   "> CURR 1"
+  ],
+  [
+   "out",
+   "> VOLT 12"
+  ],
+  [
+   "out",
+   "> OUTP ON"
+  ],
+  [
+   "out",
+   "> SIM:DUT?"
+  ],
+  [
+   "err",
+   "  OVERVOLTAGE DAMAGE"
+  ]
+ ],
+ "ramps": [
+  {
+   "at": 0,
+   "reason": "output on at 0 V, then ramped to 3.3 V in 7 steps",
+   "request": "OutputOn()",
+   "end": 759,
+   "steps": [
+    [
+     0,
+     "VOLT 0.000000",
+     "+0.000000E+00"
+    ],
+    [
+     1,
+     "OUTP ON",
+     "1"
+    ],
+    [
+     1,
+     "VOLT 0.471429",
+     "+4.714290E-01"
+    ],
+    [
+     96,
+     "VOLT 0.942857",
+     "+9.428570E-01"
+    ],
+    [
+     281,
+     "VOLT 1.414286",
+     "+1.414286E+00"
+    ],
+    [
+     377,
+     "VOLT 1.885714",
+     "+1.885714E+00"
+    ],
+    [
+     473,
+     "VOLT 2.357143",
+     "+2.357143E+00"
+    ],
+    [
+     568,
+     "VOLT 2.828571",
+     "+2.828571E+00"
+    ],
+    [
+     664,
+     "VOLT 3.300000",
+     "+3.300000E+00"
+    ]
+   ]
+  },
+  {
+   "at": 1129,
+   "reason": "voltage ramped 3.3 → 5 V in 4 steps over 0.34 s",
+   "request": "SetVoltage(volts=5.0)",
+   "end": 342,
+   "steps": [
+    [
+     0,
+     "VOLT 3.725000",
+     "+3.725000E+00"
+    ],
+    [
+     86,
+     "VOLT 4.150000",
+     "+4.150000E+00"
+    ],
+    [
+     171,
+     "VOLT 4.575000",
+     "+4.575000E+00"
+    ],
+    [
+     257,
+     "VOLT 5.000000",
+     "+5.000000E+00"
+    ]
+   ]
+  }
+ ],
+ "adv": [
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": \"5V\"}",
+   "kind": "schema",
+   "msg": "volts: Input should be a valid number",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": \"1.2; OUTP ON\"}",
+   "kind": "schema",
+   "msg": "volts: Input should be a valid number",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu; OUTP ON\", \"channel\": 1, \"volts\": 1.2}",
+   "kind": "schema",
+   "msg": "instrument: String should match pattern '^[a-z][a-z0-9_-]*$'",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\\r\\nVOLT 30\", \"channel\": 1, \"volts\": 1.2}",
+   "kind": "schema",
+   "msg": "instrument: String should match pattern '^[a-z][a-z0-9_-]*$'",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": true}",
+   "kind": "schema",
+   "msg": "volts: Input should be a valid number",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": \"1\", \"volts\": 1.2}",
+   "kind": "schema",
+   "msg": "channel: Input should be a valid integer",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": 1.2, \"limit_override\": 30}",
+   "kind": "ok",
+   "msg": "voltage 1.2 V",
+   "writes": [
+    "VOLT 1.200000"
+   ],
+   "sent": 8
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": 1e+308}",
+   "kind": "interlock",
+   "msg": "REFUSED: voltage 1e+308 V exceeds the signed-off limit of 5.5 V",
+   "writes": [],
+   "sent": 4
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": 3300}",
+   "kind": "interlock",
+   "msg": "REFUSED: voltage 3300 V exceeds the signed-off limit of 5.5 V",
+   "writes": [],
+   "sent": 4
+  },
+  {
+   "tool": "set_voltage",
+   "args": "{\"instrument\": \"psu\", \"channel\": 3, \"volts\": 1.0}",
+   "kind": "interlock",
+   "msg": "REFUSED: psu has no channel 3 on this bench (channels: [1, 2])",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "measure_dmm",
+   "args": "{\"instrument\": \"dmm\", \"quantity\": \"voltage_dc; OUTP ON\"}",
+   "kind": "schema",
+   "msg": "quantity: Input should be 'voltage_dc', 'current_dc' or 'resistance'",
+   "writes": [],
+   "sent": 0
+  },
+  {
+   "tool": "send_scpi",
+   "args": "{\"instrument\": \"psu\", \"command\": \"VOLT 30\"}",
+   "kind": "unknown",
+   "msg": "Unknown tool: send_scpi",
+   "writes": [],
+   "sent": 0
+  }
+ ],
+ "tools": [
+  "list_instruments",
+  "set_current_limit",
+  "set_voltage",
+  "output_on",
+  "output_off",
+  "measure_supply",
+  "measure_dmm",
+  "measure_scope",
+  "emergency_stop",
+  "recent_activity"
+ ],
+ "behind": [
+  {
+   "k": "call",
+   "tool": "set_current_limit",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "amps": 0.25
+   },
+   "ok": true,
+   "msg": "current limit 0.25 A",
+   "sent": [
+    "*IDN?",
+    "*CLS",
+    "INST:NSEL 1",
+    "OUTP OFF",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 1",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "CURR 0.000000",
+    "SYST:ERR?",
+    "CURR?",
+    "INST:NSEL 2",
+    "OUTP OFF",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 2",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 2",
+    "CURR 0.000000",
+    "SYST:ERR?",
+    "CURR?",
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "CURR 0.250000",
+    "SYST:ERR?",
+    "CURR?"
+   ]
+  },
+  {
+   "k": "call",
+   "tool": "set_voltage",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "volts": 2.0
+   },
+   "ok": true,
+   "msg": "voltage 2 V (output is off)",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "VOLT 2.000000",
+    "SYST:ERR?",
+    "VOLT?"
+   ]
+  },
+  {
+   "k": "call",
+   "tool": "output_on",
+   "args": {
+    "instrument": "psu",
+    "channel": 1
+   },
+   "ok": true,
+   "msg": "output on at 0 V, then ramped to 2 V in 4 steps",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "OUTP ON",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 1",
+    "VOLT 0.500000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "VOLT 1.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "VOLT 1.500000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "VOLT 2.000000",
+    "SYST:ERR?",
+    "VOLT?"
+   ]
+  },
+  {
+   "k": "panel",
+   "line": "INST:NSEL 1;VOLT 2.4",
+   "reply": [],
+   "v_set": 2.4,
+   "on": true
+  },
+  {
+   "k": "call",
+   "tool": "set_voltage",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "volts": 2.5
+   },
+   "ok": false,
+   "msg": "REFUSED: psu channel 1 no longer held what it was last told (changed outside bench-mcp, or reset); it has been put back in a safe state: output off, 0 V, current limit unset",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "OUTP OFF",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 1",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "CURR 0.000000",
+    "SYST:ERR?",
+    "CURR?"
+   ]
+  },
+  {
+   "k": "state",
+   "v_set": 0.0,
+   "on": false,
+   "i_set": 0.0
+  },
+  {
+   "k": "call",
+   "tool": "output_on",
+   "args": {
+    "instrument": "psu",
+    "channel": 1
+   },
+   "ok": false,
+   "msg": "REFUSED: set a current limit before turning the output on",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?"
+   ]
+  },
+  {
+   "k": "call",
+   "tool": "set_current_limit",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "amps": 0.25
+   },
+   "ok": true,
+   "msg": "current limit 0.25 A",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "CURR 0.250000",
+    "SYST:ERR?",
+    "CURR?"
+   ]
+  },
+  {
+   "k": "call",
+   "tool": "set_voltage",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "volts": 1.0
+   },
+   "ok": true,
+   "msg": "voltage 1 V (output is off)",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "VOLT 1.000000",
+    "SYST:ERR?",
+    "VOLT?"
+   ]
+  },
+  {
+   "k": "call",
+   "tool": "output_on",
+   "args": {
+    "instrument": "psu",
+    "channel": 1
+   },
+   "ok": true,
+   "msg": "output on at 0 V, then ramped to 1 V in 2 steps",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "OUTP ON",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 1",
+    "VOLT 0.500000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "VOLT 1.000000",
+    "SYST:ERR?",
+    "VOLT?"
+   ]
+  },
+  {
+   "k": "panel",
+   "line": "*RST",
+   "reply": [],
+   "v_set": 0.0,
+   "on": false
+  },
+  {
+   "k": "call",
+   "tool": "set_voltage",
+   "args": {
+    "instrument": "psu",
+    "channel": 1,
+    "volts": 1.2
+   },
+   "ok": false,
+   "msg": "REFUSED: psu channel 1 no longer held what it was last told (changed outside bench-mcp, or reset); it has been put back in a safe state: output off, 0 V, current limit unset",
+   "sent": [
+    "INST:NSEL 1",
+    "OUTP?",
+    "VOLT?",
+    "CURR?",
+    "INST:NSEL 1",
+    "OUTP OFF",
+    "SYST:ERR?",
+    "OUTP?",
+    "INST:NSEL 1",
+    "VOLT 0.000000",
+    "SYST:ERR?",
+    "VOLT?",
+    "INST:NSEL 1",
+    "CURR 0.000000",
+    "SYST:ERR?",
+    "CURR?"
+   ]
+  }
+ ],
+ "estop": {
+  "events": [
+   [
+    0,
+    "call",
+    {
+     "tool": "output_on",
+     "args": {
+      "instrument": "psu",
+      "channel": 1
+     }
+    }
+   ],
+   [
+    0,
+    "decision",
+    {
+     "channel": 1,
+     "request": "OutputOn()",
+     "allowed": true,
+     "reason": "output on at 0 V, then ramped to 5 V in 10 steps",
+     "steps": 12
+    }
+   ],
+   [
+    0,
+    "wire",
+    "VOLT 0.000000"
+   ],
+   [
+    0,
+    "wire",
+    "OUTP ON"
+   ],
+   [
+    0,
+    "wire",
+    "VOLT 0.500000"
+   ],
+   [
+    101,
+    "wire",
+    "VOLT 1.000000"
+   ],
+   [
+    202,
+    "wire",
+    "VOLT 1.500000"
+   ],
+   [
+    300,
+    "call",
+    {
+     "tool": "emergency_stop",
+     "args": {}
+    }
+   ],
+   [
+    300,
+    "estop",
+    {
+     "phase": "latched"
+    }
+   ],
+   [
+    301,
+    "wire",
+    "OUTP OFF"
+   ],
+   [
+    301,
+    "wire",
+    "OUTP OFF"
+   ],
+   [
+    301,
+    "estop",
+    {
+     "phase": "done",
+     "report": {
+      "psu": "outputs off"
+     }
+    }
+   ],
+   [
+    303,
+    "refused",
+    {
+     "tool": "output_on",
+     "reason": "emergency stop during the operation; 5 of 12 steps were sent"
+    }
+   ],
+   [
+    303,
+    "call",
+    {
+     "tool": "output_on",
+     "args": {
+      "instrument": "psu",
+      "channel": 1
+     }
+    }
+   ],
+   [
+    304,
+    "decision",
+    {
+     "channel": 1,
+     "request": "OutputOn()",
+     "allowed": false,
+     "reason": "emergency stop is latched; only a person restarting the server clears it",
+     "steps": 0
+    }
+   ],
+   [
+    304,
+    "refused",
+    {
+     "tool": "output_on",
+     "reason": "emergency stop is latched; only a person restarting the server clears it"
+    }
+   ],
+   [
+    304,
+    "call",
+    {
+     "tool": "set_voltage",
+     "args": {
+      "instrument": "psu",
+      "channel": 1,
+      "volts": 1.0
+     }
+    }
+   ],
+   [
+    304,
+    "decision",
+    {
+     "channel": 1,
+     "request": "SetVoltage(volts=1.0)",
+     "allowed": false,
+     "reason": "emergency stop is latched; only a person restarting the server clears it",
+     "steps": 0
+    }
+   ],
+   [
+    304,
+    "refused",
+    {
+     "tool": "set_voltage",
+     "reason": "emergency stop is latched; only a person restarting the server clears it"
+    }
+   ],
+   [
+    304,
+    "call",
+    {
+     "tool": "set_current_limit",
+     "args": {
+      "instrument": "psu",
+      "channel": 1,
+      "amps": 0.1
+     }
+    }
+   ],
+   [
+    305,
+    "decision",
+    {
+     "channel": 1,
+     "request": "SetCurrentLimit(amps=0.1)",
+     "allowed": false,
+     "reason": "emergency stop is latched; only a person restarting the server clears it",
+     "steps": 0
+    }
+   ],
+   [
+    305,
+    "refused",
+    {
+     "tool": "set_current_limit",
+     "reason": "emergency stop is latched; only a person restarting the server clears it"
+    }
+   ],
+   [
+    305,
+    "call",
+    {
+     "tool": "output_off",
+     "args": {
+      "instrument": "psu",
+      "channel": 1
+     }
+    }
+   ],
+   [
+    305,
+    "decision",
+    {
+     "channel": 1,
+     "request": "OutputOff()",
+     "allowed": true,
+     "reason": "output off",
+     "steps": 1
+    }
+   ],
+   [
+    305,
+    "wire",
+    "OUTP OFF"
+   ],
+   [
+    305,
+    "result",
+    {
+     "tool": "output_off",
+     "result": {
+      "done": "output off",
+      "commands_sent": 1,
+      "voltage_setpoint": 1.5,
+      "current_limit": 0.3,
+      "output_on": false
+     }
+    }
+   ],
+   [
+    306,
+    "call",
+    {
+     "tool": "list_instruments",
+     "args": {}
+    }
+   ]
+  ],
+  "ramp_reply": "REFUSED: emergency stop during the operation; 5 of 12 steps were sent",
+  "after": [
+   {
+    "tool": "output_on",
+    "args": {},
+    "ok": false,
+    "text": "REFUSED: emergency stop is latched; only a person restarting the server clears it"
+   },
+   {
+    "tool": "set_voltage",
+    "args": {
+     "volts": 1.0
+    },
+    "ok": false,
+    "text": "REFUSED: emergency stop is latched; only a person restarting the server clears it"
+   },
+   {
+    "tool": "set_current_limit",
+    "args": {
+     "amps": 0.1
+    },
+    "ok": false,
+    "text": "REFUSED: emergency stop is latched; only a person restarting the server clears it"
+   }
+  ],
+  "off": {
+   "done": "output off",
+   "commands_sent": 1,
+   "voltage_setpoint": 1.5,
+   "current_limit": 0.3,
+   "output_on": false
+  }
+ },
+ "config": [
+  {
+   "file": "typo.toml",
+   "change": "max_voltage spelled max_voltge",
+   "out": "bench-mcp: instrument 'psu' channel: unknown key 'max_voltge' (allowed: max_current, max_slew, max_voltage, number, ramp_step)",
+   "exit": 2
+  },
+  {
+   "file": "nan.toml",
+   "change": "max_current = nan",
+   "out": "bench-mcp: instrument 'psu' channel 1 max_current must be a positive finite number, got nan",
+   "exit": 2
+  },
+  {
+   "file": "str.toml",
+   "change": "max_current = \"1A\"",
+   "out": "bench-mcp: instrument 'psu' channel 1 max_current must be a number, got '1A'",
+   "exit": 2
+  },
+  {
+   "file": "nosign.toml",
+   "change": "the by line deleted from [signoff]",
+   "out": "bench-mcp: [signoff]: missing 'by'",
+   "exit": 2
+  },
+  {
+   "file": "ramp.toml",
+   "change": "ramp_step = 20.0",
+   "out": "bench-mcp: instrument 'psu' channel 1 ramp_step is larger than max_voltage",
+   "exit": 2
+  },
+  {
+   "file": "dut.toml",
+   "change": "powered_by = [\"psu:3\"]",
+   "out": "bench-mcp: [dut] powered_by psu:3: no such power supply channel",
+   "exit": 2
+  }
+ ],
+ "check": [
+  "examples/bench.toml: ok (sha256 b7422a963151deb2…), signed off by A. Hashim on 2026-10-13",
+  "device under test: sensor-board-revB on psu:1",
+  "psu      psu    tcp://127.0.0.1:5025",
+  "         channel 1: ≤ 5.5 V, ≤ 0.3 A, steps ≤ 0.5 V at ≤ 5 V/s while on",
+  "         channel 2: ≤ 24 V, ≤ 2 A, steps ≤ 1 V at ≤ 10 V/s while on",
+  "dmm      dmm    tcp://127.0.0.1:5026",
+  "scope    scope  tcp://127.0.0.1:5027",
+  "rate limit 120/min, readback checks on, audit log examples/audit.jsonl"
+ ],
+ "mut": [
+  {
+   "mutation": "no ramp on a live change",
+   "old": "steps = ramp(state.voltage, v, limits)",
+   "new": "steps = (Step('voltage', v),)",
+   "caught": true,
+   "violation": "['dwell 0.0 s too short for 1.0 V at 1.0 V/s']",
+   "secs": 1.85
+  },
+  {
+   "mutation": "output on straight into the setpoint",
+   "old": "if state.voltage <= limits.ramp_step + EPS:",
+   "new": "if True:",
+   "caught": true,
+   "violation": "['output on into 1.0 V']",
+   "secs": 1.47
+  },
+  {
+   "mutation": "no slew dwell",
+   "old": "abs(v - prev) / limits.max_slew))",
+   "new": "0.0))",
+   "caught": true,
+   "violation": "['dwell 0.0 s too short for 1.0 V at 1.0 V/s']",
+   "secs": 0.95
+  },
+  {
+   "mutation": "limit doubled",
+   "old": "if v > ceiling + EPS:",
+   "new": "if v > ceiling * 2 + EPS:",
+   "caught": true,
+   "violation": "['current 1.0 outside [0, 0.5]']",
+   "secs": 3.42
+  },
+  {
+   "mutation": "output on without a current limit",
+   "old": "if not state.current_limit_set:",
+   "new": "if False:",
+   "caught": true,
+   "violation": "['output on without a chosen current limit']",
+   "secs": 0.75
+  },
+  {
+   "mutation": "emergency stop not latched",
+   "old": "if latched:",
+   "new": "if False:",
+   "caught": true,
+   "violation": "[\"after an emergency stop: Step(kind='voltage', value=0.0, dwell_s=0.0)\"]",
+   "secs": 0.86
+  }
+ ]
+}

@@ -1,0 +1,122 @@
+/* Shared bits for this page */
+.gg-seg { display: flex; padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+.gg-out { margin-top: 14px; min-height: 0; }
+.gg-out > span:empty::before { content: " "; }
+.gg-out .err { color: var(--t-err); }
+.gg-out .ok { color: #9FE0B5; }
+.gg-pad { margin: 0 16px 16px; }
+.gg-note, .gg-run-n { transition: opacity .4s; }
+.gg-note.is-off, .gg-run-n.is-off { opacity: 0; }
+
+/* Maps: drawn in metres, north up, scaled by the viewBox */
+.gg-mapwrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 16px; align-items: start; padding: 16px 16px 14px; }
+.gg-mapwrap .gg-map { max-width: 680px; }
+.gg-map svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gg-band { fill: color-mix(in srgb, var(--yellow) 42%, var(--chalk)); }
+.gg-in { fill: var(--chalk); }
+.gg-fence { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linejoin: miter; }
+.gg-keep { fill: color-mix(in srgb, var(--yellow) 42%, var(--chalk)); }
+.gg-mast { fill: var(--red); stroke: var(--ink); stroke-width: 1.2; }
+.gg-leg { stroke-width: 3.4; stroke-linecap: round; transition: opacity .35s; }
+.gg-leg.is-ok { stroke: var(--green); }
+.gg-leg.is-bad, .gg-leg.is-flown { stroke: var(--red); }
+.gg-leg.is-refused { stroke-dasharray: 7 6; }
+.gg-leg.is-next { stroke-dasharray: 1 6; stroke-width: 3.6; }
+.gg-out-seg { stroke: var(--red); stroke-width: 9; stroke-linecap: round; opacity: .3; transition: opacity .4s; }
+.gg-out-seg.is-off { opacity: 0; }
+.gg-veh { fill: var(--ink); stroke: var(--chalk); stroke-width: 2; }
+.gg-tgt { fill: var(--chalk); stroke: var(--green); stroke-width: 2.4; transition: opacity .35s; }
+.gg-tgt.is-bad { stroke: var(--red); }
+.gg-x { fill: var(--red); stroke: var(--chalk); stroke-width: 1.5; transition: opacity .3s, transform .3s; transform-box: fill-box; transform-origin: center; }
+.gg-hold { fill: none; stroke: var(--red); stroke-width: 2.6; transition: opacity .3s; }
+.gg-gap { stroke: var(--red); stroke-width: 1.6; transition: opacity .3s; }
+.gg-lab { font: 650 12px var(--sans); fill: var(--ink); transition: opacity .3s; }
+.gg-lab-bad { fill: var(--red); }
+.gg-x.is-off { opacity: 0; transform: scale(.3); }
+.gg-tgt.is-off, .gg-hold.is-off, .gg-gap.is-off, .gg-lab.is-off { opacity: 0; }
+.gg-side { display: grid; gap: 14px; align-content: start; font-size: var(--fs-sm); }
+.gg-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); }
+.gg-legend li { display: flex; align-items: center; gap: 8px; }
+.gg-k { display: inline-block; flex: none; width: 18px; height: 12px; }
+.gg-k-fence { border: 2px solid var(--ink); background: var(--chalk); }
+.gg-k-band { background: color-mix(in srgb, var(--yellow) 42%, var(--chalk)); border: 1px solid var(--paint-edge); }
+.gg-k-mast { background: var(--red); border: 1px solid var(--ink); }
+.gg-k-ok, .gg-k-bad { height: 4px; background: var(--green); }
+.gg-k-bad { background: var(--red); }
+.gg-note { line-height: 1.5; }
+@media (max-width: 759px) { .gg-mapwrap { grid-template-columns: minmax(0, 1fr); padding: 12px; } }
+
+/* 1. Envelope */
+.gg-file { list-style: none; margin: 0; padding: 8px 0; background: var(--field); border: 1px solid var(--rule); font: 400 12px/1.5 var(--mono); }
+.gg-file li { display: grid; grid-template-columns: 2.6em minmax(0, 1fr); transition: background-color .3s; }
+.gg-file li > span { padding-right: 10px; text-align: right; color: var(--ink-2); user-select: none; }
+.gg-file code { padding: 0 8px 0 0; border: 0; background: transparent; font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gg-file li.is-mark { background: color-mix(in srgb, var(--yellow) 50%, var(--field)); box-shadow: inset 3px 0 0 var(--paint-edge); }
+.gg-tally { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin: 14px 0 0; border: 1px solid var(--rule); }
+.gg-tally div { padding: 10px 14px 12px; }
+.gg-tally div + div { border-left: 1px solid var(--rule); }
+.gg-tally dt { font-size: var(--fs-xs); color: var(--ink-2); }
+.gg-tally dd { margin: 2px 0 0; font: 750 1.75rem/1 var(--sans); font-variation-settings: "wdth" 90; font-variant-numeric: tabular-nums; }
+.gg-tally div:first-child dd { color: var(--green); }
+.gg-tally div + div dd { color: var(--red); }
+
+/* 2. Checks */
+.gg-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.gg-checks li { display: grid; grid-template-columns: minmax(0, 13.5em) minmax(0, 1fr) 5.6em; gap: 4px 12px; align-items: center; padding: 6px 10px; border: 1px solid var(--rule); background: var(--field); font-size: 13.5px; line-height: 1.35; transition: background-color .25s, border-color .25s, opacity .25s; }
+.gg-checks li.is-hard { border-left: 4px solid var(--ink); }
+.gg-checks code { justify-self: start; font-size: 12px; }
+.gg-checks b { justify-self: end; font-size: 12.5px; font-weight: 700; }
+.gg-checks li[data-st="ok"] b { color: var(--green); }
+.gg-checks li[data-st="bad"] { background: color-mix(in srgb, var(--red) 14%, var(--field)); border-color: var(--red); }
+.gg-checks li[data-st="bad"] b { color: var(--red); }
+.gg-checks li[data-st="skip"] { opacity: .45; }
+.gg-checks li[data-st="skip"] b { color: var(--ink-2); font-weight: 600; }
+@media (max-width: 699px) {
+  .gg-checks li { grid-template-columns: minmax(0, 1fr) auto; }
+  .gg-checks li > span { grid-column: 1 / -1; grid-row: 2; color: var(--ink-2); font-size: 13px; }
+}
+
+/* 4. Recovery */
+.gg-cross { margin: 0; display: grid; gap: 0; border: 1px solid var(--rule); }
+.gg-cross div { padding: 8px 12px 10px; }
+.gg-cross div + div { border-top: 1px solid var(--rule); }
+.gg-cross dt { font-size: var(--fs-xs); color: var(--ink-2); }
+.gg-cross dd { margin: 2px 0 0; min-height: 1.4em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gg-cross dd.is-pos { color: var(--green); }
+.gg-cross dd.is-neg { color: var(--red); }
+
+/* 5. Node output */
+.gg-lanes { display: grid; grid-template-columns: minmax(0, 1fr) 6.5em minmax(0, 1fr); gap: 10px; margin-bottom: 8px; font: 500 12px var(--mono); color: var(--ink-2); }
+.gg-lanes span:nth-child(2) { text-align: center; }
+.gg-events { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.gg-ev { padding: 10px 12px 12px; border: 1px solid var(--rule-soft); background: var(--panel); transition: opacity .35s, transform .35s; }
+.gg-ev.is-off { opacity: 0; transform: translateY(8px); }
+.gg-row { display: grid; grid-template-columns: minmax(0, 1fr) 6.5em minmax(0, 1fr); gap: 10px; align-items: center; }
+.gg-in, .gg-outv { font: 500 12.5px/1.4 var(--mono); transition: opacity .35s, transform .35s; }
+.gg-in.is-off { opacity: 0; transform: translateX(-14px); }
+.gg-outv.is-off { opacity: 0; transform: translateX(-14px); }
+.gg-act { justify-self: center; padding: 3px 10px; border: 1.5px solid var(--ink); font-size: 13px; font-weight: 700; transition: opacity .3s, transform .3s; }
+.gg-act.is-off { opacity: 0; transform: scale(.7); }
+.is-forward .gg-act { background: var(--green); border-color: var(--green); color: var(--panel); }
+.is-hold .gg-act { background: var(--yellow); border-color: var(--paint-edge); color: var(--on-paint); }
+.is-drop .gg-act { background: transparent; border-style: dashed; color: var(--ink-2); }
+.is-drop .gg-outv { color: var(--ink-2); }
+.gg-json { display: block; margin-top: 8px; padding: 4px 8px; font-size: 11.5px; line-height: 1.5; color: var(--ink-2); white-space: normal; overflow-wrap: anywhere; transition: opacity .35s; }
+.gg-json.is-off { opacity: 0; }
+@media (max-width: 599px) {
+  .gg-lanes { display: none; }
+  .gg-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .gg-outv { grid-column: 1 / -1; }
+  .gg-in::before { content: "in: "; color: var(--ink-2); }
+  .gg-outv::before { content: "out: "; color: var(--ink-2); }
+}
+
+/* 6. SITL */
+.gg-twin { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+.gg-run { display: grid; gap: 8px; align-content: start; }
+.gg-run-h { font-weight: 700; }
+.gg-run-n { font-size: var(--fs-sm); min-height: 3em; }
+.gg-sstats dd { font-size: 1.125rem; }
+.gg-sstats dd span.is-neg { color: var(--red); }
+.gg-sstats dd span.is-pos { color: var(--green); }
+@media (max-width: 699px) { .gg-twin { grid-template-columns: minmax(0, 1fr); } }

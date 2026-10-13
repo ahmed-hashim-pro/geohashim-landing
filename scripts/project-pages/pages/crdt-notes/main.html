@@ -1,0 +1,362 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">crdt-notes</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A local-first notes app. Every browser keeps the whole notebook, works with no network at all, and merges with the others when it can reach them. The merging is a CRDT written from scratch in TypeScript, and a fuzzer checks that replicas converge under a hostile network.</p>
+            <p>“Eventually consistent” is easy to claim and hard to check. A CRDT that merges correctly in every demo can still diverge when two edits land on the same character, a delete overtakes the insert it deletes, or a message turns up twice. So convergence is treated as a claim to test, and six known ways to get it wrong sit behind switches to prove the test would notice.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/crdt-notes">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/crdt-notes#how-the-convergence-is-checked">How convergence is checked</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>TypeScript, Node 22.22+</dd>
+              <dt>Tests</dt><dd>32 unit tests and 2 browser tests, passing</dd>
+              <dt>CRDT dependencies</dt><dd>None at runtime</dd>
+              <dt>App</dt><dd>Angular with signals, IndexedDB</dd>
+              <dt>Fuzzer</dt><dd>5,000 seeds and 6 deliberate bugs in CI</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="mutants">Mutants</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="hunt">Hunt</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="replay">Replay</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">npm run fuzz -- mutants --seeds 2000</span>
+<span class="out">variant                   result   first seed  seeds failed  caught by</span>
+<span class="out">correct                   clean    -           0 of 2000     every check held</span>
+</div>
+            </div>
+            <p class="term-cap">All three are real runs at commit <code>cdbf0e3</code> on Node 22. npm's banner lines are left out and vitest's paths shortened; times are this machine's.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an edit moves through crdt-notes">
+          <div class="sign-group">
+            <p>In each replica: ops and merge rules</p>
+            <ol>
+              <li><a class="sign-link" href="#s-ops"><b>1</b> Ops</a></li>
+              <li><a class="sign-link" href="#s-rga"><b>2</b> Text</a></li>
+              <li><a class="sign-link" href="#s-meta"><b>3</b> Title, tags</a></li>
+              <li><a class="sign-link" href="#s-causal"><b>4</b> Causal</a></li>
+              <li><a class="sign-link" href="#s-fuzz"><b>5</b> Fuzzer</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: across the network</p>
+            <ol>
+              <li><a class="sign-link" href="#s-relay"><b>6</b> Relay</a></li>
+              <li><a class="sign-link" href="#s-browsers"><b>7</b> Browsers</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ops" aria-labelledby="h-ops">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-ops"><span class="num" data-mark="1">1</span>Every edit is an op with an id</h2>
+          <p>A replica holds every note, and every change is an op: create a note, set a title, add or remove a tag, insert text, delete text. A replica's state is just its ops, applied in order, so there is no merge function to get wrong.</p>
+          <ul class="st-points">
+            <li>Each op has a Lamport id: a counter bigger than any the replica has seen, plus the replica's id to break ties. Ids are unique and totally ordered, and an op's id is greater than that of anything it could have known about.</li>
+            <li>An insert of four characters takes four ids, so the next op's counter jumps past them.</li>
+            <li>An insert names the character it goes after, never an index. Indexes shift under concurrent edits; ids don't.</li>
+            <li>A delete only marks its characters as deleted. The tombstone stays in the sequence.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-ops" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five edits on replica <code>a</code> <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="cn-ops" id="cn-ops"></ol>
+              <p class="cn-k cn-gap">The note's sequence, tombstones included</p>
+              <div class="cn-seq" id="cn-seq" aria-live="polite"></div>
+              <p class="cn-text">Visible text <code id="cn-ops-text">""</code></p>
+            </div>
+            <figcaption class="demo-note">The five edits were picked for this page. Every op is printed exactly as the repo's <code>Replica</code> made it, and the sequence line is its own snapshot: <code>3@a ~4@a 5@a 6@a</code>, where <code>~</code> marks the deleted “i”.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-rga" aria-labelledby="h-rga">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-rga"><span class="num" data-mark="2">2</span>Concurrent inserts: the greater id goes first</h2>
+          <p>Text is a sequence CRDT called RGA, the Replicated Growable Array. Each character is an element with an id. When two replicas insert after the same character at once, the greater id goes first, and everything typed after it stays with it.</p>
+          <ul class="st-points">
+            <li>A new character goes right after its anchor, then skips over any run of characters with greater ids. Every replica makes that choice the same way, whatever order the ops arrived in.</li>
+            <li>Because a deleted character stays as a tombstone, an insert typed next to a character someone else just deleted still has something to anchor to.</li>
+            <li>Typing forward keeps runs together: “apples” and “pears” typed at once at one spot came out <code>pearsapples</code> on both sides, not interleaved.</li>
+          </ul>
+          <p class="why">The switch turns on one of the repo's deliberate bugs. Each is a real flag on the same <code>Replica</code> class, there so the fuzzer can prove it would notice.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-rga" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Same ops, two delivery orders <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Replica">
+                <button type="button" data-mode="ok" aria-pressed="true">Correct replica</button>
+                <button type="button" data-mode="bug" aria-pressed="false">With the bug</button>
+              </div>
+            </div>
+            <div class="demo-body cn-cases" id="cn-rga"></div>
+            <figcaption class="demo-note">The words were picked for this page; every id, order and result comes from running the repo's <code>Replica</code>. The bugs are <code>arrivalOrderTieBreak</code> for the first case and <code>forgetTombstones</code> for the second.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-meta" aria-labelledby="h-meta">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-meta"><span class="num" data-mark="3">3</span>Titles keep the highest id, tags let adds win</h2>
+          <p>A note's title and its deleted flag are last-writer-wins registers: the value with the greatest op id wins, wherever and whenever it arrives. Tags are an observed-remove set.</p>
+          <ul class="st-points">
+            <li>Deleting a note is a flag, so it can be undone, and an edit made offline to a note someone else deleted isn't lost.</li>
+            <li>A tag removal lists the adds its replica had seen, and cancels only those. A tag added concurrently with its removal survives.</li>
+            <li>“Last writer” means the greatest id, not the last op to arrive. Arrival order differs from replica to replica; ids don't.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-meta" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two races on one note <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" role="group" aria-label="Replica">
+                <button type="button" data-mode="ok" aria-pressed="true">Correct replica</button>
+                <button type="button" data-mode="bug" aria-pressed="false">With the bug</button>
+              </div>
+            </div>
+            <div class="demo-body cn-cases" id="cn-meta"></div>
+            <figcaption class="demo-note">Values picked for this page, run on the repo's <code>Replica</code>; the ops and results are as printed. The bugs are <code>lwwByArrival</code> and <code>removeUnobserved</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-causal" aria-labelledby="h-causal">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-causal"><span class="num" data-mark="4">4</span>Hold each op until what it depends on has arrived</h2>
+          <p>Each op carries the version vector of what its replica had applied. A receiver holds an op until everything it depends on is there, so an insert never arrives before the character it follows, and a delete never before what it deletes.</p>
+          <ul class="st-points">
+            <li>An op is ready when it is the next one from its replica and every count in its version vector is already met. Applying one can release others that were waiting.</li>
+            <li>Duplicates are recognised by replica and sequence number, and ignored.</li>
+            <li>The same rule rebuilds a replica after a reload: the app replays its op log from IndexedDB.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-causal" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Out of order, then twice <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="cn-mail">
+                <div class="cn-box"><p class="cn-k">Arriving at replica <code>b</code></p><ol class="cn-arr" id="cn-arr"></ol></div>
+                <div class="cn-box cn-wait"><p class="cn-k">Waiting</p><div class="cn-slot" id="cn-wait"></div></div>
+                <div class="cn-box"><p class="cn-k">Applied</p><div class="cn-slot" id="cn-applied"></div></div>
+              </div>
+              <div class="cn-mt" id="cn-causal-log"></div>
+              <p class="cn-k cn-gap">The two bugs this rules out, same kind of input</p>
+              <dl class="cn-bugs" id="cn-cbugs">
+                <div><dt><code>noCausalBuffer</code>: “c” arrives before “ab”</dt><dd><span>sender <code>"abc"</code></span><span class="cn-bad">receiver <code>"c"</code></span></dd></div>
+                <div><dt><code>acceptDuplicates</code>: each op delivered twice</dt><dd><span>sender <code>"once"</code></span><span class="cn-bad">receiver <code>"onceonce"</code></span></dd></div>
+              </dl>
+            </div>
+            <figcaption class="demo-note">Return values, pending counts and text are what the repo's <code>Replica</code> printed. Without the buffer, “c” was applied with its anchor missing, then “ab” looked already seen by sequence number and was dropped.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-fuzz" aria-labelledby="h-fuzz">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-fuzz"><span class="num" data-mark="5">5</span>Call it converged only after five checks on a hostile network</h2>
+          <p>This is the line. Replicas that agree in one demo prove little, so the claim “these converge” is held back until a fuzzer has attacked it. A seed describes a whole run: 2 to 5 replicas editing a few notes while a network delays, reorders, drops and duplicates their ops, and partitions come and go. Then the network heals, and five checks run.</p>
+          <ul class="st-points">
+            <li>Each seed draws its own profile, so some runs are calm and some are a storm of one kind: drops and duplicates up to 30% each.</li>
+            <li>Convergence alone is easy to fake. Replicas that ignore every remote op all agree, on nothing. That is why nothing lost and local intent are checks too.</li>
+            <li>Convergence compares tombstones and their order. With the arrival-order bug, seed 7 diverges with identical visible text; the next insert near those characters would have shown it.</li>
+            <li><code>npm test</code> fails if any deliberate bug survives 200 seeds. CI runs the correct build on 5,000.</li>
+          </ul>
+          <p class="why">The fuzzer is evidence, not proof, and the README says so. The mutants show it would catch these six mistakes; a mechanised proof would show there are no others.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-fuzz" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The correct CRDT and six deliberate bugs, 2,000 seeds each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="cn-checks" id="cn-checks">
+                <li><b>Convergence</b><span>every replica's state is identical, tombstones and their order included</span></li>
+                <li><b>Order independence</b><span>a fresh replica fed every op in a random order, twice, reaches the same state</span></li>
+                <li><b>Nothing lost</b><span>the visible characters are exactly those inserted and never deleted, each once</span></li>
+                <li><b>Local intent</b><span>every local edit does what a plain string edit would</span></li>
+                <li><b>Nothing stuck</b><span>no replica is left holding ops it can't apply</span></li>
+              </ol>
+              <div class="cn-mut" id="cn-mut" role="table" aria-label="Seeds failed per variant, and which check caught them"></div>
+              <div class="cn-legend" id="cn-legend"></div>
+            </div>
+            <dl class="gstats" id="cn-gstats">
+              <div><dt>Seeds, correct CRDT</dt><dd class="is-pos">5,000 clean</dd></div>
+              <div><dt>Ops made</dt><dd>1,590,686</dd></div>
+              <div><dt>Dropped</dt><dd>1,096,483</dd></div>
+              <div><dt>Duplicated</dt><dd>460,050</dd></div>
+              <div><dt>Partitions</dt><dd>14,767</dd></div>
+            </dl>
+            <figcaption class="demo-note">The table is <code>npm run fuzz -- mutants --seeds 2000</code>, and it matches the README's. The split by check and the totals over seeds 1 to 5,000 were counted for this page by calling the repo's own <code>fuzz()</code> on every seed. Dropped includes ops lost to partitions.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line every replica lives in one process and the fuzzer plays the network. Below it, ops leave the replica: through a relay that decides nothing, into real browsers that go offline and come back.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-relay" aria-labelledby="h-relay">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-relay"><span class="num" data-mark="6">6</span>Store and forward, with no authority</h2>
+          <p>The relay stores ops and forwards them. It doesn't merge, order or reject anything, and it doesn't have to stay up. It can lose its data without losing an edit, as long as some replica still holds it.</p>
+          <ul class="st-points">
+            <li>On connect, each side sends its version vector and receives what it lacks. After that, new ops are forwarded to everyone but the sender, as they arrive.</li>
+            <li>Ops go to an append-only file and are reloaded on start. A torn last line from a crash is skipped; the replica still has that op.</li>
+            <li>Garbage closes the socket instead of crashing the relay. It is 177 lines on <code>ws</code>, and it also serves the built app, so <code>npm start</code> is the whole demo.</li>
+          </ul>
+          <p class="why">No authentication or encryption: anyone who can reach the relay can read and write every note. The README says a real deployment would put it behind auth, and could encrypt ops end to end, since the relay never reads them.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-relay" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two clients, a restart, a newcomer <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="cn-wire" id="cn-wire" aria-live="polite"></ol>
+              <p class="cn-store"><span>Relay stores</span><b id="cn-stored">0 ops</b></p>
+            </div>
+            <figcaption class="demo-note">A script written for this page started the repo's relay, unchanged, and connected <code>ws</code> clients backed by real replicas. Every message is as sent, with each op shortened to its type, id and sequence number. B's second send of the same op was stored once and forwarded to no one.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-browsers" aria-labelledby="h-browsers">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-browsers"><span class="num" data-mark="7">7</span>Two browsers edit offline, then agree</h2>
+          <p>The Playwright test runs the real app against the real relay in two browser contexts with separate storage. Both go offline, both edit the same note, and both come back.</p>
+          <ul class="st-points">
+            <li>Every keystroke becomes at most one delete and one insert, diffed against the current text.</li>
+            <li>When a remote edit changes the text you are typing in, your cursor stays next to the same characters, not at the same offset. The selection is held as the ids of the characters before each end.</li>
+            <li>The notes live in IndexedDB: the test reloads a page while offline and the merged note is still there. A second test makes an edit with the relay unreachable and checks it arrives later.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-browsers" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The end-to-end test, step by step</p>
+              {{REPLAY}}
+            </div>
+            <ol class="pipe cn-steps" id="cn-steps">
+              <li><b>Online</b><span>A writes, B sees it as it is typed</span></li>
+              <li><b>Both offline</b><span>each edits its own copy</span></li>
+              <li><b>Back online</b><span>both copies merge</span></li>
+            </ol>
+            <div class="demo-body cn-two" id="cn-two">
+              <div class="cn-tab" data-side="a"><p class="cn-tab-head"><b>Browser A</b><span class="cn-net" data-net>online</span></p><p class="cn-ttl" data-title></p><pre class="cn-pad" data-body></pre><p class="cn-tags" data-tags></p></div>
+              <div class="cn-tab" data-side="b"><p class="cn-tab-head"><b>Browser B</b><span class="cn-net" data-net>online</span></p><p class="cn-ttl" data-title></p><pre class="cn-pad" data-body></pre><p class="cn-tags" data-tags></p></div>
+            </div>
+            <figcaption class="demo-note">Text, title and tag are the test's own inputs and the values it asserts. The merged order, coffee before bread, is what six captured runs produced: B's ids were higher because it typed more first. The test only requires both lines, in the same place on both sides.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">32 unit tests, 2 browser tests</h2>
+          <p>Counted with <code>npm test</code> (vitest, in the CRDT package and the relay) and <code>npm run e2e</code> (Playwright). No network beyond localhost, no keys.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>What they pin</h3>
+            <ul>
+              <li><strong>The CRDT:</strong> local edits behave like a string, surrogate pairs included; concurrent inserts, typed runs that don't interleave, an insert next to a concurrent delete, title races, add-wins tags, delete and restore.</li>
+              <li><strong>Delivery:</strong> causal buffering, including a dependency through a third replica; duplicates ignored; a replica rebuilt from its op log keeps numbering where it left off.</li>
+              <li><strong>The fuzzer itself:</strong> 500 seeds clean, the same result for the same seed, runs that are actually hostile (over 100 seeds: more than 10,000 ops, 2,000 dropped, 1,000 duplicated, 50 partitions), and each of the six bugs caught.</li>
+              <li><strong>The relay:</strong> forwards but doesn't echo, a newcomer gets exactly what it lacks, each op stored once, restart from the data file, garbage closes the socket, no path traversal.</li>
+              <li><strong>A known limit:</strong> one test pins that RGA interleaves concurrent backward typing, so a change in that behaviour is noticed.</li>
+            </ul>
+            <p>CI runs typecheck, tests and the build on Node 22 and 24, the 5,000-seed hunt and the mutant table, and the Playwright tests in Chromium.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Backward typing</dt><dd>Two people typing at the same spot by repeatedly inserting at the start can interleave. Fugue avoids this and RGA doesn't. Two strings typed backwards at once came out <code>xaybzc</code>.</dd></div>
+              <div><dt>Garbage collection</dt><dd>Tombstones and the op log are kept forever. Collecting them needs to know every replica has seen a delete, which takes membership tracking this project doesn't do.</dd></div>
+              <div><dt>Rich text</dt><dd>Plain text only. No formatting marks and no move operation: moving a paragraph is a delete plus an insert.</dd></div>
+              <div><dt>Authentication</dt><dd>None on the relay, and no encryption. Anyone who can reach it can read and write every note.</dd></div>
+              <div><dt>Long documents</dt><dd>One element per character is fine for notes. A book would want run-length encoded elements.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/crdt-notes &amp;&amp; cd crdt-notes
+npm ci
+npm test
+npm run build
+npm start
+
+<span class="c"># Open http://127.0.0.1:8787 in two browsers, or a normal and a private window.</span>
+<span class="c"># The switch at the top right takes either one offline.</span>
+
+npm run fuzz -- mutants --seeds 2000
+npm run fuzz -- run --seed 7 --bug arrival-order-tie-break
+
+npx playwright install --with-deps chromium
+npm run e2e</pre>
+            <p>Needs Node 22.22 or newer. The CRDT package has no runtime dependencies; the relay uses <code>ws</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

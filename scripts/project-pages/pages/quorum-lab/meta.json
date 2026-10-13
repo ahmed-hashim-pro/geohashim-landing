@@ -1,0 +1,9 @@
+{
+  "title": "quorum-lab · Ahmed Hashim",
+  "description": "Raft written from scratch in Go, and a deterministic simulator that attacks it with partitions, crashes and clock skew, checks safety after every event, and must catch six deliberate bugs. How it works, with real runs.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the numbers"
+  }
+}

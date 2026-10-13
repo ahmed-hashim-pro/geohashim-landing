@@ -1,0 +1,537 @@
+{
+ "pairs": {
+  "orders23": {
+   "cmd": "schema-drift check examples/contracts/orders/v2.json examples/contracts/orders/v3.json",
+   "lines": [
+    [
+     "out",
+     "v2 -> v3: NONE (breaking both ways)"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "backward: consumers on v3 reading events written with v2"
+    ],
+    [
+     "err",
+     "  BREAKING /customer_id: v3 requires \"customer_id\"; v2 does not, so its events may leave it out"
+    ],
+    [
+     "dim",
+     "           e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "err",
+     "  BREAKING /amount: v2 allows an integer; v3 does not (it allows string)"
+    ],
+    [
+     "dim",
+     "           e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "forward: consumers on v2 reading events written with v3"
+    ],
+    [
+     "err",
+     "  BREAKING /amount: v3 allows a string; v2 does not (it allows integer)"
+    ],
+    [
+     "dim",
+     "           e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":\"\",\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\",\"customer_id\":\"x\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "mode BACKWARD FAILS (consumers on the new schema must read events written with the old)"
+    ]
+   ],
+   "exit": 1
+  },
+  "payments": {
+   "cmd": "schema-drift check examples/contracts/payments/v1.json examples/contracts/payments/v2.json --mode FULL",
+   "lines": [
+    [
+     "out",
+     "v1 -> v2: BACKWARD"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "backward: consumers on v2 reading events written with v1"
+    ],
+    [
+     "ok",
+     "  compatible"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "forward: consumers on v1 reading events written with v2"
+    ],
+    [
+     "err",
+     "  BREAKING /status: v2 allows \"refunded\"; v1 does not"
+    ],
+    [
+     "dim",
+     "           e.g. {\"payment_id\":\"00000000-0000-4000-8000-000000000000\",\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"status\":\"refunded\",\"amount\":0}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "mode FULL FAILS (old and new consumers must read both old and new events)"
+    ]
+   ],
+   "exit": 1
+  },
+  "shipments": {
+   "cmd": "schema-drift check examples/contracts/shipments/v1.json examples/contracts/shipments/v2.json",
+   "lines": [
+    [
+     "out",
+     "v1 -> v2: FORWARD"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "backward: consumers on v2 reading events written with v1"
+    ],
+    [
+     "err",
+     "  BREAKING /carrier: v1 allows \"carrier\" with any value (additionalProperties); v2 constrains it"
+    ],
+    [
+     "dim",
+     "           e.g. {\"shipment_id\":\"00000000-0000-4000-8000-000000000000\",\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"shipped_at\":\"2024-01-01T00:00:00Z\",\"carrier\":\"\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "forward: consumers on v1 reading events written with v2"
+    ],
+    [
+     "ok",
+     "  compatible"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "mode BACKWARD FAILS (consumers on the new schema must read events written with the old)"
+    ]
+   ],
+   "exit": 1
+  },
+  "orders12": {
+   "cmd": "schema-drift check examples/contracts/orders/v1.json examples/contracts/orders/v2.json",
+   "lines": [
+    [
+     "out",
+     "v1 -> v2: BACKWARD"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "backward: consumers on v2 reading events written with v1"
+    ],
+    [
+     "ok",
+     "  compatible"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "out",
+     "forward: consumers on v1 reading events written with v2"
+    ],
+    [
+     "err",
+     "  BREAKING /customer_id: v2 may send \"customer_id\"; v1 does not allow it (additionalProperties is false)"
+    ],
+    [
+     "dim",
+     "           e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\",\"customer_id\":\"x\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "ok",
+     "mode BACKWARD passes (consumers on the new schema must read events written with the old)"
+    ]
+   ],
+   "exit": 0
+  }
+ },
+ "witness": {
+  "orders": [
+   {
+    "cmd": "schema-drift verify examples/contracts/orders/v2.json witness-back.ndjson",
+    "lines": [
+     [
+      "ok",
+      "1 events, 1 valid, 0 invalid"
+     ]
+    ],
+    "exit": 0
+   },
+   {
+    "cmd": "schema-drift verify examples/contracts/orders/v3.json witness-back.ndjson",
+    "lines": [
+     [
+      "err",
+      "line 1: /: required property \"customer_id\" is missing"
+     ],
+     [
+      "err",
+      "line 1: /amount: expected string, got integer 0"
+     ],
+     [
+      "out",
+      "1 events, 0 valid, 1 invalid"
+     ]
+    ],
+    "exit": 1
+   }
+  ],
+  "payments": [
+   {
+    "cmd": "schema-drift verify examples/contracts/payments/v2.json witness-pay.ndjson",
+    "lines": [
+     [
+      "ok",
+      "1 events, 1 valid, 0 invalid"
+     ]
+    ],
+    "exit": 0
+   },
+   {
+    "cmd": "schema-drift verify examples/contracts/payments/v1.json witness-pay.ndjson",
+    "lines": [
+     [
+      "err",
+      "line 1: /status: \"refunded\" is not one of [\"authorized\",\"captured\",\"failed\"]"
+     ],
+     [
+      "out",
+      "1 events, 0 valid, 1 invalid"
+     ]
+    ],
+    "exit": 1
+   }
+  ]
+ },
+ "gate": {
+  "bad": {
+   "cmd": "examples/gate-demo.sh",
+   "lines": [
+    [
+     "out",
+     "contracts: working tree compared with main"
+    ],
+    [
+     "out",
+     "orders         BACKWARD_TRANSITIVE  v1..v3  2 problem(s)"
+    ],
+    [
+     "out",
+     "payments       FULL                 v1..v2  1 problem(s)"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "orders v1 was published and has been changed in place; publish v4 instead"
+    ],
+    [
+     "out",
+     "  consumers on v1 reading events written with v1 (edited):"
+    ],
+    [
+     "err",
+     "    BREAKING /currency: v1 (edited) allows \"GBP\"; v1 does not"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"GBP\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "orders v3 breaks BACKWARD_TRANSITIVE: consumers on the new schema must read events written with the old"
+    ],
+    [
+     "out",
+     "  consumers on v3 reading events written with v2:"
+    ],
+    [
+     "err",
+     "    BREAKING /customer_id: v3 requires \"customer_id\"; v2 does not, so its events may leave it out"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "err",
+     "    BREAKING /amount: v2 allows an integer; v3 does not (it allows string)"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "out",
+     "  consumers on v3 reading events written with v1:"
+    ],
+    [
+     "err",
+     "    BREAKING /customer_id: v3 requires \"customer_id\"; v1 does not, so its events may leave it out"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "err",
+     "    BREAKING /amount: v1 allows an integer; v3 does not (it allows string)"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"USD\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "err",
+     "    BREAKING /currency: v1 allows \"GBP\"; v3 does not"
+    ],
+    [
+     "dim",
+     "             e.g. {\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"amount\":0,\"currency\":\"GBP\",\"created_at\":\"2024-01-01T00:00:00Z\"}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "payments v2 breaks FULL: old and new consumers must read both old and new events"
+    ],
+    [
+     "out",
+     "  consumers on v1 reading events written with v2:"
+    ],
+    [
+     "err",
+     "    BREAKING /status: v2 allows \"refunded\"; v1 does not"
+    ],
+    [
+     "dim",
+     "             e.g. {\"payment_id\":\"00000000-0000-4000-8000-000000000000\",\"order_id\":\"00000000-0000-4000-8000-000000000000\",\"status\":\"refunded\",\"amount\":0}"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "err",
+     "3 problem(s)"
+    ]
+   ],
+   "exit": 1
+  },
+  "ok": {
+   "cmd": "schema-drift gate --base main",
+   "lines": [
+    [
+     "out",
+     "contracts: working tree compared with main"
+    ],
+    [
+     "out",
+     "orders         BACKWARD_TRANSITIVE  v1..v3  ok"
+    ],
+    [
+     "out",
+     ""
+    ],
+    [
+     "ok",
+     "no problems (1 version(s) checked)"
+    ]
+   ],
+   "exit": 0
+  }
+ },
+ "verify": {
+  "cmd": "schema-drift verify examples/contracts/orders/v2.json examples/events/orders-mixed.ndjson",
+  "lines": [
+   [
+    "err",
+    "line 2: /order_id: \"not-a-uuid\" is not a valid uuid"
+   ],
+   [
+    "err",
+    "line 2: /amount: -5 is less than the minimum 0"
+   ],
+   [
+    "err",
+    "line 2: /currency: \"GBP\" is not one of [\"USD\",\"EUR\"]"
+   ],
+   [
+    "err",
+    "line 2: /created_at: \"yesterday\" is not a valid date-time"
+   ],
+   [
+    "err",
+    "line 3: /coupon: property \"coupon\" is not allowed"
+   ],
+   [
+    "err",
+    "line 4: /: duplicate key \"amount\""
+   ],
+   [
+    "err",
+    "line 5: /: required property \"amount\" is missing"
+   ],
+   [
+    "out",
+    "5 events, 1 valid, 4 invalid"
+   ]
+  ],
+  "exit": 1
+ },
+ "events": [
+  "{\"order_id\":\"6f1c2a9e-3b7d-4c55-9a43-1d2e8f7b6a01\",\"amount\":1250,\"currency\":\"USD\",\"created_at\":\"2026-10-01T09:14:03Z\"}",
+  "{\"order_id\":\"not-a-uuid\",\"amount\":-5,\"currency\":\"GBP\",\"created_at\":\"yesterday\"}",
+  "{\"order_id\":\"0b9e7d4c-58a2-4f13-b6e1-7c2d9a3f5e12\",\"amount\":899,\"currency\":\"EUR\",\"created_at\":\"2026-10-01T09:15:41Z\",\"coupon\":\"SAVE10\"}",
+  "{\"order_id\":\"a3d5f7b9-1c2e-4a6b-8d0f-2e4c6a8b0d23\",\"amount\":1,\"amount\":2,\"currency\":\"USD\",\"created_at\":\"2026-10-01T09:17:22Z\"}",
+  "{\"order_id\":\"5e7a9c1b-3d5f-4b7d-9f1a-3c5e7a9b1d34\",\"currency\":\"USD\",\"created_at\":\"2026-10-02T11:02:10Z\"}"
+ ],
+ "consumer": [
+  {
+   "cmd": "./orders-consumer < examples/events/orders-v2.ndjson",
+   "lines": [
+    [
+     "out",
+     "EUR 8.99"
+    ],
+    [
+     "out",
+     "USD 412.50"
+    ]
+   ],
+   "exit": 0
+  },
+  {
+   "cmd": "./orders-consumer < examples/events/orders-v3.ndjson",
+   "lines": [
+    [
+     "err",
+     "consumer: event 1: json: cannot unmarshal string into Go struct field Order.amount of type int64"
+    ]
+   ],
+   "exit": 1
+  },
+  {
+   "cmd": "schema-drift verify examples/contracts/orders/v2.json examples/events/orders-v3.ndjson",
+   "lines": [
+    [
+     "err",
+     "line 1: /amount: expected integer, got string \"12.50\""
+    ],
+    [
+     "err",
+     "line 2: /amount: expected integer, got string \"8.99\""
+    ],
+    [
+     "out",
+     "2 events, 0 valid, 2 invalid"
+    ]
+   ],
+   "exit": 1
+  }
+ ],
+ "strict": [
+  {
+   "file": "typo.json",
+   "why": "A misspelt keyword",
+   "src": "{\"type\":\"object\",\"properties\":{\"amount\":{\"type\":\"integer\",\"minimun\":0}}}",
+   "err": "schema-drift: typo.json: /properties/amount: unknown keyword \"minimun\" (did you mean \"minimum\"?)",
+   "exit": 2
+  },
+  {
+   "file": "pattern.json",
+   "why": "A keyword outside the subset",
+   "src": "{\"type\":\"object\",\"properties\":{\"sku\":{\"type\":\"string\",\"pattern\":\"^[A-Z]{3}$\"}}}",
+   "err": "schema-drift: pattern.json: /properties/sku: keyword \"pattern\" is not supported (not in the subset: compatibility of regular expressions is not decided here)",
+   "exit": 2
+  },
+  {
+   "file": "nullable.json",
+   "why": "OpenAPI's nullable",
+   "src": "{\"type\":\"object\",\"properties\":{\"note\":{\"type\":\"string\",\"nullable\":true}}}",
+   "err": "schema-drift: nullable.json: /properties/note: keyword \"nullable\" is not supported (OpenAPI's nullable is not JSON Schema; use \"type\": [\"string\", \"null\"])",
+   "exit": 2
+  },
+  {
+   "file": "dupe.json",
+   "why": "A duplicate key",
+   "src": "{\"type\":\"object\",\"properties\":{\"amount\":{\"type\":\"integer\"},\"amount\":{\"type\":\"string\"}}}",
+   "err": "schema-drift: dupe.json: /properties: duplicate key \"amount\"",
+   "exit": 2
+  },
+  {
+   "file": "empty.json",
+   "why": "A schema nothing satisfies",
+   "src": "{\"type\":\"integer\",\"minimum\":10,\"maximum\":5}",
+   "err": "schema-drift: empty.json: /: minimum 10 is greater than maximum 5",
+   "exit": 2
+  },
+  {
+   "file": "forbidden.json",
+   "why": "Required but forbidden",
+   "src": "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"string\"}},\"required\":[\"a\",\"b\"],\"additionalProperties\":false}",
+   "err": "schema-drift: forbidden.json: /required: \"b\" is required but not declared, and additionalProperties is false: no object can satisfy this",
+   "exit": 2
+  }
+ ]
+}

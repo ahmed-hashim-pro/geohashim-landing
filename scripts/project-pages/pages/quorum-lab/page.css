@@ -1,0 +1,157 @@
+/* quorum-lab. Everything here is prefixed ql- */
+
+.ql-cap { font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2); }
+.ql-k { display: inline-block; width: 18px; height: 11px; border: 1px solid var(--rule); }
+.ql-k[data-k="in"] { background: var(--ink); border-color: var(--ink); }
+.ql-k[data-k="persist"] { background: var(--yellow); border-color: var(--paint-edge); }
+.ql-k[data-k="send"] { background: var(--blue); border-color: var(--blue); }
+.ql-k[data-k="apply"] { background: var(--green); border-color: var(--green); }
+.ql-k[data-k="link"] { height: 0; border: 0; border-top: 2px solid var(--ink); }
+.ql-k[data-k="cut"] { height: 0; border: 0; border-top: 2px dashed var(--red); }
+.ql-k[data-k="minor"] { width: 12px; height: 12px; border-radius: 50%; background: var(--red); border-color: var(--red); }
+.ql-k[data-k="bridge"] { width: 12px; height: 12px; border-radius: 50%; background: var(--yellow); border-color: var(--paint-edge); }
+.ql-k[data-k="lead"] { background: var(--yellow); border-color: var(--paint-edge); }
+.ql-k[data-k="cand"] { background: var(--blue); border-color: var(--blue); }
+.ql-k[data-k="down"] { background: repeating-linear-gradient(-45deg, var(--ink-2) 0 2px, transparent 2px 5px); }
+.ql-k[data-k="part"] { background: color-mix(in srgb, var(--magenta) 16%, transparent); border-color: color-mix(in srgb, var(--magenta) 45%, transparent); }
+
+/* 1. Three nodes */
+.ql-node { display: grid; gap: 12px; padding: 16px 16px 4px; }
+.ql-nstate { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ql-nstate li { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--ink); border-top-width: 4px; background: var(--field); font: 400 12px/1.45 var(--mono); transition: background-color .25s, border-color .25s; }
+.ql-nstate li b { font: 650 13.5px/1.3 var(--sans); }
+.ql-nstate li[data-role="candidate"] { border-top-color: var(--blue); }
+.ql-nstate li[data-role="leader"] { border-top-color: var(--yellow); }
+.ql-nstate li.is-cur { background: color-mix(in srgb, var(--yellow) 14%, var(--field)); }
+.ql-nstate [data-f="role"] { font-weight: 600; }
+.ql-steps { list-style: none; margin: 0; padding: 0; max-height: 23em; overflow-y: auto; border: 1px solid var(--rule); background: var(--field); }
+.ql-step { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; padding: 3px 10px; border-left: 4px solid transparent; font-size: 12px; line-height: 1.5; transition: opacity .25s, transform .3s cubic-bezier(.2, .7, .2, 1); }
+.ql-steps.is-reset .ql-step:not(.in) { opacity: 0; transform: translateY(4px); }
+.ql-step b, .ql-step i { font: 600 11.5px/1.6 var(--mono); font-style: normal; color: var(--ink-2); }
+.ql-step code { padding: 0; border: 0; background: none; font: 400 12px/1.5 var(--mono); overflow-wrap: anywhere; }
+.ql-step[data-k="in"] { margin-top: 6px; border-left-color: var(--ink); background: var(--wash); }
+.ql-step[data-k="in"] b { color: var(--ink); }
+.ql-step[data-k="persist"] { border-left-color: var(--yellow); }
+.ql-step[data-k="send"] { border-left-color: var(--blue); }
+.ql-step[data-k="apply"] { border-left-color: var(--green); }
+.ql-step[data-k="apply"] code { color: var(--green); font-weight: 600; }
+.ql-step[data-k="state"] code { color: var(--ink-2); font-style: italic; }
+.ql-node-key { margin: 10px 16px 14px; }
+
+/* 2. Partition shapes */
+.ql-shapes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 16px 16px 4px; }
+.ql-shape { margin: 0; display: grid; gap: 6px; align-content: start; padding: 10px 10px 12px; border: 1px solid var(--rule); background: var(--field); }
+.ql-shape-name { display: flex; justify-content: space-between; gap: 6px; font-weight: 650; font-size: 14px; }
+.ql-shape-name span { font: 500 11.5px/1.6 var(--mono); color: var(--ink-2); }
+.ql-shape svg { width: 100%; max-width: 180px; justify-self: center; overflow: visible; }
+.ql-l { stroke-width: 2; transition: opacity .45s; }
+.ql-l-on { stroke: var(--ink); }
+.ql-l-cut { stroke: var(--red); stroke-dasharray: 3 4; opacity: 0; }
+.ql-shape.is-cut .ql-l-on[data-cut] { opacity: 0; }
+.ql-shape.is-cut .ql-l-cut { opacity: .7; }
+.ql-nd circle { fill: var(--chalk); stroke: var(--ink); stroke-width: 2; transition: fill .3s; }
+.ql-nd text { fill: var(--ink); font: 700 12px var(--sans); }
+.ql-shape.is-done .ql-nd.is-minor circle { fill: var(--red); stroke: var(--red); }
+.ql-shape.is-done .ql-nd.is-minor text { fill: var(--paper); }
+.ql-shape.is-done .ql-nd.is-bridge circle { fill: var(--yellow); stroke: var(--paint-edge); }
+.ql-shape.is-done .ql-nd.is-bridge text { fill: var(--on-paint); }
+.ql-shape-lbl { padding: 0; border: 0; background: none; font: 400 11.5px/1.45 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+.ql-shape-v { font-size: 12.5px; line-height: 1.4; transition: opacity .3s; }
+.ql-shape:not(.is-done) .ql-shape-v { opacity: 0; }
+.ql-shape-key { margin: 10px 16px 14px; }
+@media (max-width: 899px) { .ql-shapes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Timelines (stages 3 and 6) */
+.ql-tl { padding: 16px 16px 6px; }
+.ql-tl-in { --lh: 22px; --lw: 4.4em; position: relative; padding-left: var(--lw); }
+.ql-lane { position: relative; height: var(--lh); border-bottom: 1px solid var(--joint); }
+.ql-ln { position: absolute; left: calc(-1 * var(--lw)); top: 0; font: 500 11.5px/var(--lh) var(--mono); color: var(--ink-2); white-space: nowrap; }
+.ql-track { position: relative; height: 100%; }
+.ql-seg { position: absolute; top: 4px; bottom: 4px; min-width: 1px; transform-origin: 0 50%; transform: scaleX(0); opacity: 0; font: 600 10px/14px var(--mono); font-style: normal; color: var(--on-paint); padding-left: 3px; overflow: hidden; white-space: nowrap; }
+.ql-seg.in { transform: none; opacity: 1; }
+.ql-lead { background: var(--yellow); box-shadow: inset 0 0 0 1px var(--paint-edge); }
+.ql-cand { top: 8px; bottom: 8px; background: var(--blue); }
+.ql-down { top: 2px; bottom: 2px; background: repeating-linear-gradient(-45deg, var(--ink-2) 0 2px, transparent 2px 5px); }
+.ql-bands { position: absolute; left: var(--lw); right: 0; top: 0; height: calc(5 * var(--lh)); pointer-events: none; }
+.ql-band { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--magenta) 11%, transparent); border-left: 1px solid color-mix(in srgb, var(--magenta) 45%, transparent); opacity: 0; transition: opacity .3s; }
+.ql-band b { position: absolute; left: 0; right: 0; height: 20%; background: color-mix(in srgb, var(--magenta) 16%, transparent); }
+.ql-band.in, .ql-mark.in { opacity: 1; }
+.ql-mark { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px solid var(--green); opacity: 0; transition: opacity .3s; }
+.ql-mark.is-bad { border-left-color: var(--red); }
+.ql-mark em { position: absolute; right: 6px; top: -10px; padding: 0 5px; background: var(--chalk); font: 600 11px/1.5 var(--sans); font-style: normal; color: var(--green); white-space: nowrap; }
+.ql-mark.is-bad em { color: var(--red); }
+.air .ql-mark em { background: var(--panel); }
+.ql-axis { position: relative; height: 20px; margin-top: 4px; font: 400 11px/20px var(--mono); color: var(--ink-2); }
+.ql-axis span { position: absolute; top: 0; transform: translateX(-50%); }
+.ql-axis span:first-child { transform: none; }
+.ql-head { position: absolute; left: var(--lw); right: 0; top: 0; height: calc(5 * var(--lh)); pointer-events: none; opacity: 0; transition: opacity .2s; }
+.ql-head.is-on { opacity: 1; }
+.ql-head i { position: absolute; left: -1px; top: -4px; bottom: -4px; width: 2px; background: var(--ink); }
+.ql-tl-key { margin: 6px 16px 4px; }
+.ql-log { max-height: 11em; min-height: 6em; overflow-y: auto; }
+.ql-stats { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 759px) {
+  .ql-tl-in { --lw: 3.8em; --lh: 20px; }
+  .ql-axis span:nth-child(2n) { display: none; }
+  .ql-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ql-stats div { border-bottom: 1px solid var(--rule); }
+  .ql-stats div:nth-child(2n) { border-right: 0; }
+  .ql-stats div:last-child { grid-column: 1 / -1; }
+}
+
+/* 4. Twin runs and the check list */
+.ql-twin { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 16px 16px 0; }
+.ql-pre { margin: 5px 0 0; padding: 10px 12px; background: var(--sign); color: var(--t-fg); font: 400 12px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ql-pre span { display: block; transition: opacity .3s; }
+.ql-twin.is-reset .ql-pre span:not(.in) { opacity: 0; }
+.ql-pre .is-same { color: var(--t-dim); }
+.ql-pre .ok { color: #9FE0B5; }
+.ql-pre .err { color: var(--t-err); }
+.ql-checks { list-style: none; margin: 14px 16px 12px; padding: 0; border: 1px solid var(--rule); }
+.ql-ck { display: grid; grid-template-columns: minmax(0, 1fr) 7.2em 5.2em 5.2em; gap: 8px; align-items: center; padding: 5px 10px; border-bottom: 1px solid var(--rule); font-size: 13px; transition: opacity .3s; }
+.ql-ck:last-child { border-bottom: 0; }
+.ql-checks.is-reset .ql-ck:not(.in):not(.ql-ck-h) { opacity: 0; }
+.ql-ck-h { font-size: var(--fs-xs); font-weight: 650; color: var(--ink-2); background: var(--wash); }
+.ql-ck > span:nth-child(2) { color: var(--ink-2); font-size: 12.5px; }
+.ql-ck b { justify-self: start; padding: 0 7px 1px; font-size: 12px; font-weight: 650; background: var(--green); color: var(--paper); }
+.ql-ck b[data-ok="0"] { background: var(--red); }
+.ql-ck[data-end="1"] { background: color-mix(in srgb, var(--yellow) 9%, transparent); }
+@media (max-width: 759px) {
+  .ql-twin { grid-template-columns: minmax(0, 1fr); }
+  .ql-ck { grid-template-columns: minmax(0, 1fr) 4.6em 4.6em; }
+  .ql-ck > span:nth-child(2) { display: none; }
+}
+
+/* 5. Mutants */
+.ql-muts { list-style: none; margin: 0; padding: 14px 16px 4px; display: grid; gap: 8px; }
+.ql-mut {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 7.4em; grid-template-areas: "name bar n" "desc as as"; gap: 4px 14px; align-items: center;
+  padding: 9px 12px; border: 1px solid var(--rule-soft); border-left: 4px solid var(--rule-soft); background: var(--paper);
+  transition: opacity .3s, transform .35s cubic-bezier(.2, .7, .2, 1), border-color .3s;
+}
+.ql-muts.is-reset .ql-mut:not(.in) { opacity: 0; transform: translateY(6px); }
+.ql-mut.is-done[data-r="caught"] { border-left-color: var(--red); }
+.ql-mut.is-done[data-r="clean"] { border-left-color: var(--green); }
+.ql-mut-name { grid-area: name; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.ql-mut-name code { padding: 0; border: 0; background: none; font: 600 13px/1.4 var(--mono); }
+.ql-mut-badge { padding: 0 7px 1px; font-size: 12px; font-weight: 650; color: var(--paper); background: var(--red); transition: opacity .3s; }
+.ql-mut[data-r="clean"] .ql-mut-badge { background: var(--green); }
+.ql-mut-desc { grid-area: desc; font-size: 12.5px; line-height: 1.4; color: var(--ink-2); }
+.ql-mut-as { grid-area: as; font-size: 12.5px; line-height: 1.4; transition: opacity .3s; }
+.ql-mut-bar { grid-area: bar; position: relative; height: 10px; background: var(--wash); }
+.ql-mut-bar i { position: absolute; inset: 0; background: var(--ink); transform-origin: 0 50%; transform: scaleX(var(--s)); transition: transform .7s cubic-bezier(.3, .8, .25, 1); }
+.ql-mut-n { grid-area: n; font: 500 12px var(--mono); text-align: right; font-variant-numeric: tabular-nums; transition: opacity .3s; }
+.ql-mut:not(.is-done) .ql-mut-badge, .ql-mut:not(.is-done) .ql-mut-as, .ql-mut:not(.is-done) .ql-mut-n { opacity: 0; }
+.ql-mut:not(.is-done) .ql-mut-bar i { transform: scaleX(0); }
+.ql-mut-foot { min-height: 1.6em; margin: 6px 16px 14px; font: 400 12px/1.5 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+@media (max-width: 759px) {
+  .ql-mut { grid-template-columns: minmax(0, 1fr) 7.4em; grid-template-areas: "name name" "desc desc" "as as" "bar n"; }
+}
+
+/* 6. Replay */
+.ql-same { margin: 0 16px 14px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; transition: opacity .4s; }
+.ql-same:not(.in) { opacity: 0; }
+.ql-same dt { font-size: var(--fs-xs); color: var(--ink-2); }
+.ql-same dd { margin: 2px 0 0; }
+.ql-same code { font-size: 12.5px; }
+@media (max-width: 759px) { .ql-same { grid-template-columns: minmax(0, 1fr); } }

@@ -1,0 +1,9 @@
+{
+  "title": "strata · Ahmed Hashim",
+  "description": "A Rust command-line tool that turns borehole logs into a layered ground model, gives every contact a 95% interval, checks those intervals against known truth, and refuses where the interval would be useless. How it works end to end, with real captures.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#tests",
+    "label": "See the tests"
+  }
+}

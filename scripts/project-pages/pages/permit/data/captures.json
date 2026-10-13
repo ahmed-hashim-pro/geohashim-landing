@@ -1,0 +1,285 @@
+{
+ "ua": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "1 package version added or changed; 1 with something new, 1 blocked by policy",
+   "",
+   "ua-sniff 0.7.28 -> 0.7.29",
+   "  NEW     install-script  package.json  preinstall: node preinstall.js",
+   "  NEW     network         preinstall.js:5  requires 'https'",
+   "  NEW     exec            preinstall.js:7  requires 'child_process'",
+   "  NEW     fs-write        preinstall.js:13  calls fs createWriteStream()",
+   "  NEW     env             preinstall.js:10  reads process.env",
+   "",
+   "Blocked: ua-sniff@0.7.29.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"ua-sniff\": [\"install-script\", \"network\", \"exec\", \"fs-write\", \"env\"] } }"
+  ],
+  "exit": 1
+ },
+ "es": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "2 package versions added or changed; 2 with something new, 1 blocked by policy",
+   "",
+   "flatmap-lite 0.1.1 (new, required by stream-pipe)",
+   "  NEW     env              index.min.js:7  reads a computed property of process (as 't')",
+   "  NEW     dynamic-require  index.min.js:7  require() (as 'r') of a computed name",
+   "",
+   "stream-pipe 3.3.5 -> 3.3.6",
+   "  new dependencies: flatmap-lite",
+   "",
+   "Blocked: flatmap-lite@0.1.1.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"flatmap-lite\": [\"env\", \"dynamic-require\"] } }"
+  ],
+  "exit": 1
+ },
+ "monday": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "3 package versions added or changed; 2 with something new, 1 blocked by policy",
+   "",
+   "@acme/logger 2.0.0 -> 2.1.0",
+   "  NEW     network  index.mjs:6  calls fetch()",
+   "  NEW     env      index.mjs:3  reads process.env",
+   "",
+   "fast-bundler 0.20.2 -> 0.21.0",
+   "  allowed install-script  package.json  postinstall: node install.js",
+   "  allowed binary          bin/fast-bundler  ELF executable",
+   "",
+   "1 other changed version without gaining anything.",
+   "",
+   "Blocked: @acme/logger@2.1.0.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"@acme/logger\": [\"network\", \"env\"] } }"
+  ],
+  "exit": 1
+ },
+ "mondayNoPolicy": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "3 package versions added or changed; 2 with something new, 2 blocked by policy",
+   "",
+   "@acme/logger 2.0.0 -> 2.1.0",
+   "  NEW     network  index.mjs:6  calls fetch()",
+   "  NEW     env      index.mjs:3  reads process.env",
+   "",
+   "fast-bundler 0.20.2 -> 0.21.0",
+   "  NEW     install-script  package.json  postinstall: node install.js",
+   "  NEW     binary          bin/fast-bundler  ELF executable",
+   "",
+   "1 other changed version without gaining anything.",
+   "",
+   "Blocked: @acme/logger@2.1.0, fast-bundler@0.21.0.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"@acme/logger\": [\"network\", \"env\"] } }"
+  ],
+  "exit": 1
+ },
+ "real": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "29 package versions added or changed; 2 with something new, 1 blocked by policy",
+   "",
+   "node-domexception 1.0.0 (new, required by fetch-blob)",
+   "  NEW     unanalyzable  .history/index_20210527213843.js:9  Unexpected token (9:2)",
+   "",
+   "node-fetch 2.6.7 -> 3.3.2",
+   "  new dependencies: data-uri-to-buffer, fetch-blob, formdata-polyfill",
+   "",
+   "27 others changed version without gaining anything.",
+   "",
+   "Blocked: node-domexception@1.0.0.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"node-domexception\": [\"unanalyzable\"] } }"
+  ],
+  "exit": 1
+ },
+ "reg": {
+  "cmd": "permit diff before.json after.json",
+  "out": [
+   "4 package versions added or changed; 3 with something new, 3 blocked by policy",
+   "",
+   "glob-lite 0.2.8 -> 0.2.9",
+   "  NEW     unanalyzable  glob-lite@0.2.9: the tarball from http://127.0.0.1:4873/glob-lite-0.2.9.tgz does not match the lockfile's integrity hash",
+   "",
+   "pad-start 1.0.0 (new)",
+   "  NEW     unanalyzable  pad-start@1.0.0: GET http://127.0.0.1:4873/pad-start-1.0.0.tgz returned 404",
+   "",
+   "tick-ms 2.1.2 -> 2.1.3",
+   "  NEW     unanalyzable  tarball entry '../../.bashrc' escapes the package directory",
+   "",
+   "1 other changed version without gaining anything.",
+   "",
+   "Blocked: glob-lite@0.2.9, pad-start@1.0.0, tick-ms@2.1.3.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"glob-lite\": [\"unanalyzable\"] } }"
+  ],
+  "exit": 1
+ },
+ "errV1": {
+  "cmd": "permit diff v1.json after.json",
+  "out": [
+   "permit: v1.json: lockfileVersion 1 has no 'packages' section; regenerate it with npm 7 or newer"
+  ],
+  "exit": 2
+ },
+ "errVer": {
+  "cmd": "permit diff before.json badver.json",
+  "out": [
+   "permit: badver.json: packages[\"node_modules/ua-sniff\"]: version \"latest\" is not a semver version"
+  ],
+  "exit": 2
+ },
+ "errTypo": {
+  "cmd": "permit diff before.json after.json --policy typo.json",
+  "out": [
+   "permit: typo.json: allow[\"ua-sniff\"]: unknown capability \"instal-script\" (known: install-script, native-build, network, exec, fs-write, env, dynamic-code, dynamic-require, binary, unanalyzable)"
+  ],
+  "exit": 2
+ },
+ "errKey": {
+  "cmd": "permit diff before.json after.json --policy unknownkey.json",
+  "out": [
+   "permit: unknownkey.json: unknown key 'deny' (expected \"allow\")"
+  ],
+  "exit": 2
+ },
+ "gitBlock": {
+  "cmd": "permit diff --base main",
+  "out": [
+   "3 package versions added or changed; 2 with something new, 1 blocked by policy",
+   "",
+   "@acme/logger 2.0.0 -> 2.1.0",
+   "  NEW     network  index.mjs:6  calls fetch()",
+   "  NEW     env      index.mjs:3  reads process.env",
+   "",
+   "fast-bundler 0.20.2 -> 0.21.0",
+   "  allowed install-script  package.json  postinstall: node install.js",
+   "  allowed binary          bin/fast-bundler  ELF executable",
+   "",
+   "1 other changed version without gaining anything.",
+   "",
+   "Blocked: @acme/logger@2.1.0.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"@acme/logger\": [\"network\", \"env\"] } }"
+  ],
+  "exit": 1
+ },
+ "gitNarrow": {
+  "cmd": "permit diff --base main --policy narrow.json",
+  "out": [
+   "3 package versions added or changed; 2 with something new, 1 blocked by policy",
+   "",
+   "@acme/logger 2.0.0 -> 2.1.0",
+   "  allowed network  index.mjs:6  calls fetch()",
+   "  NEW     env      index.mjs:3  reads process.env",
+   "",
+   "fast-bundler 0.20.2 -> 0.21.0",
+   "  allowed install-script  package.json  postinstall: node install.js",
+   "  allowed binary          bin/fast-bundler  ELF executable",
+   "",
+   "1 other changed version without gaining anything.",
+   "",
+   "Blocked: @acme/logger@2.1.0.",
+   "Review them, then allow what is expected in permit.json, e.g.",
+   "  { \"allow\": { \"@acme/logger\": [\"env\"] } }"
+  ],
+  "exit": 1
+ },
+ "gitAllow": {
+  "cmd": "permit diff --base main",
+  "out": [
+   "3 package versions added or changed; 2 with something new, 0 blocked by policy",
+   "",
+   "@acme/logger 2.0.0 -> 2.1.0",
+   "  allowed network  index.mjs:6  calls fetch()",
+   "  allowed env      index.mjs:3  reads process.env",
+   "",
+   "fast-bundler 0.20.2 -> 0.21.0",
+   "  allowed install-script  package.json  postinstall: node install.js",
+   "  allowed binary          bin/fast-bundler  ELF executable",
+   "",
+   "1 other changed version without gaining anything."
+  ],
+  "exit": 0
+ },
+ "self": {
+  "cmd": "permit diff --base HEAD",
+  "out": [
+   "0 package versions added or changed; 0 with something new, 0 blocked by policy"
+  ],
+  "exit": 0
+ },
+ "scanLoud": {
+  "cmd": "permit scan pkg",
+  "out": [
+   "network          loud.js:5  calls fetch()",
+   "exec             loud.js:4  requires 'node:child_process'",
+   "env              loud.js:3  reads a computed property of process (as 't')",
+   "dynamic-require  loud.js:2  require() (as 'r') of a computed name"
+  ],
+  "exit": 0
+ },
+ "scanQuiet": {
+  "cmd": "permit scan pkg",
+  "out": [
+   "no capabilities found"
+  ],
+  "exit": 0
+ },
+ "scans": {
+  "esbuild@0.17.19": [
+   "install-script   package.json  postinstall: node install.js",
+   "network          install.js:89  requires 'https'",
+   "exec             install.js:90  requires 'child_process'",
+   "fs-write         install.js:180  calls fs mkdirSync()",
+   "env              install.js:29  reads process.env",
+   "dynamic-require  install.js:91  require() of a computed name"
+  ],
+  "esbuild@0.18.20": [
+   "install-script   package.json  postinstall: node install.js",
+   "network          install.js:89  requires 'https'",
+   "exec             install.js:90  requires 'child_process'",
+   "fs-write         install.js:180  calls fs mkdirSync()",
+   "env              install.js:29  reads process.env",
+   "dynamic-require  install.js:91  require() of a computed name"
+  ],
+  "node-fetch@2.6.7": [
+   "network          lib/index.es.js:4  imports 'http'"
+  ],
+  "node-fetch@3.3.2": [
+   "network          src/headers.js:8  imports 'node:http'"
+  ],
+  "fast-bundler@0.20.2": [
+   "fs-write         lib/main.js:6  calls fs writeFileSync()"
+  ],
+  "fast-bundler@0.21.0": [
+   "install-script   package.json  postinstall: node install.js",
+   "fs-write         lib/main.js:6  calls fs writeFileSync()",
+   "binary           bin/fast-bundler  ELF executable"
+  ],
+  "ua-sniff@0.7.28": [
+   "no capabilities found"
+  ],
+  "ua-sniff@0.7.29": [
+   "install-script   package.json  preinstall: node preinstall.js",
+   "network          preinstall.js:5  requires 'https'",
+   "exec             preinstall.js:7  requires 'child_process'",
+   "fs-write         preinstall.js:13  calls fs createWriteStream()",
+   "env              preinstall.js:10  reads process.env"
+  ],
+  "flatmap-lite@0.1.1": [
+   "env              index.min.js:7  reads a computed property of process (as 't')",
+   "dynamic-require  index.min.js:7  require() (as 'r') of a computed name"
+  ],
+  "@acme+logger@2.0.0": [
+   "no capabilities found"
+  ],
+  "@acme+logger@2.1.0": [
+   "network          index.mjs:6  calls fetch()",
+   "env              index.mjs:3  reads process.env"
+  ]
+ }
+}

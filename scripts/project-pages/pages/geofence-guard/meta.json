@@ -1,0 +1,9 @@
+{
+  "title": "geofence-guard · Ahmed Hashim",
+  "description": "A ROS 2 node between a setpoint source and the autopilot that forwards a move only when it can show the whole straight path stays inside the flight envelope. How it works end to end, with real runs.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#tests",
+    "label": "See how it is tested"
+  }
+}
