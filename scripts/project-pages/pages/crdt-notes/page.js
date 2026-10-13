@@ -26,19 +26,19 @@ PAGE.terminal = {
       ['err', 'remove-unobserved         caught   1           70%           convergence, order independence'],
       ['err', 'accept-duplicates         caught   1           93%           convergence, local intent'],
       ['out', ''],
-      ['dim', '98.3s. Replay one: npm run fuzz -- run --seed N --bug NAME']
+      ['dim', '76.0s. Replay one: npm run fuzz -- run --seed N --bug NAME']
     ],
     hunt: [
       ['cmd', 'npm run fuzz -- hunt --seeds 5000'],
-      ['ok', '5000 seeds (1..5000) in 70.4s: 0 failed'],
+      ['ok', '5000 seeds (1..5000) in 49.5s: 0 failed'],
       ['out', ''],
       ['cmd', 'npm test'],
       ['dim', ' RUN  v5.0.4 packages/crdt'],
       ['out', ' Test Files  2 passed (2)'],
-      ['ok', '      Tests  26 passed (26)'],
+      ['ok', '      Tests  30 passed (30)'],
       ['dim', ' RUN  v5.0.4 apps/relay'],
       ['out', ' Test Files  1 passed (1)'],
-      ['ok', '      Tests  6 passed (6)']
+      ['ok', '      Tests  7 passed (7)']
     ],
     replay: [
       ['cmd', 'npm run fuzz -- run --seed 7'],
@@ -58,9 +58,9 @@ PAGE.terminal = {
 
 /* Tests per file: vitest for the first three, Playwright for the last */
 PAGE.tests = [
-  ['packages/crdt/test/replica.test.ts', 16, 'var(--blue)'],
+  ['packages/crdt/test/replica.test.ts', 20, 'var(--blue)'],
   ['packages/crdt/test/fuzz.test.ts', 10, 'var(--magenta)'],
-  ['apps/relay/test/relay.test.ts', 6, 'var(--water)'],
+  ['apps/relay/test/relay.test.ts', 7, 'var(--water)'],
   ['e2e/converge.spec.ts (Playwright)', 2, 'var(--yellow)']
 ];
 
@@ -207,7 +207,7 @@ cnCases('#d-meta', '#cn-meta', [
   const el = $('#d-relay'), list = $('#cn-wire'), stored = $('#cn-stored');
   list.innerHTML = CN_WIRE.map(([from, to, msg], i) => {
     if (from === 'note') return `<li class="cn-note">${esc(msg)}</li>`;
-    const cls = msg === 'not json' ? ' is-bad' : i === 11 ? ' is-dup' : '';
+    const cls = msg === 'not json' || from === 'E' ? ' is-bad' : i === 11 ? ' is-dup' : '';
     const extra = i === 11 ? '<em>same op again: stored once, not forwarded</em>' : '';
     return `<li class="cn-msg${cls}${from === 'relay' ? ' is-down' : ''}"><span>${from} → ${to}</span><code>${esc(msg)}</code>${extra}</li>`;
   }).join('');

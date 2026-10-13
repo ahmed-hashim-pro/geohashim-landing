@@ -1,4 +1,4 @@
-/* Real runs of geofence-guard at 882828f (see the figcaptions and the research notes) */
+/* Real runs of geofence-guard at 29ccaba (see the figcaptions and the research notes) */
 
 /* Hero terminal: the repo's own example files, verbatim */
 PAGE.terminal = {
@@ -46,12 +46,12 @@ PAGE.terminal = {
   first: 'shortcut'
 };
 
-/* Tests per file: gtest cases counted from the sources, CLI tests from core/CMakeLists.txt; ctest ran all 93 */
+/* Tests per file: gtest cases counted from the sources, CLI tests from core/CMakeLists.txt; ctest ran all 96 */
 PAGE.tests = [
   ['tests/test_guard.cpp', 35, 'var(--blue)'],
   ['tests/test_geometry.cpp', 26, 'var(--magenta)'],
-  ['tests/test_envelope.cpp', 21, 'var(--water)'],
-  ['CLI tests in CMakeLists.txt', 8, 'var(--yellow)'],
+  ['tests/test_envelope.cpp', 23, 'var(--water)'],
+  ['CLI tests in CMakeLists.txt', 9, 'var(--yellow)'],
   ['tests/test_properties.cpp', 3, 'var(--green)']
 ];
 
@@ -130,7 +130,7 @@ const ggShow = (els, on) => els.forEach(e => e.classList.toggle('is-off', !on));
     bowtie: { label: 'Bow tie', lines: edit([[21, '  215 55'], [22, '  215 40']]), mark: [21, 22], cmd: 'geofence-guard validate bowtie.fence', exit: 2,
       out: ["error: bowtie.fence: line 19: exclusion zone 'mast' is not a simple polygon (an edge crosses or touches another, or a vertex repeats)"] },
     zero: { label: 'Zero margin', lines: edit([[5, 'margin 0                 # metres kept from every boundary']]), mark: [5], cmd: 'geofence-guard validate zero.fence', exit: 2,
-      out: ['error: zero.fence: margin must be greater than zero: a vehicle tracking a setpoint on the fence line is outside it half the time'] },
+      out: ['error: zero.fence: line 5: margin must be greater than zero: a vehicle tracking a setpoint on the fence line is outside it half the time'] },
     typo: { label: 'typo.fence', lines: ['frame map', 'margin 5', 'altitude 2 120', 'max_state_age 0.5', 'max_alitude 60', 'fence', '  0 0', '  100 0', '  100 100', 'end'], mark: [5], cmd: 'geofence-guard validate core/tests/data/typo.fence', exit: 2,
       out: ["error: core/tests/data/typo.fence: line 5: unknown key 'max_alitude'"] }
   };

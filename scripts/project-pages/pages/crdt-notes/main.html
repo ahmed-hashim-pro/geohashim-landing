@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>TypeScript, Node 22.22+</dd>
-              <dt>Tests</dt><dd>32 unit tests and 2 browser tests, passing</dd>
+              <dt>Tests</dt><dd>37 unit tests and 2 browser tests, passing</dd>
               <dt>CRDT dependencies</dt><dd>None at runtime</dd>
               <dt>App</dt><dd>Angular with signals, IndexedDB</dd>
               <dt>Fuzzer</dt><dd>5,000 seeds and 6 deliberate bugs in CI</dd>
@@ -39,7 +39,7 @@
 <span class="out">correct                   clean    -           0 of 2000     every check held</span>
 </div>
             </div>
-            <p class="term-cap">All three are real runs at commit <code>cdbf0e3</code> on Node 22. npm's banner lines are left out and vitest's paths shortened; times are this machine's.</p>
+            <p class="term-cap">All three are real runs at commit <code>5991483</code> on Node 22. npm's banner lines are left out and vitest's paths shortened; times are this machine's.</p>
           </div>
         </div>
 
@@ -159,6 +159,7 @@
           <ul class="st-points">
             <li>An op is ready when it is the next one from its replica and every count in its version vector is already met. Applying one can release others that were waiting.</li>
             <li>Duplicates are recognised by replica and sequence number, and ignored.</li>
+            <li>A malformed op, or one that names a note or character that still isn't there once its dependencies are, is rejected before it touches anything: the log, the version vector and the notes are as if it never arrived.</li>
             <li>The same rule rebuilds a replica after a reload: the app replays its op log from IndexedDB.</li>
           </ul>
         </div>
@@ -241,25 +242,26 @@
       <div class="wrap grid st-grid st-wide">
         <div class="st-head panel" style="padding:24px 26px 26px">
           <h2 id="h-relay"><span class="num" data-mark="6">6</span>Store and forward, with no authority</h2>
-          <p>The relay stores ops and forwards them. It doesn't merge, order or reject anything, and it doesn't have to stay up. It can lose its data without losing an edit, as long as some replica still holds it.</p>
+          <p>The relay stores ops and forwards them. It doesn't merge, order or reject any edit, and it doesn't have to stay up. It can lose its data without losing an edit, as long as some replica still holds it.</p>
           <ul class="st-points">
             <li>On connect, each side sends its version vector and receives what it lacks. After that, new ops are forwarded to everyone but the sender, as they arrive.</li>
             <li>Ops go to an append-only file and are reloaded on start. A torn last line from a crash is skipped; the replica still has that op.</li>
-            <li>Garbage closes the socket instead of crashing the relay. It is 177 lines on <code>ws</code>, and it also serves the built app, so <code>npm start</code> is the whole demo.</li>
+            <li>The one thing it refuses is a message whose ops aren't well-formed. It closes that socket and stores and forwards nothing, so a broken client can't send other replicas an op they would have to throw on. Garbage gets the same treatment, and the relay keeps serving.</li>
+            <li>It is 189 lines on <code>ws</code>, and it also serves the built app, so <code>npm start</code> is the whole demo.</li>
           </ul>
           <p class="why">No authentication or encryption: anyone who can reach the relay can read and write every note. The README says a real deployment would put it behind auth, and could encrypt ops end to end, since the relay never reads them.</p>
         </div>
         <div class="st-demo">
           <figure class="panel demo" id="d-relay" style="margin:0">
             <div class="demo-head">
-              <p class="demo-title">Two clients, a restart, a newcomer <span class="tag-ill">Illustrative input</span></p>
+              <p class="demo-title">Two clients, a restart, a newcomer, two bad senders <span class="tag-ill">Illustrative input</span></p>
               {{REPLAY}}
             </div>
             <div class="demo-body">
               <ol class="cn-wire" id="cn-wire" aria-live="polite"></ol>
               <p class="cn-store"><span>Relay stores</span><b id="cn-stored">0 ops</b></p>
             </div>
-            <figcaption class="demo-note">A script written for this page started the repo's relay, unchanged, and connected <code>ws</code> clients backed by real replicas. Every message is as sent, with each op shortened to its type, id and sequence number. B's second send of the same op was stored once and forwarded to no one.</figcaption>
+            <figcaption class="demo-note">A script written for this page started the repo's relay, unchanged, and connected <code>ws</code> clients backed by real replicas. Every message is as sent, with each op shortened to its type, id and sequence number. B's second send of the same op was stored once and forwarded to no one. E's op has no type, note or version vector: the relay closed E's socket, stored nothing and sent C nothing.</figcaption>
           </figure>
         </div>
       </div>
@@ -300,7 +302,7 @@
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">32 unit tests, 2 browser tests</h2>
+          <h2 id="h-tests">37 unit tests, 2 browser tests</h2>
           <p>Counted with <code>npm test</code> (vitest, in the CRDT package and the relay) and <code>npm run e2e</code> (Playwright). No network beyond localhost, no keys.</p>
         </div>
         <div class="tests">
@@ -312,9 +314,9 @@
             <h3>What they pin</h3>
             <ul>
               <li><strong>The CRDT:</strong> local edits behave like a string, surrogate pairs included; concurrent inserts, typed runs that don't interleave, an insert next to a concurrent delete, title races, add-wins tags, delete and restore.</li>
-              <li><strong>Delivery:</strong> causal buffering, including a dependency through a third replica; duplicates ignored; a replica rebuilt from its op log keeps numbering where it left off.</li>
+              <li><strong>Delivery:</strong> causal buffering, including a dependency through a third replica; duplicates ignored; a replica rebuilt from its op log keeps numbering where it left off; malformed ops, and ops naming a note or character it doesn't have, are rejected and leave its state unchanged.</li>
               <li><strong>The fuzzer itself:</strong> 500 seeds clean, the same result for the same seed, runs that are actually hostile (over 100 seeds: more than 10,000 ops, 2,000 dropped, 1,000 duplicated, 50 partitions), and each of the six bugs caught.</li>
-              <li><strong>The relay:</strong> forwards but doesn't echo, a newcomer gets exactly what it lacks, each op stored once, restart from the data file, garbage closes the socket, no path traversal.</li>
+              <li><strong>The relay:</strong> forwards but doesn't echo, a newcomer gets exactly what it lacks, each op stored once, restart from the data file, garbage closes the socket, malformed ops neither stored nor forwarded, no path traversal.</li>
               <li><strong>A known limit:</strong> one test pins that RGA interleaves concurrent backward typing, so a change in that behaviour is noticed.</li>
             </ul>
             <p>CI runs typecheck, tests and the build on Node 22 and 24, the 5,000-seed hunt and the mutant table, and the Playwright tests in Chromium.</p>

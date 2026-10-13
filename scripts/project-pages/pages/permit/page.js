@@ -1,4 +1,4 @@
-/* Every report, error and scan below is verbatim output of permit 0.1.0 at commit 8b23ecd.
+/* Every report, error and scan below is verbatim output of permit 0.1.0 at commit fa44f60.
    CAP.scans holds `permit scan` per version; the rest are whole runs with their exit codes. */
 const CAP = /*@@DATA:captures@@*/;
 const FIX = ' --fixtures ../../fixtures/packages';
@@ -50,7 +50,7 @@ function miniTerm(el, lines) {
 })();
 
 /* Tests per file, from npm test (node --test dist/test/*.test.js) */
-PAGE.tests = [['analyze.test.ts', 8, 'var(--blue)'], ['cli.test.ts', 7, 'var(--magenta)'], ['source.test.ts', 7, 'var(--yellow)'], ['diff.test.ts', 6, 'var(--water)'], ['lockfile.test.ts', 5, 'var(--green)'], ['policy.test.ts', 2, 'var(--ink-2)']];
+PAGE.tests = [['analyze.test.ts', 8, 'var(--blue)'], ['cli.test.ts', 7, 'var(--magenta)'], ['source.test.ts', 8, 'var(--yellow)'], ['diff.test.ts', 6, 'var(--water)'], ['lockfile.test.ts', 5, 'var(--green)'], ['policy.test.ts', 2, 'var(--ink-2)']];
 
 /* 1. Lockfiles: the event-stream example's entries, then two refusals */
 (() => {

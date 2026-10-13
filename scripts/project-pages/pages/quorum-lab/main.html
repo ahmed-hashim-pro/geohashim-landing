@@ -189,7 +189,7 @@
           <p>Each bug is a real mistake people make implementing Raft, kept behind a switch in <code>raft.Bugs</code>, or <code>NoDedup</code> for the state machine. <code>quorumlab mutants</code> hunts the correct build and every bug, and fails if the correct build breaks or any bug gets away.</p>
           <ul class="st-points">
             <li><code>forget-vote</code> is the hardest. A node must vote, crash, restart and vote again for a rival in the same term, and the rival must still win. That usually takes a bridge partition.</li>
-            <li><code>TestEveryBugIsCaught</code> fails if any bug stops being found within about twice the seeds it needs today.</li>
+            <li><code>TestEveryBugIsCaught</code> fails if any bug stops being found within its bound: 600 and 1,500 seeds for the two rare bugs, first caught at seeds 258 and 674, and 50 for the other four, which are caught within the first six.</li>
             <li>The bugs are also pinned down by directed unit tests. <code>TestFigure8</code> replays Figure 8 of the paper message by message, with and without the bug.</li>
           </ul>
           <p class="why">A clean hunt is evidence, not proof. The mutants show the search has teeth, not that it reaches every bug.</p>

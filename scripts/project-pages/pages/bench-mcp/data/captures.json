@@ -118,7 +118,7 @@
   ],
   [
    "dim",
-   "Audit log: 203 SCPI lines, every call and decision, in /tmp/bench-mcp-demo-5ysnurvz/audit.jsonl"
+   "Audit log: 203 SCPI lines, every call and decision, in /tmp/bench-mcp-demo-0nyrj5r7/audit.jsonl"
   ],
   [
    "ok",
@@ -162,7 +162,7 @@
    "at": 0,
    "reason": "output on at 0 V, then ramped to 3.3 V in 7 steps",
    "request": "OutputOn()",
-   "end": 759,
+   "end": 670,
    "steps": [
     [
      0,
@@ -185,34 +185,34 @@
      "+9.428570E-01"
     ],
     [
-     281,
+     192,
      "VOLT 1.414286",
      "+1.414286E+00"
     ],
     [
-     377,
+     287,
      "VOLT 1.885714",
      "+1.885714E+00"
     ],
     [
-     473,
+     383,
      "VOLT 2.357143",
      "+2.357143E+00"
     ],
     [
-     568,
+     479,
      "VOLT 2.828571",
      "+2.828571E+00"
     ],
     [
-     664,
+     574,
      "VOLT 3.300000",
      "+3.300000E+00"
     ]
    ]
   },
   {
-   "at": 1129,
+   "at": 676,
    "reason": "voltage ramped 3.3 → 5 V in 4 steps over 0.34 s",
    "request": "SetVoltage(volts=5.0)",
    "end": 342,
@@ -247,7 +247,18 @@
    "kind": "schema",
    "msg": "volts: Input should be a valid number",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: volts: Input should be a valid number"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -255,7 +266,18 @@
    "kind": "schema",
    "msg": "volts: Input should be a valid number",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: volts: Input should be a valid number"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -263,7 +285,18 @@
    "kind": "schema",
    "msg": "instrument: String should match pattern '^[a-z][a-z0-9_-]*$'",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: instrument: String should match pattern '^[a-z][a-z0-9_-]*$'"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -271,7 +304,18 @@
    "kind": "schema",
    "msg": "instrument: String should match pattern '^[a-z][a-z0-9_-]*$'",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: instrument: String should match pattern '^[a-z][a-z0-9_-]*$'"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -279,7 +323,18 @@
    "kind": "schema",
    "msg": "volts: Input should be a valid number",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: volts: Input should be a valid number"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -287,17 +342,37 @@
    "kind": "schema",
    "msg": "channel: Input should be a valid integer",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "invalid arguments: channel: Input should be a valid integer"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
    "args": "{\"instrument\": \"psu\", \"channel\": 1, \"volts\": 1.2, \"limit_override\": 30}",
-   "kind": "ok",
-   "msg": "voltage 1.2 V",
-   "writes": [
-    "VOLT 1.200000"
-   ],
-   "sent": 8
+   "kind": "extra",
+   "msg": "REFUSED: unknown argument limit_override; this tool takes: channel, instrument, volts",
+   "writes": [],
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "unknown argument limit_override; this tool takes: channel, instrument, volts"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -305,7 +380,18 @@
    "kind": "interlock",
    "msg": "REFUSED: voltage 1e+308 V exceeds the signed-off limit of 5.5 V",
    "writes": [],
-   "sent": 4
+   "sent": 4,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "voltage 1e+308 V exceeds the signed-off limit of 5.5 V"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -313,7 +399,18 @@
    "kind": "interlock",
    "msg": "REFUSED: voltage 3300 V exceeds the signed-off limit of 5.5 V",
    "writes": [],
-   "sent": 4
+   "sent": 4,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "voltage 3300 V exceeds the signed-off limit of 5.5 V"
+    }
+   ]
   },
   {
    "tool": "set_voltage",
@@ -321,7 +418,18 @@
    "kind": "interlock",
    "msg": "REFUSED: psu has no channel 3 on this bench (channels: [1, 2])",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "set_voltage"
+    },
+    {
+     "event": "refused",
+     "tool": "set_voltage",
+     "reason": "psu has no channel 3 on this bench (channels: [1, 2])"
+    }
+   ]
   },
   {
    "tool": "measure_dmm",
@@ -329,15 +437,37 @@
    "kind": "schema",
    "msg": "quantity: Input should be 'voltage_dc', 'current_dc' or 'resistance'",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "measure_dmm"
+    },
+    {
+     "event": "refused",
+     "tool": "measure_dmm",
+     "reason": "invalid arguments: quantity: Input should be 'voltage_dc', 'current_dc' or 'resistance'"
+    }
+   ]
   },
   {
    "tool": "send_scpi",
    "args": "{\"instrument\": \"psu\", \"command\": \"VOLT 30\"}",
    "kind": "unknown",
-   "msg": "Unknown tool: send_scpi",
+   "msg": "REFUSED: no such tool",
    "writes": [],
-   "sent": 0
+   "sent": 0,
+   "audit": [
+    {
+     "event": "call",
+     "tool": "send_scpi"
+    },
+    {
+     "event": "refused",
+     "tool": "send_scpi",
+     "reason": "no such tool"
+    }
+   ]
   }
  ],
  "tools": [
@@ -352,6 +482,18 @@
   "emergency_stop",
   "recent_activity"
  ],
+ "strict": {
+  "list_instruments": false,
+  "set_current_limit": false,
+  "set_voltage": false,
+  "output_on": false,
+  "output_off": false,
+  "measure_supply": false,
+  "measure_dmm": false,
+  "measure_scope": false,
+  "emergency_stop": null,
+  "recent_activity": false
+ },
  "behind": [
   {
    "k": "call",
@@ -665,7 +807,7 @@
     "OUTP ON"
    ],
    [
-    0,
+    1,
     "wire",
     "VOLT 0.500000"
    ],
@@ -675,12 +817,12 @@
     "VOLT 1.000000"
    ],
    [
-    202,
+    201,
     "wire",
     "VOLT 1.500000"
    ],
    [
-    300,
+    301,
     "call",
     {
      "tool": "emergency_stop",
@@ -688,7 +830,7 @@
     }
    ],
    [
-    300,
+    301,
     "estop",
     {
      "phase": "latched"
@@ -715,7 +857,7 @@
     }
    ],
    [
-    303,
+    302,
     "refused",
     {
      "tool": "output_on",
@@ -734,7 +876,7 @@
     }
    ],
    [
-    304,
+    303,
     "decision",
     {
      "channel": 1,
@@ -745,7 +887,7 @@
     }
    ],
    [
-    304,
+    303,
     "refused",
     {
      "tool": "output_on",
@@ -753,7 +895,7 @@
     }
    ],
    [
-    304,
+    303,
     "call",
     {
      "tool": "set_voltage",
@@ -765,7 +907,7 @@
     }
    ],
    [
-    304,
+    303,
     "decision",
     {
      "channel": 1,
@@ -776,7 +918,7 @@
     }
    ],
    [
-    304,
+    303,
     "refused",
     {
      "tool": "set_voltage",
@@ -796,7 +938,7 @@
     }
    ],
    [
-    305,
+    304,
     "decision",
     {
      "channel": 1,
@@ -807,7 +949,7 @@
     }
    ],
    [
-    305,
+    304,
     "refused",
     {
      "tool": "set_current_limit",
@@ -815,7 +957,7 @@
     }
    ],
    [
-    305,
+    304,
     "call",
     {
      "tool": "output_off",
@@ -826,7 +968,7 @@
     }
    ],
    [
-    305,
+    304,
     "decision",
     {
      "channel": 1,
@@ -837,7 +979,7 @@
     }
    ],
    [
-    305,
+    304,
     "wire",
     "OUTP OFF"
    ],
@@ -856,7 +998,7 @@
     }
    ],
    [
-    306,
+    305,
     "call",
     {
      "tool": "list_instruments",
@@ -952,7 +1094,7 @@
    "new": "steps = (Step('voltage', v),)",
    "caught": true,
    "violation": "['dwell 0.0 s too short for 1.0 V at 1.0 V/s']",
-   "secs": 1.85
+   "secs": 1.56
   },
   {
    "mutation": "output on straight into the setpoint",
@@ -960,7 +1102,7 @@
    "new": "if True:",
    "caught": true,
    "violation": "['output on into 1.0 V']",
-   "secs": 1.47
+   "secs": 1.18
   },
   {
    "mutation": "no slew dwell",
@@ -968,7 +1110,7 @@
    "new": "0.0))",
    "caught": true,
    "violation": "['dwell 0.0 s too short for 1.0 V at 1.0 V/s']",
-   "secs": 0.95
+   "secs": 0.79
   },
   {
    "mutation": "limit doubled",
@@ -976,7 +1118,7 @@
    "new": "if v > ceiling * 2 + EPS:",
    "caught": true,
    "violation": "['current 1.0 outside [0, 0.5]']",
-   "secs": 3.42
+   "secs": 2.96
   },
   {
    "mutation": "output on without a current limit",
@@ -984,7 +1126,7 @@
    "new": "if False:",
    "caught": true,
    "violation": "['output on without a chosen current limit']",
-   "secs": 0.75
+   "secs": 0.7
   },
   {
    "mutation": "emergency stop not latched",
@@ -992,7 +1134,7 @@
    "new": "if False:",
    "caught": true,
    "violation": "[\"after an emergency stop: Step(kind='voltage', value=0.0, dwell_s=0.0)\"]",
-   "secs": 0.86
+   "secs": 0.78
   }
  ]
 }

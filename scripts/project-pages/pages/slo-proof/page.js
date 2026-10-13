@@ -81,21 +81,21 @@ PAGE.terminal = {
     refused: [
       ['cmd', 'slo-proof compare gappy.csv examples/incidents.csv examples/rules.toml'], ['err', SP_GAP_ERR], ['out', 'exit 2'], ['out', ''],
       ['cmd', 'slo-proof check typo.toml'],
-      ['err', "slo-proof: typo.toml: rule 'fast-burn' when 1: unknown key 'window' (allowed: burn, error_ratio, windows)"], ['out', 'exit 2']
+      ['err', "slo-proof: typo.toml: line 8: rule 'fast-burn' when 1: unknown key 'window' (allowed: burn, error_ratio, windows)"], ['out', 'exit 2']
     ]
   },
   order: ['compare', 'gate', 'refused'],
   first: 'compare'
 };
 
-/* Tests per file, from pytest --collect-only (67 in total) */
+/* Tests per file, from pytest --collect-only (71 in total) */
 PAGE.tests = [
-  ['tests/test_rules.py', 16, 'var(--blue)'],
+  ['tests/test_rules.py', 18, 'var(--blue)'],
   ['tests/test_series.py', 14, 'var(--magenta)'],
   ['tests/test_evaluate.py', 8, 'var(--water)'],
   ['tests/test_incidents.py', 8, 'var(--green)'],
   ['tests/test_prom.py', 8, 'var(--yellow)'],
-  ['tests/test_cli.py', 6, 'var(--red)'],
+  ['tests/test_cli.py', 8, 'var(--red)'],
   ['tests/test_score.py', 4, 'var(--ink-2)'],
   ['tests/test_synth.py', 3, 'var(--pass)']
 ];
@@ -108,9 +108,9 @@ PAGE.tests = [
     ['notz.csv', ['timestamp,good,total', '2026-03-02T00:00:00,598,600'], 1,
       "slo-proof: notz.csv: line 2: '2026-03-02T00:00:00' has no timezone; add Z or an offset"],
     ['typo.toml', ['name = "fast-burn"', '  [[rule.when]]', '  burn = 14.4', '  window = ["1h", "5m"]'], 3,
-      "slo-proof: typo.toml: rule 'fast-burn' when 1: unknown key 'window' (allowed: burn, error_ratio, windows)"],
+      "slo-proof: typo.toml: line 8: rule 'fast-burn' when 1: unknown key 'window' (allowed: burn, error_ratio, windows)"],
     ['burn.toml', ['name = "too-hot"', '  [[rule.when]]', '  burn = 2000', '  windows = ["1h"]'], 2,
-      "slo-proof: burn.toml: rule 'too-hot' when 1: burn 2000x needs an error ratio of 2, which is impossible"],
+      "slo-proof: burn.toml: line 7: rule 'too-hot' when 1: burn 2000x needs an error ratio of 2, which is impossible"],
     ['overlap.csv', ['start,end,severity,name', '2026-03-04T13:41:00Z,2026-03-04T13:45:00Z,page,checkout outage', '2026-03-04T13:43:00Z,2026-03-04T14:10:00Z,page,payments down'], 2,
       "slo-proof: overlap.csv: line 3: 'payments down' overlaps 'checkout outage'; a page could not be attributed"]
   ];

@@ -29,11 +29,11 @@
   opacity: 0; transform: translateY(6px); transition: opacity .3s, transform .35s cubic-bezier(.2, .7, .2, 1);
 }
 .bm-adv-row.in { opacity: 1; transform: none; }
-.bm-adv-row[data-k="ok"] { --c: var(--yellow); }
+.bm-adv-row[data-k="extra"] { --c: var(--yellow); }
 .bm-adv-row[data-k="unknown"] { --c: var(--magenta); }
 .bm-adv .bm-call { padding: 0; border: 0; background: none; font: 500 12.5px/1.5 var(--mono); overflow-wrap: anywhere; }
 .bm-badge { justify-self: end; padding: 1px 8px; border: 1.5px solid var(--paint-edge); background: var(--c); color: var(--paper); font: 650 12px/1.4 var(--sans); white-space: nowrap; }
-.bm-adv-row[data-k="ok"] .bm-badge { color: var(--on-paint); }
+.bm-adv-row[data-k="extra"] .bm-badge { color: var(--on-paint); }
 .bm-msg, .bm-wire-n { grid-column: 1 / -1; font: 400 11.5px/1.5 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
 .bm-wire-n { font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--ink); }
 .bm-wire-n code { font-size: 11px; }

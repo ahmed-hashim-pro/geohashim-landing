@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>Python 3.11+, mypy <code>--strict</code></dd>
-              <dt>Tests</dt><dd>135 passing, about 25 seconds</dd>
+              <dt>Tests</dt><dd>140 passing, about 20 seconds</dd>
               <dt>Protocol</dt><dd>MCP Python SDK, ten typed tools, stdio</dd>
               <dt>Instruments</dt><dd>SCPI over TCP; a VISA path, written but untested</dd>
               <dt>Run against</dt><dd>The bundled simulated bench, not real hardware yet</dd>
@@ -104,7 +104,8 @@
           <ul class="st-points">
             <li>The only values that reach an instrument are numbers the interlock approved and channel numbers the schema bounded.</li>
             <li><code>"5V"</code> fails the schema. <code>3300</code>, millivolts meant as volts, passes the schema and fails the limit in stage 3.</li>
-            <li>An extra key such as <code>limit_override</code> is ignored. The call runs on its typed arguments alone.</li>
+            <li>An argument a tool does not take, such as <code>limit_override</code>, is refused by name, and every tool schema but <code>emergency_stop</code>'s forbids extra properties. The stop always runs, whatever comes with it.</li>
+            <li>A call refused at this layer never reaches a tool, but it still leaves a <code>call</code> and a <code>refused</code> line in the audit log, with the reason.</li>
           </ul>
           <p class="why">This is also the defence against a prompt injection in a document the agent read: there is no field where text it was told to send could travel to the wire.</p>
         </div>
@@ -117,9 +118,9 @@
             <div class="demo-body">
               <ul class="bm-tools" id="bm-tools" aria-label="The ten tools"></ul>
               <ol class="bm-adv" id="bm-adv"></ol>
-              <p class="bm-sum" id="bm-sum"><b>0</b> changes sent to the supply by the refused calls</p>
+              <p class="bm-sum" id="bm-sum"><b>0</b> changes sent to the supply, and every refusal in the audit log</p>
             </div>
-            <figcaption class="demo-note">Sent by the repo's own test rig: a real MCP client, the real tools, simulated instruments on TCP. Messages are the server's replies, cut to the field and the reason. “Changes sent” counts lines the simulated supply received that set something, not channel selects or queries.</figcaption>
+            <figcaption class="demo-note">Sent by the repo's own test rig: a real MCP client, the real tools, simulated instruments on TCP. Messages are the server's replies, cut to the field and the reason, and each call left a <code>call</code> and a <code>refused</code> entry in the audit log. “Changes sent” counts lines the simulated supply received that set something, not channel selects or queries.</figcaption>
           </figure>
         </div>
       </div>
@@ -189,7 +190,7 @@
               <svg id="bm-ramp" viewBox="0 0 760 280" role="img" aria-label="Supply voltage over time: two ramps in 0.47 and 0.43 volt steps, below the 5.5 volt limit"></svg>
             </div>
             <div class="vlog bm-wire" id="bm-wire" aria-live="polite"></div>
-            <figcaption class="demo-note">Every <code>VOLT</code> and <code>OUTP</code> line and its readback come from the audit log of the hero terminal's run, with milliseconds counted from each decision. The wait is a minimum, so the 184 ms gap after the second step is the machine being slow, not the interlock.</figcaption>
+            <figcaption class="demo-note">Every <code>VOLT</code> and <code>OUTP</code> line and its readback come from the audit log of the hero terminal's run, with milliseconds counted from each decision. Each wait is a minimum, so a busy machine can only make a ramp slower.</figcaption>
           </figure>
         </div>
       </div>
@@ -237,7 +238,7 @@
         <div class="st-demo">
           <figure class="panel demo" id="d-stop" style="margin:0">
             <div class="demo-head">
-              <p class="demo-title">A switch-on to 5 V, stopped at 300 ms</p>
+              <p class="demo-title">A switch-on to 5 V, stopped 300 ms in</p>
               {{REPLAY}}
             </div>
             <div class="bm-chart">
@@ -284,18 +285,18 @@
           <article class="panel m-card">
             <h3>Waits are minimums</h3>
             <div class="bars bm-waits">
-              <div class="bar-row"><span>3.3 V on, planned</span><span class="bar"><i style="--w:86.96%"></i></span><span>660 ms</span></div>
-              <div class="bar-row"><span>3.3 V on, took</span><span class="bar"><i style="--w:100%"></i></span><span>759 ms</span></div>
-              <div class="bar-row"><span>3.3 to 5 V, planned</span><span class="bar"><i style="--w:44.8%"></i></span><span>340 ms</span></div>
-              <div class="bar-row"><span>3.3 to 5 V, took</span><span class="bar"><i style="--w:45.06%"></i></span><span>342 ms</span></div>
+              <div class="bar-row"><span>3.3 V on, planned</span><span class="bar"><i style="--w:98.51%"></i></span><span>660 ms</span></div>
+              <div class="bar-row"><span>3.3 V on, took</span><span class="bar"><i style="--w:100%"></i></span><span>670 ms</span></div>
+              <div class="bar-row"><span>3.3 to 5 V, planned</span><span class="bar"><i style="--w:50.75%"></i></span><span>340 ms</span></div>
+              <div class="bar-row"><span>3.3 to 5 V, took</span><span class="bar"><i style="--w:51.04%"></i></span><span>342 ms</span></div>
             </div>
             <p>Planned time is the sum of the interlock's waits, voltage change over 5 V/s. Took is decision to result in the audit log of the hero's run. A ramp can run slow, never fast.</p>
           </article>
           <article class="panel m-card">
             <h3>Every line, in order</h3>
-            <div class="tally"><span>203 SCPI lines</span><span>239 audit entries</span></div>
-            <p>The hero's run wrote 239 entries to <code>audit.jsonl</code>, 203 of them SCPI lines in either direction, each with a sequence number. One test checks that the lines logged as sent match what the simulated supply received, exactly.</p>
-            <p>A call the schema rejects never reaches the tool, so the <code>"5V"</code> call is not in the log.</p>
+            <div class="tally"><span>203 SCPI lines</span><span>241 audit entries</span></div>
+            <p>The hero's run wrote 241 entries to <code>audit.jsonl</code>, 203 of them SCPI lines in either direction, each with a sequence number. One test checks that the lines logged as sent match what the simulated supply received, exactly.</p>
+            <p>That includes the <code>"5V"</code> call, which the schema refused before it reached a tool: one <code>call</code> line and one <code>refused</code> line, “invalid arguments: volts: Input should be a valid number”.</p>
           </article>
         </div>
       </div>
@@ -304,8 +305,8 @@
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">135 tests, judged from the wire</h2>
-          <p>Counted with <code>pytest -q</code>: 135 passed in about 25 seconds on Python 3.12. Safety is judged from what the simulated supply actually received, replayed line by line, not from what the server reports.</p>
+          <h2 id="h-tests">140 tests, judged from the wire</h2>
+          <p>Counted with <code>pytest -q</code>: 140 passed in about 20 seconds on Python 3.12. Safety is judged from what the simulated supply actually received, replayed line by line, not from what the server reports.</p>
         </div>
         <div class="tests">
           <div class="panel t-cluster">
@@ -315,9 +316,9 @@
           <div class="panel t-list">
             <h3>Weighted toward what an agent might send</h3>
             <ul>
-              <li><strong>Adversarial:</strong> instrument names like <code>psu; OUTP ON</code>, CRLF, NUL, 10,000 characters and Unicode lookalikes; voltages like <code>"5000mV"</code>, NaN, ±Infinity and <code>1e308</code>; injection inside measurement names. None may put a byte of its own on the wire.</li>
+              <li><strong>Adversarial:</strong> instrument names like <code>psu; OUTP ON</code>, CRLF, NUL, 10,000 characters and Unicode lookalikes; voltages like <code>"5000mV"</code>, NaN, ±Infinity and <code>1e308</code>; injection inside measurement names; arguments a tool does not take. None may put a byte of its own on the wire, and every refusal must reach the audit log.</li>
               <li><strong>Config:</strong> thirty ways a bench file is rejected, and the packaged example kept identical to the one in <code>examples/</code>.</li>
-              <li><strong>Interlock:</strong> unit tests for each rule, the Hypothesis state machine and a ramp property, and the six mutations above.</li>
+              <li><strong>Interlock:</strong> unit tests for each rule, the Hypothesis state machine, a ramp property, a pinned case Hypothesis found (a 1e-9 V change on a live output sent with no wait), and the six mutations above.</li>
               <li><strong>End to end:</strong> 60 concurrent tool calls, the stop mid-ramp, changes behind the server's back, a dropped connection, the wrong instrument at an address, the rate limit on an injected clock. After each, the board must still be OK.</li>
               <li><strong>Simulator and CLI:</strong> SCPI forms, units, error queue overflow, each damage model, and the demo run end to end over stdio with nothing on stderr.</li>
             </ul>
@@ -348,7 +349,7 @@ pip install -e '.[dev]'
 
 bench-mcp demo                        <span class="c"># the session above</span>
 bench-mcp check examples/bench.toml   <span class="c"># effective limits</span>
-pytest -q                             <span class="c"># 135 tests</span>
+pytest -q                             <span class="c"># 140 tests</span>
 
 <span class="c"># A simulated bench for a real agent:</span>
 bench-mcp sim --config examples/bench.toml

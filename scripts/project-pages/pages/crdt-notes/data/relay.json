@@ -17,5 +17,8 @@
   ["relay", "C", "{\"type\":\"ops\",\"ops\":[\"ins 3@a seq 3\",\"ins 8@b seq 1\"]}", 4],
   ["relay", "C", "{\"type\":\"welcome\",\"have\":{\"a\":3,\"b\":1}}", 4],
   ["D", "relay", "not json", 4],
-  ["note", "", "D socket closed 1003", 4]
+  ["note", "", "D socket closed 1003", 4],
+  ["E", "relay", "{\"type\":\"ops\",\"ops\":[{\"id\":{\"c\":1,\"r\":\"z\"},\"seq\":1}]}", 4],
+  ["note", "", "E socket closed 1003", 4],
+  ["note", "", "relay stores 4 ops", 4]
 ]

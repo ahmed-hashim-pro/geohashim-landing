@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>Python 3.11+</dd>
-              <dt>Tests</dt><dd>67 passing, the evaluator checked against a reference</dd>
+              <dt>Tests</dt><dd>71 passing, the evaluator checked against a reference</dd>
               <dt>Dependencies</dt><dd>None at runtime, standard library only</dd>
               <dt>Inputs</dt><dd>A per-minute CSV, an incidents CSV, rules in TOML</dd>
               <dt>Prometheus</dt><dd><code>from-prom</code> converts two range-query exports</dd>
@@ -69,13 +69,13 @@
       <div class="wrap grid st-grid">
         <div class="st-head">
           <h2 id="h-input"><span class="num" data-mark="1">1</span>Refuse a gap instead of guessing</h2>
-          <p>The SLI is one CSV row per minute: good events and total events. Incidents are a second CSV, and the rules are TOML. Every file is parsed strictly, and a bad one stops the run with exit code 2 and a message that names the file.</p>
+          <p>The SLI is one CSV row per minute: good events and total events. Incidents are a second CSV, and the rules are TOML. Every file is parsed strictly, and a bad one stops the run with exit code 2 and a message that names the file and, for the CSVs and the rules, the line.</p>
           <ul class="st-points">
             <li>Rows must sit on minute boundaries, carry a timezone, and run one minute apart. A missing minute could mean no traffic or a dead exporter, and the two give different answers, so a quiet minute has to be written as a row of zeros.</li>
             <li>An unknown key in the rules is an error. A misspelt <code>windows</code> would otherwise make a rule that silently never fires.</li>
             <li>A burn rate that needs an error ratio above 100% is refused, and so are overlapping incidents, because a page during both could not be attributed to either.</li>
           </ul>
-          <p class="why">CSV errors carry a line number. Rules errors name the rule and the condition instead, since TOML tables don't map to one line.</p>
+          <p class="why">Rules errors give the line of the key at fault, and also name the rule and the condition, so a typo in a long file is one jump away.</p>
         </div>
         <div class="st-demo">
           <figure class="g-panel demo" id="d-input" style="margin:0">
@@ -86,7 +86,7 @@
             <div class="demo-body">
               <ol class="sp-refs" id="sp-refs"></ol>
             </div>
-            <figcaption class="demo-note">The five files were written for this page. Each error line is exactly what slo-proof 0.1.0 printed to stderr, and every run exited 2 without replaying anything.</figcaption>
+            <figcaption class="demo-note">The five files were written for this page. Each error line is exactly what slo-proof 0.1.0 printed to stderr, and every run exited 2 without replaying anything. The two TOML files are shown from line 5, after their <code>[slo]</code> table.</figcaption>
           </figure>
         </div>
       </div>
@@ -319,7 +319,7 @@
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">67 tests, no network</h2>
+          <h2 id="h-tests">71 tests, no network</h2>
           <p>The evaluator is checked against a second implementation written another way: it sums each window by hand and fires wherever the expression held at every evaluation of the last <code>for</code> minutes. Hypothesis feeds both up to 400 random series and rules, with up to three conditions of up to three windows each.</p>
         </div>
         <div class="tests">
@@ -330,7 +330,7 @@
           <div class="panel t-list">
             <h3>Weighted toward refusing bad input</h3>
             <ul>
-              <li><strong>Parsers:</strong> 41 cases of input that must be refused: gaps, duplicates, missing timezones, typos in rule keys, impossible burn rates, overlapping incidents, malformed Prometheus exports. Most of the CSV cases also pin the line number.</li>
+              <li><strong>Parsers:</strong> 43 cases of input that must be refused: gaps, duplicates, missing timezones, typos in rule keys, impossible burn rates, overlapping incidents, malformed Prometheus exports. Each checks the message and the line number, or that there is none when the problem is the whole file or a Prometheus export's contents.</li>
               <li><strong>Evaluation:</strong> firing at once with no <code>for</code>, a false evaluation resetting the pending clock, still firing at the end of the data, all windows required, any condition enough, no traffic never firing.</li>
               <li><strong>Properties:</strong> alerts come out ordered and disjoint, and a longer <code>for</code> never pages more.</li>
               <li><strong>Scoring:</strong> true, late and false pages on a built timeline, detection when the rule was already firing, budget arithmetic, ranking order.</li>

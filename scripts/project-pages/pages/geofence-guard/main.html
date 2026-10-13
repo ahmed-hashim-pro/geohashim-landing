@@ -19,7 +19,7 @@
               <dt>Language</dt><dd>C++17, built with CMake</dd>
               <dt>Core</dt><dd>No dependencies, no ROS; GoogleTest for the tests</dd>
               <dt>Node</dt><dd>ROS 2 Jazzy, rclcpp</dd>
-              <dt>Tests</dt><dd>93 core and CLI tests, plus 10 node tests that run in a ROS 2 container in CI</dd>
+              <dt>Tests</dt><dd>96 core and CLI tests, plus 10 node tests that run in a ROS 2 container in CI</dd>
               <dt>Simulation</dt><dd>PX4 1.15 SITL, flown in CI on every push</dd>
               <dt>License</dt><dd>MIT</dd>
             </dl>
@@ -41,7 +41,7 @@
 <span class="err">        path_leaves_fence: path crosses the boundary of the fence</span>
 </div>
             </div>
-            <p class="term-cap">All three are real runs of the repo's own CLI on its own example files, built from commit <code>882828f</code>. The CLI makes every decision with the same core the ROS 2 node runs.</p>
+            <p class="term-cap">All three are real runs of the repo's own CLI on its own example files, built from commit <code>29ccaba</code>. The CLI makes every decision with the same core the ROS 2 node runs.</p>
           </div>
         </div>
 
@@ -279,8 +279,8 @@
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">93 tests in the core, 10 more for the node</h2>
-          <p>The core suite is 85 GoogleTest cases and 8 tests that run the CLI as a program, since its exit codes and output are its interface. All 93 pass with <code>make test</code>, and again under AddressSanitizer and UBSan with <code>make check</code>. The 10 node tests need ROS 2 and run in CI.</p>
+          <h2 id="h-tests">96 tests in the core, 10 more for the node</h2>
+          <p>The core suite is 87 GoogleTest cases and 9 tests that run the CLI as a program, since its exit codes and output are its interface. All 96 pass with <code>make test</code>, and again under AddressSanitizer and UBSan with <code>make check</code>. The 10 node tests need ROS 2 and run in CI.</p>
         </div>
         <div class="tests">
           <div class="panel t-cluster">

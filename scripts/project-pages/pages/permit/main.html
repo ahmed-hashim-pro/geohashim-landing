@@ -17,7 +17,7 @@
             <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>TypeScript, <code>tsc --strict</code>, Node 20 or newer</dd>
-              <dt>Tests</dt><dd>35 passing with <code>node:test</code>, all offline</dd>
+              <dt>Tests</dt><dd>36 passing with <code>node:test</code>, all offline</dd>
               <dt>Dependencies</dt><dd>acorn and acorn-walk, pinned</dd>
               <dt>Detects</dt><dd>10 capabilities, from <code>install-script</code> to <code>unanalyzable</code></dd>
               <dt>Runs as</dt><dd>A CLI, and a composite GitHub Action</dd>
@@ -111,7 +111,7 @@
           <ul class="st-points">
             <li>A hash mismatch is an error, never a warning.</li>
             <li>Unpacking writes regular files only. Symlinks and hard links are skipped, and an entry whose path would leave the package directory makes the whole tarball refused.</li>
-            <li>Downloads run eight at a time, with three attempts on a network error or a 5xx and none on a 4xx. Good tarballs are cached by name, version and hash in <code>~/.cache/permit</code>.</li>
+            <li>Downloads run eight at a time, with three attempts on a network error or a 5xx and none on a 4xx. Good tarballs are cached by name, version and hash in <code>$XDG_CACHE_HOME/permit</code>, or <code>~/.cache/permit</code> when that is unset. A refused tarball leaves nothing in the cache.</li>
             <li>A package that can't be fetched or read doesn't pass. It is reported as <code>unanalyzable</code> and blocks like any other gain.</li>
           </ul>
         </div>
@@ -132,7 +132,7 @@
                 <div><dt>Escaping entries written</dt><dd>0</dd></div>
               </dl>
             </div>
-            <figcaption class="demo-note">The packages are made up, packed with <code>npm pack</code> and served by <code>python3 -m http.server</code> on 127.0.0.1. For this page, glob-lite 0.2.9 was rebuilt after the lockfile recorded its hash, tick-ms 2.1.3 carries an entry named <code>package/../../.bashrc</code>, and pad-start was removed from the server. The output and the request counts are real, from the server's own log. The second run asked only for the three that failed, because a failure is never cached.</figcaption>
+            <figcaption class="demo-note">The packages are made up, packed with <code>npm pack</code> and served by <code>python3 -m http.server</code> on 127.0.0.1. For this page, glob-lite 0.2.9 was rebuilt after the lockfile recorded its hash, tick-ms 2.1.3 carries an entry named <code>package/../../.bashrc</code>, and pad-start was removed from the server. The output and the request counts are real, from the server's own log. The second run asked only for the three that failed, because a failure is never cached; the cache held only the four good tarballs.</figcaption>
           </figure>
         </div>
       </div>
@@ -305,9 +305,9 @@ jobs:
           </article>
           <article class="panel m-card">
             <h3>The suite runs offline</h3>
-            <p><code>npm test</code> compiles with <code>tsc</code>, then runs the 35 tests. Three runs in a row:</p>
-            <div class="tally"><span>1.39 s</span><span>1.40 s</span><span>1.53 s</span></div>
-            <p>That is <code>node:test</code>'s own duration. Most of it is one test: the retry check waits out the real backoff, 250 ms and then 1 s, for 1.26 s in all.</p>
+            <p><code>npm test</code> compiles with <code>tsc</code>, then runs the 36 tests. Three runs in a row:</p>
+            <div class="tally"><span>1.38 s</span><span>1.39 s</span><span>1.39 s</span></div>
+            <p>That is <code>node:test</code>'s own duration. Most of it is one test: the retry check waits out the real backoff, 250 ms and then 1 s, for 1.25 s in all.</p>
           </article>
         </div>
       </div>
@@ -316,8 +316,8 @@ jobs:
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">35 tests, no network</h2>
-          <p>Counted with <code>npm test</code>, which runs <code>tsc -p .</code> and then <code>node --test dist/test/*.test.js</code>: 35 tests, all passing. The download and cache test starts a local HTTP server inside the test, and the retry test swaps in a fetch that fails on cue.</p>
+          <h2 id="h-tests">36 tests, no network</h2>
+          <p>Counted with <code>npm test</code>, which runs <code>tsc -p .</code> and then <code>node --test dist/test/*.test.js</code>: 36 tests, all passing. The download and cache test starts a local HTTP server inside the test, and the retry test swaps in a fetch that fails on cue.</p>
         </div>
         <div class="tests">
           <div class="panel t-cluster">
@@ -329,7 +329,7 @@ jobs:
             <ul>
               <li><strong>Analyser:</strong> 26 snippets, one per detection route, and code that must not trigger: comments, strings, look-alikes such as <code>obj.writeFileSync</code>.</li>
               <li><strong>Property test:</strong> 500 files assembled at random from snippets with known capabilities, mixed with harmless code and decoys. The detected set must equal the union exactly.</li>
-              <li><strong>Sources:</strong> a tar writer in the tests makes pax long names, symlinks, hard links and path-traversal entries; a real <code>npm pack</code> tarball; SRI hashes; download, cache, 404, and retry on a network error and on 503.</li>
+              <li><strong>Sources:</strong> a tar writer in the tests makes pax long names, symlinks, hard links and path-traversal entries, and a refused tarball must leave nothing in the cache; a real <code>npm pack</code> tarball; SRI hashes; download, cache, 404, and retry on a network error and on 503.</li>
               <li><strong>Lockfiles and policy:</strong> nested, scoped and aliased packages, workspace links, and every class of malformed input.</li>
               <li><strong>Diff and CLI:</strong> the three examples end to end, a capability any earlier version had, an unfetchable package, exit codes 0, 1 and 2, <code>--json</code>, and <code>--base</code> against a temporary Git repository.</li>
             </ul>
@@ -356,7 +356,7 @@ jobs:
             <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/permit
 cd permit
 npm ci &amp;&amp; npm run build
-npm test            <span class="c"># 35 tests, offline</span>
+npm test            <span class="c"># 36 tests, offline</span>
 
 <span class="c"># The examples, offline:</span>
 cd examples/ua-sniff
@@ -366,7 +366,7 @@ cd ../..
 
 <span class="c"># Your project, against the real registry:</span>
 node dist/src/cli.js diff --base origin/main</pre>
-            <p>Node 20 or newer. The examples need no network. Against the registry, tarballs are cached in <code>~/.cache/permit</code>, so the second run of the same diff is fast.</p>
+            <p>Node 20 or newer. The examples need no network. Against the registry, tarballs are cached in <code>~/.cache/permit</code> (or under <code>$XDG_CACHE_HOME</code>), so the second run of the same diff is fast.</p>
           </div>
         </div>
       </div>

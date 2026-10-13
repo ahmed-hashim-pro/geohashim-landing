@@ -20,10 +20,10 @@ const unError = (t, tool) => t.replace(`Error executing tool ${tool}: `, '');
   };
 })();
 
-/* Tests per file, from pytest --collect-only -q (135 in all) */
-PAGE.tests = [['test_adversarial.py', 39, 'var(--red)'], ['test_config.py', 33, 'var(--yellow)'], ['test_interlock.py', 24, 'var(--blue)'],
+/* Tests per file, from pytest --collect-only -q (140 in all) */
+PAGE.tests = [['test_adversarial.py', 43, 'var(--red)'], ['test_config.py', 33, 'var(--yellow)'], ['test_interlock.py', 24, 'var(--blue)'],
   ['test_sim.py', 17, 'var(--water)'], ['test_server.py', 11, 'var(--magenta)'], ['test_mutations.py', 6, 'var(--green)'],
-  ['test_cli.py', 3, 'var(--ink-2)'], ['test_interlock_props.py', 2, 'var(--ink)']];
+  ['test_interlock_props.py', 3, 'var(--ink)'], ['test_cli.py', 3, 'var(--ink-2)']];
 
 /* 1. The signed-off file: check's output, then six broken copies */
 (() => {
@@ -49,11 +49,12 @@ PAGE.tests = [['test_adversarial.py', 39, 'var(--red)'], ['test_config.py', 33, 
 (() => {
   const el = $('#d-types'), list = $('#bm-adv'), sum = $('#bm-sum b');
   $('#bm-tools').innerHTML = CAP.tools.map(t => `<li><code>${esc(t)}</code></li>`).join('');
-  const LABEL = { schema: 'Schema', unknown: 'No such tool', ok: 'Extra key ignored' };
+  const LABEL = { schema: 'Schema', unknown: 'No such tool', extra: 'Unknown argument' };
   const CASES = CAP.adv.filter(c => c.kind !== 'interlock');
-  const refused = CASES.filter(c => c.kind !== 'ok');
+  const refused = CASES;
   list.innerHTML = CASES.map(c => {
-    const wire = c.writes.length ? `${c.writes.length} change sent: <code>${esc(c.writes.join(', '))}</code>, the typed 1.2 V` : '0 changes sent';
+    const logged = c.audit.some(a => a.event === 'refused') ? ', refusal logged' : '';
+    const wire = `${c.writes.length} changes sent${logged}`;
     return `<li class="bm-adv-row" data-k="${c.kind}"><code class="bm-call">${esc(c.tool)} ${esc(c.args)}</code>`
       + `<span class="bm-badge">${LABEL[c.kind]}</span><span class="bm-msg">${esc(c.msg)}</span><span class="bm-wire-n">${wire}</span></li>`;
   }).join('');
@@ -144,7 +145,7 @@ const seg = (parent, d, cls) => { const p = svgEl('path', { d, class: cls }); pa
 (() => {
   const el = $('#d-ramp'), svg = $('#bm-ramp'), log = $('#bm-wire');
   const R = CAP.ramps, END = R[1].at + R[1].end + 60;
-  const { X, Y, g } = chart(svg, { w: 760, h: 280, tMax: END, vMax: 6.5, ticks: [0, 500, 1000, 1500] });
+  const { X, Y, g } = chart(svg, { w: 760, h: 280, tMax: END, vMax: 6.5, ticks: [0, 250, 500, 750, 1000] });
   const items = [];
   let v = 0, on = false, lastT = 0;
   const plot = g('bm-trace');
@@ -266,7 +267,7 @@ const seg = (parent, d, cls) => { const p = svgEl('path', { d, class: cls }); pa
   seg(cut, `M${X(lt)} ${Y(lv)}H${X(stopAt + 1)}`, 'bm-run');
   seg(cut, `M${X(stopAt + 1)} ${Y(lv)}V${Y(0)}H${X(T_MAX)}`, 'bm-off');
   cut.appendChild(svgEl('line', { x1: X(stopAt), x2: X(stopAt), y1: Y(6.5), y2: Y(0), class: 'bm-stopline' }));
-  const lab = svgEl('text', { x: X(stopAt) + 6, y: Y(4.2), class: 'bm-stoplabel' }); lab.textContent = 'emergency_stop, 300 ms'; cut.appendChild(lab);
+  const lab = svgEl('text', { x: X(stopAt) + 6, y: Y(4.2), class: 'bm-stoplabel' }); lab.textContent = `emergency_stop, ${E.find(e => e[1] === 'call' && e[2].tool === 'emergency_stop')[0]} ms`; cut.appendChild(lab);
   steps.push({ node: cut, t: stopAt });
 
   const ms = t => `+${String(t).padStart(3)} ms  `;
