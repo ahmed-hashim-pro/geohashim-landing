@@ -18,7 +18,7 @@
             <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
             <dl class="facts">
               <dt>Language</dt><dd>Python 3.11+</dd>
-              <dt>Tests</dt><dd>133 passing, 1 skipped: the paid real-model eval</dd>
+              <dt>Tests</dt><dd>134 passing, 1 skipped: the paid real-model eval</dd>
               <dt>Graph</dt><dd>LangGraph 1.2.12, checkpoints in SQLite</dd>
               <dt>Model</dt><dd>A deterministic fake by default. The Anthropic path is written but has never been run.</dd>
               <dt>Actions</dt><dd>A dry run: recorded, never performed</dd>
@@ -317,7 +317,7 @@ approval             paused: waiting for a human decision
             <p>The port proposed the same action as the LangGraph version on all four alerts, with 12 model calls each:</p>
             <div class="tally"><span>rollback_deploy</span><span>scale_up</span><span>restart_service</span><span>page_human</span></div>
             <p>The repo's tests pin the restore problem: after a crash, the custom LLM came back as an OpenAI client and the conditional task as a plain task. They passed.</p>
-            <p>Running the port also wrote a third file the docs don't list: a version cache, written after CrewAI asked pypi.org for its latest release. The CrewAI path works offline, but it does reach for the network.</p>
+            <p>Running the port also wrote a third file the docs didn't list: a version cache, written after CrewAI asked pypi.org for its latest release. The port now turns that check off, as it does CrewAI's telemetry, and a test makes sure it stays off.</p>
           </article>
         </div>
       </div>
@@ -360,8 +360,8 @@ approval             paused: waiting for a human decision
     <section class="sec" id="tests" aria-labelledby="h-tests">
       <div class="wrap">
         <div class="sec-head panel">
-          <h2 id="h-tests">133 tests pass, 1 is skipped</h2>
-          <p>The skipped test is the real-model eval. It spends money, so it runs only when both an API key and <code>TRIAGE_EVAL_REAL=1</code> are set. The other 133 run on the fake model with no key; the full suite took 4 minutes 52 seconds here.</p>
+          <h2 id="h-tests">134 tests pass, 1 is skipped</h2>
+          <p>The skipped test is the real-model eval. It spends money, so it runs only when both an API key and <code>TRIAGE_EVAL_REAL=1</code> are set. The other 134 run on the fake model with no key.</p>
         </div>
         <div class="tests">
           <div class="panel t-cluster">

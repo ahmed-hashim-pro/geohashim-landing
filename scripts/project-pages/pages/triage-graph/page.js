@@ -70,14 +70,14 @@ const tgLine = (who, text) => who.padEnd(21) + text;
   };
 })();
 
-/* Passing tests per file, from the full run (133 passed, 1 skipped) */
+/* Passing tests per file, from the full run (134 passed, 1 skipped) */
 PAGE.tests = [
   ['tests/test_approval.py', 26, 'var(--yellow)'],
   ['tests/test_graph.py', 18, 'var(--blue)'],
   ['tests/test_tools.py', 18, 'var(--water)'],
   ['tests/test_cli.py', 14, 'var(--magenta)'],
   ['tests/test_actions.py', 13, 'var(--green)'],
-  ['tests/test_crewai_port.py, test_crewai_resume.py', 15, 'var(--ink-2)'],
+  ['tests/test_crewai_port.py, test_crewai_resume.py', 16, 'var(--ink-2)'],
   ['evals/test_evals.py', 10, 'var(--deep)'],
   ['tests/test_fixtures.py, fake_model, docs, crash_resume', 19, 'var(--ink)']
 ];
