@@ -1,0 +1,330 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">deadline</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A small Java 21 library that passes a request's time budget from service to service over HTTP. Each hop knows how long the user is still waiting, stops work nobody is waiting for, skips retries that couldn't finish, and reports where the time went.</p>
+            <p>Timeouts are usually set one hop at a time, and each looks sensible on its own. The user's app gives up after 2 s. The gateway gives orders 3.5 s and three attempts; orders gives inventory 1 s and three attempts. Together, a request the user abandoned at 2 s keeps three services busy for almost ten seconds. gRPC solves this with deadlines. Plain HTTP services usually have nothing.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/deadline">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/deadline#how-it-works">How it works</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Java 21, no runtime dependencies</dd>
+              <dt>Tests</dt><dd>49 passing with <code>./mvnw verify</code>, JUnit 5</dd>
+              <dt>Speaks</dt><dd>HTTP/1.1 through the JDK's own <code>HttpClient</code> and <code>HttpServer</code></dd>
+              <dt>Headers</dt><dd><code>Deadline-Budget-Ms</code> in, <code>Deadline-Trace</code> back</dd>
+              <dt>Adoption</dt><dd>No header, no deadline: services can switch one at a time</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="demo">One request</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="load">Under load</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="curl">One hop</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="trace">The header</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">java -jar target/deadline.jar demo</span>
+<span class="out">user -> gateway -> orders -> inventory, each a separate JVM. The user waits 2.0 s.</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of the built jar, output verbatim. The first two start three services as separate JVMs talking HTTP on loopback. The last two are <code>curl</code> against services started by hand with <code>deadline service</code>, the same three hops with the demo's settings.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a budget travels">
+          <div class="sign-group">
+            <p>Before the line: every hop knows what's left</p>
+            <ol>
+              <li><a class="sign-link" href="#s-budget"><b>1</b> Budget</a></li>
+              <li><a class="sign-link" href="#s-plan"><b>2</b> Plan</a></li>
+              <li><a class="sign-link" href="#s-enforce"><b>3</b> Enforce</a></li>
+              <li><a class="sign-link" href="#s-trace"><b>4</b> Trace</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: what the user sees</p>
+            <ol>
+              <li><a class="sign-link" href="#s-demo"><b>5</b> One request</a></li>
+              <li><a class="sign-link" href="#s-load"><b>6</b> Under load</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-budget" aria-labelledby="h-budget">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-budget"><span class="num" data-mark="1">1</span>Send what's left, not a time of day</h2>
+          <p>A caller sends <code>Deadline-Budget-Ms: 1830</code>: whole milliseconds it is still prepared to wait. The callee turns that into an instant on its own monotonic clock the moment the request arrives, so hosts with skewed clocks still agree. This is what gRPC does with <code>grpc-timeout</code>.</p>
+          <ul class="st-points">
+            <li>The cost is that network transit isn't counted. Each caller keeps a margin back for it.</li>
+            <li>Zero or negative means the caller had already run out. That request gets a 504 without being worked on.</li>
+            <li>Anything that isn't a whole number is a 400. Budgets over an hour are clamped to an hour.</li>
+            <li>No header means no deadline: configured timeouts, every retry, as if the library weren't there.</li>
+          </ul>
+          <p class="why">Building it turned up the negative case. The parser once returned -1 for both "absent" and "-20 ms", so an expired request ran with no deadline at all. A test now holds it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-budget" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One service, seven headers</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="dl-hdr" id="dl-hdr"></ol>
+            </div>
+            <figcaption class="demo-note">Real <code>curl</code> runs against <code>deadline service --name inventory --work 1500 --slots 1 --margin 50</code>: a hop whose work holds a worker for 1.5 s. Statuses, bodies and trace headers are verbatim. The service keeps 10 ms of each budget back to write its reply, so a 600 ms budget stops the work at 589.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-plan" aria-labelledby="h-plan">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-plan"><span class="num" data-mark="2">2</span>Give each attempt the smaller of its timeout and what's left</h2>
+          <p>Before every attempt, <code>Plan.next</code> looks at the call's policy and the request's deadline. The caller waits <code>min(timeout, remaining)</code>, and tells the callee that, less a margin, so the callee's answer gets back inside the wait.</p>
+          <ul class="st-points">
+            <li>An attempt with less than <code>minUseful + margin</code> left is never sent. It couldn't finish, so it would only add load.</li>
+            <li><code>Plan</code> is a pure function of the policy and a deadline. Its tests run on a virtual clock that moves only when told to.</li>
+            <li>200,000 random policies are checked against four invariants: the callee's budget is never spent on arrival, never more than what's left less the margin, the caller never waits past its own deadline, and the answer always fits inside the wait.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-plan" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The orders hop, decision by decision</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="dl-plan" id="dl-plan"></div>
+              <ol class="dl-steps" id="dl-steps"></ol>
+            </div>
+            <figcaption class="demo-note">The decisions <code>PlanTest.theDemoScenarioOnAVirtualClock</code> asserts: a 1,890 ms deadline, a 1,000 ms timeout, three attempts, a 50 ms margin and 50 ms minimum. On the virtual clock each callee uses its whole budget, the worst case. The real run in stage 5 made the same three decisions.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-enforce" aria-labelledby="h-enforce">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-enforce"><span class="num" data-mark="3">3</span>The callee stops when the budget does</h2>
+          <p><code>DeadlineHandler</code> wraps a service's handler. It rejects a request that arrives with nothing left, waits for a worker slot only as long as the budget allows, and turns <code>DeadlineExceededException</code> from <code>ctx.check</code> into a 504.</p>
+          <ul class="st-points">
+            <li>A queued request gives up its place when its budget runs out, instead of being served after nobody is waiting.</li>
+            <li>Stopping is cooperative: at <code>ctx.check()</code>, at a downstream call, or in the queue. Nothing interrupts threads, so a long loop that never checks runs to the end.</li>
+            <li>Work finished after the caller hung up is still reported. An early version skipped its listener when writing the reply threw, which hid exactly the waste the demo measures.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-enforce" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two requests, one worker</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="dl-q" id="dl-q"></div>
+              <div class="dl-mt" id="dl-q-term"></div>
+            </div>
+            <figcaption class="demo-note">The same one-worker inventory service, sent request a with a 1,200 ms budget and, 0.1 s later, request b with 500 ms. The bars are drawn from each reply's own <code>Deadline-Trace</code>: start, end and time queued, in ms from when that request arrived. The responses are verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-trace" aria-labelledby="h-trace">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-trace"><span class="num" data-mark="4">4</span>Send the trace back with the reply</h2>
+          <p>Each hop returns its spans in a <code>Deadline-Trace</code> response header, with times relative to when it received the request. The caller shifts them by when it sent the request and nests them under the attempt, so the edge gets the whole tree with no clock synchronisation.</p>
+          <ul class="st-points">
+            <li>Every hop answers before its deadline, so the trace arrives on failures too. A 504 says which hop ran out and what it was doing.</li>
+            <li>Past 64 spans the rest are counted, not kept, so the header stays small.</li>
+            <li>A malformed header gives an empty trace, never an exception.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-trace" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One header, the whole chain</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="dl-k"><code>curl -si -H 'Deadline-Budget-Ms: 1950' localhost:47311/</code> to the gateway</p>
+              <div class="dl-raw" id="dl-raw"></div>
+              <ol class="dl-tree" id="dl-tree"></ol>
+            </div>
+            <figcaption class="demo-note">Three services started by hand with the demo's settings: gateway calls orders with a 3.5 s timeout, orders works 20 ms and calls inventory with 1 s, inventory works 1.5 s. The header is verbatim; each comma-separated span is decoded below it. The budget is the user's 2 s less a 50 ms margin, as the demo's user sends.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>User stops waiting</span>Above this line each hop works out how much of the user's wait is left. Below it is the moment the user gives up, and whether anything is still running for them after it.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-demo" aria-labelledby="h-demo">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-demo"><span class="num" data-mark="5">5</span>One slow request, three JVMs</h2>
+          <p><code>deadline demo</code> starts gateway, orders and inventory as separate JVMs on loopback, with the same timeouts and retries in both runs. Inventory is having a slow day: every call takes 1.5 s. The only difference between the runs is whether the budget travels with the request.</p>
+          <ul class="st-points">
+            <li>Without it, the user gives up at 2 s, and nine of the twelve calls between services happen after that, for nobody.</li>
+            <li>With it, every hop stops when the budget runs out, and the retries that couldn't finish are never sent. The user gets a 504 before giving up, carrying inventory's own report.</li>
+            <li>The two runs switch only <code>CallPolicy.withPropagate</code> and <code>DeadlineHandler.enforce</code>, so the comparison is like for like.</li>
+          </ul>
+          <p class="why">Nagle's algorithm nearly ate the margin. The JDK server writes headers and body separately, and a small 504 sat about 40 ms behind a delayed ACK, so it reached the user just after they gave up. The services set <code>sun.net.httpserver.nodelay</code>.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-demo" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every time a service held a worker for this request</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="dl-tl" id="dl-tl"></div>
+              <div class="legend-row"><span class="key"><i class="dl-sw dl-sw-ok"></i>Working while the user waits</span><span class="key"><i class="dl-sw dl-sw-bad"></i>Working after the user stopped waiting</span></div>
+              <div class="dl-mt dl-scroll" id="dl-demo-term"></div>
+            </div>
+            <figcaption class="demo-note">One run of <code>deadline demo --svg</code> on this page's machine. The bars are read back out of the SVG it wrote, which draws them from the services' own logs; the summary lines are its terminal output, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-load" aria-labelledby="h-load">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-load"><span class="num" data-mark="6">6</span>Under load, the waste crowds out live requests</h2>
+          <p><code>deadline load</code> sends 30 requests a second for 20 seconds. Inventory has 8 workers and takes 100 ms a call, except for 5% of requests, which take 1.5 s. The timeouts are the demo's, and the same requests are slow in both runs.</p>
+          <ul class="st-points">
+            <li>Without deadlines each slow request becomes nine 1.5 s inventory calls. Inventory's workers fill with retries for users who have left, and the fast requests queue behind them, time out, and retry in turn.</li>
+            <li>With deadlines a slow request costs about two seconds of inventory time and then stops, so the fast ones keep flowing.</li>
+            <li><code>--check</code> fails the run unless deadlines answer at least 85%, at least 30 points more than without, with under 1% of work after users left, and unless the run without them wasted most of its work. CI runs it on every push.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-load" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">600 requests, both ways</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="dl-ld" id="dl-ld"></div>
+              <div class="dl-mt dl-scroll" id="dl-ld-term"></div>
+            </div>
+            <figcaption class="demo-note"><code>java -jar target/deadline.jar load --rate 30 --seconds 20 --check</code>, one run on this page's machine, verbatim. Worker time is the total time services held a worker; drain is how long they kept working after the last user stopped waiting.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Everything below was re-run on one Linux machine with 12 cores, while it was busy with other jobs. The README's figures come from the same kind of setup and say so: they show the shape of the effect, not a benchmark of any real system.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>The demo, twice</h3>
+            <p>When the user heard back, with deadlines, against the README's run:</p>
+            <div class="bars dl-mbars">
+              <div class="bar-row"><span>README</span><span class="bar"><i style="--s:.93"></i></span><span>1.86 s</span></div>
+              <div class="bar-row"><span>Run 1</span><span class="bar"><i style="--s:.935"></i></span><span>1.87 s</span></div>
+              <div class="bar-row"><span>Run 2</span><span class="bar"><i style="--s:.965"></i></span><span>1.93 s</span></div>
+            </div>
+            <p>All inside the user's 2 s. Without deadlines the services worked on until 9.69 s and 9.67 s, against the README's 9.61 s, with 12 calls and 9 after the user left every time.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The load test, four times</h3>
+            <p>Share of users answered in time, without and with deadlines:</p>
+            <div class="tally"><span>30/s: 15.0% → 94.5%</span><span>30/s: 15.0% → 94.5%</span></div>
+            <div class="tally"><span>8/s: 56.3% → 91.9%</span><span>8/s: 57.5% → 91.9%</span></div>
+            <p>The README has 15.2% and 94.5% at 30/s, and 79% and 54% without deadlines at 8/s, which it says small timing differences tip. With deadlines the misses equal the number of slow requests exactly: 13 of 160 at 8/s, 33 of 600 at 30/s.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The suite</h3>
+            <p><code>./mvnw -B verify</code>, the two runs after the first, as Maven reported them:</p>
+            <div class="tally"><span>40.9 s</span><span>22.3 s</span></div>
+            <p>Most of it is <code>ClusterTest</code>, which runs the demo at half speed in one JVM, both ways, 18.9 s here. In CI the test job's <code>verify</code> step took 33 s, and the load check 145 s.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">49 tests, decisions to whole chain</h2>
+          <p>Counted by Surefire under <code>./mvnw -B verify</code>, as CI runs it: 39 test methods, plus 10 cases of one parameterised test of malformed budgets. All passing on OpenJDK 21.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the claim</h3>
+            <ul>
+              <li><strong>The decisions, on a virtual clock:</strong> the boundaries, the demo's orders hop decision by decision, and 200,000 random policies against the invariants.</li>
+              <li><strong>The handler and client over real HTTP:</strong> malformed and expired budgets, work cut short, retries on 5xx but not 4xx, forwarded headers, attempts not started, and traces merged across two hops.</li>
+              <li><strong>The whole chain, both ways:</strong> without deadlines inventory must be called nine times and work long after the user left; with them everything stops before the user's wait is up, with no work after it, and inventory's own report reaches the user.</li>
+              <li><strong>Regressions:</strong> the negative budget and the listener skipped when the caller hung up, two of the three bugs the README records. The third, Nagle, would fail the chain test's timing.</li>
+            </ul>
+            <p>CI also runs <code>demo</code> and <code>load --check</code> with three separate JVMs on every push.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Interrupting work</dt><dd>Stopping is cooperative. A CPU loop or a blocking JDBC call that never checks runs to the end.</dd></div>
+              <div><dt>Frameworks</dt><dd>HTTP/1.1 through the JDK only. No servlet filter, Spring or Netty integration, and no gRPC, which has deadlines already.</dd></div>
+              <div><dt>Backoff and retry budgets</dt><dd>Retries are immediate. Backoff, jitter and hedging reduce retry storms from another direction and would combine with this.</dd></div>
+              <div><dt>Trust</dt><dd>The budget header is clamped to an hour but not an authorisation boundary. A caller can always ask for more time than its own caller gave it.</dd></div>
+              <div><dt>Maven Central</dt><dd>Not published. Build it from source.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/deadline.git &amp;&amp; cd deadline
+./mvnw -q package                    <span class="c"># builds, runs the 49 tests</span>
+java -jar target/deadline.jar demo   <span class="c"># one slow request, about 20 s</span>
+java -jar target/deadline.jar load   <span class="c"># the load table, about 3 minutes</span>
+
+<span class="c"># Only Docker:</span>
+docker run --rm -v "$PWD":/w -w /w maven:3.9-eclipse-temurin-21 \
+  sh -c 'mvn -q package &amp;&amp; java -jar target/deadline.jar demo'</pre>
+            <p>JDK 21; the Maven wrapper fetches Maven itself. <code>demo --svg timeline.svg</code> also draws the timeline, and <code>load --rate N --seconds S</code> changes the traffic.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

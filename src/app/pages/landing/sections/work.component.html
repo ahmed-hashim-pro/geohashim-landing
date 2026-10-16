@@ -30,6 +30,8 @@
                 <li><a href="https://github.com/ahmed-hashim-pro/sqlguard-mcp">sqlguard-mcp</a> runs reads on a read-only SQLite connection.</li>
                 <li>Distributed state checked under faults: Raft attacked by a deterministic simulator (<a href="https://github.com/ahmed-hashim-pro/quorum-lab">quorum-lab</a>) and a CRDT fuzzed until replicas converge (<a href="https://github.com/ahmed-hashim-pro/crdt-notes">crdt-notes</a>).</li>
                 <li>Contracts for JSON event streams (<a href="https://github.com/ahmed-hashim-pro/schema-drift">schema-drift</a>) and a ground model that states its uncertainty (<a href="https://github.com/ahmed-hashim-pro/strata">strata</a>).</li>
+                <li>Storage and databases checked against failure: power cuts during writes (<a href="https://github.com/ahmed-hashim-pro/wal-crash">wal-crash</a>), PostgreSQL migrations under live traffic (<a href="https://github.com/ahmed-hashim-pro/migrate-safe">migrate-safe</a>) and time-series compression (<a href="https://github.com/ahmed-hashim-pro/tsz">tsz</a>).</li>
+                <li>An offline-first Android field notebook that merges edits through CRDTs (<a href="https://github.com/ahmed-hashim-pro/fieldlog">fieldlog</a>).</li>
               </ul>
             </li>
             <li class="area">
@@ -38,7 +40,9 @@
                 <li><a href="https://github.com/ahmed-hashim-pro/noisefloor">noisefloor</a> (regression testing for systems that don't give the same answer twice).</li>
                 <li><a href="https://github.com/ahmed-hashim-pro/runon">runon</a> (shell programs across one machine or a group of servers over SSH).</li>
                 <li>Gates for dependency upgrades (<a href="https://github.com/ahmed-hashim-pro/permit">permit</a>) and alert rules (<a href="https://github.com/ahmed-hashim-pro/slo-proof">slo-proof</a>).</li>
-                <li>2,386 passing tests across <a href="#open-source">sixteen public repos</a> (October 2026).</li>
+                <li>Proof before a change ships: Kubernetes admission policies (<a href="https://github.com/ahmed-hashim-pro/admission-replay">admission-replay</a>), permission schemas (<a href="https://github.com/ahmed-hashim-pro/authz-proof">authz-proof</a>), traces (<a href="https://github.com/ahmed-hashim-pro/trace-diff">trace-diff</a>) and rate limiters (<a href="https://github.com/ahmed-hashim-pro/rate-proof">rate-proof</a>).</li>
+                <li>Flaky tests diagnosed by cause (<a href="https://github.com/ahmed-hashim-pro/flaky-hunt">flaky-hunt</a>), request deadlines across services (<a href="https://github.com/ahmed-hashim-pro/deadline">deadline</a>) and a real-time dashboard measured in the browser (<a href="https://github.com/ahmed-hashim-pro/ops-console">ops-console</a>).</li>
+                <li>3,292 passing tests across <a href="#open-source">thirty-two public repos</a> (October 2026).</li>
               </ul>
             </li>
             <li class="area">
@@ -46,6 +50,8 @@
               <ul class="ev">
                 <li>Agent tooling with human approval (<a href="https://github.com/ahmed-hashim-pro/triage-graph">triage-graph</a>, <a href="https://github.com/ahmed-hashim-pro/sqlguard-mcp">sqlguard-mcp</a>).</li>
                 <li>Hard limits on what an agent or planner may command: lab instruments (<a href="https://github.com/ahmed-hashim-pro/bench-mcp">bench-mcp</a>) and aircraft setpoints (<a href="https://github.com/ahmed-hashim-pro/geofence-guard">geofence-guard</a>).</li>
+                <li>Agents checked before and after a model change: tool-call replay (<a href="https://github.com/ahmed-hashim-pro/agent-replay">agent-replay</a>) and MCP server audits in a sandbox (<a href="https://github.com/ahmed-hashim-pro/mcp-audit">mcp-audit</a>).</li>
+                <li>Flight and firmware safety: terrain clearance for drone missions (<a href="https://github.com/ahmed-hashim-pro/terrain-follow">terrain-follow</a>), autopilot parameter checks (<a href="https://github.com/ahmed-hashim-pro/paramguard">paramguard</a>) and firmware updates that survive power loss (<a href="https://github.com/ahmed-hashim-pro/ota-safe">ota-safe</a>).</li>
                 <li>Retrieval with citations that refuses without evidence (<a href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent">rag-knowledge-agent</a>).</li>
                 <li>Routing across model providers with schema checks (<a href="https://github.com/ahmed-hashim-pro/llm-contract-router">llm-contract-router</a>).</li>
                 <li>An AI publishing pipeline across 10 providers (<a href="https://feed.geohashim.com">My Stream</a>).</li>

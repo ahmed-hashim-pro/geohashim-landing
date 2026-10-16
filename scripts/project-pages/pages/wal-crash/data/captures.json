@@ -1,0 +1,2411 @@
+{
+ "abfAll": {
+  "cmd": "wal-crash run --model all --checker \"$kv -engine log -bug ack-before-fsync -dir . check\" -- $kv -engine log -bug ack-before-fsync -dir {dir} load 5",
+  "out": [
+   "22 operations recorded, 5 acknowledged",
+   "",
+   "process  23 states (17 distinct) checked   PASS",
+   "ordered  38 states (32 distinct) checked   PASS",
+   "posix    64 states (52 distinct) checked   FAIL  20 of them break the checker",
+   "",
+   "simplest failure under the posix model:",
+   "",
+   "  crash after op 5 of 22 (state c5.synced), 1 operation lost:",
+   "",
+   "        2  fsync    ./  (directory)",
+   "        3  stdout   PUT k1 v1",
+   "   ✗    4  write    log  13 B @ 0                                LOST: file not fsynced after it",
+   "        5  stdout   ACK k1 v1",
+   "",
+   "  checker: acknowledged k1=v1 is missing"
+  ],
+  "exit": 1
+ },
+ "abfCheck": {
+  "cmd": "wal-crash check --checker \"$kv -engine log -bug ack-before-fsync -dir . check\" abf.json",
+  "out": [
+   "22 operations recorded, 5 acknowledged",
+   "",
+   "posix    64 states (52 distinct) checked   FAIL  20 of them break the checker",
+   "",
+   "  crash after op 5 of 22 (state c5.synced), 1 operation lost:",
+   "",
+   "        2  fsync    ./  (directory)",
+   "        3  stdout   PUT k1 v1",
+   "   ✗    4  write    log  13 B @ 0                                LOST: file not fsynced after it",
+   "        5  stdout   ACK k1 v1",
+   "",
+   "  checker: acknowledged k1=v1 is missing",
+   "",
+   "  reproduce: wal-crash state abf.json c5.synced -o /tmp/state",
+   "",
+   "  19 more states fail the same way"
+  ],
+  "exit": 1
+ },
+ "abfCheck5": {
+  "cmd": "cd /tmp/s5/state && WAL_CRASH_ACKED=../acked WAL_CRASH_STDOUT=../stdout $kv -engine log -bug ack-before-fsync -dir . check",
+  "out": [
+   "acknowledged k1=v1 is missing"
+  ],
+  "exit": 1
+ },
+ "abfLs": {
+  "cmd": "wc -c /tmp/s5/state/*; cat /tmp/s5/acked /tmp/s5/stdout",
+  "out": [
+   "0 /tmp/s5/state/log",
+   "k1 v1",
+   "PUT k1 v1",
+   "ACK k1 v1"
+  ],
+  "exit": 0
+ },
+ "abfOps": {
+  "cmd": "wal-crash ops abf.json",
+  "out": [
+   "/w/bin/kvstore -engine log -bug ack-before-fsync -dir /tmp/wal-crash-run-1196094895 load 5",
+   "in /tmp/wal-crash-run-1196094895",
+   "",
+   "    1  create   log",
+   "    2  fsync    ./  (directory)",
+   "    3  stdout   PUT k1 v1",
+   "    4  write    log  13 B @ 0",
+   "    5  stdout   ACK k1 v1",
+   "    6  fsync    log",
+   "    7  stdout   PUT k2 v2",
+   "    8  write    log  13 B @ 13",
+   "    9  stdout   ACK k2 v2",
+   "   10  fsync    log",
+   "   11  stdout   PUT k3 v3",
+   "   12  write    log  13 B @ 26",
+   "   13  stdout   ACK k3 v3",
+   "   14  fsync    log",
+   "   15  stdout   PUT k4 v4",
+   "   16  write    log  13 B @ 39",
+   "   17  stdout   ACK k4 v4",
+   "   18  fsync    log",
+   "   19  stdout   PUT k5 v5",
+   "   20  write    log  13 B @ 52",
+   "   21  stdout   ACK k5 v5",
+   "   22  fsync    log"
+  ],
+  "exit": 0
+ },
+ "abfRec": {
+  "cmd": "wal-crash record -o abf.json -- $kv -engine log -bug ack-before-fsync -dir {dir} load 5",
+  "out": [
+   "recorded 22 operations (5 acknowledged) to abf.json"
+  ],
+  "exit": 0
+ },
+ "abfState": {
+  "cmd": "wal-crash state abf.json c5.synced -o /tmp/s5",
+  "out": [
+   "  crash after op 5 of 22 (state c5.synced), 1 operation lost:",
+   "",
+   "        2  fsync    ./  (directory)",
+   "        3  stdout   PUT k1 v1",
+   "   ✗    4  write    log  13 B @ 0                                LOST: file not fsynced after it",
+   "        5  stdout   ACK k1 v1",
+   "",
+   "files:  /tmp/s5/state",
+   "run your checker there with",
+   "  WAL_CRASH_ACKED=/tmp/s5/acked WAL_CRASH_STDOUT=/tmp/s5/stdout"
+  ],
+  "exit": 0
+ },
+ "bugs": {
+  "cmd": "$kv bugs",
+  "out": [
+   "snapshot  write-in-place         overwrites the data file directly instead of writing a new one and renaming it",
+   "snapshot  skip-file-fsync        renames the new file into place without fsyncing it first",
+   "snapshot  skip-dir-fsync         never fsyncs the directory after the rename",
+   "log       ack-before-fsync       acknowledges a put before fsyncing the log",
+   "log       skip-create-dir-fsync  creates the log file but never fsyncs the directory",
+   "log       no-crc                 recovery trusts a record's length and ignores its checksum"
+  ],
+  "exit": 0
+ },
+ "gridOpsBug": {
+  "cmd": "wal-crash ops abf.json",
+  "out": [
+   "/w/bin/kvstore -engine log -bug ack-before-fsync -dir /tmp/wal-crash-run-3596683070 load 5",
+   "in /tmp/wal-crash-run-3596683070",
+   "",
+   "    1  create   log",
+   "    2  fsync    ./  (directory)",
+   "    3  stdout   PUT k1 v1",
+   "    4  write    log  13 B @ 0",
+   "    5  stdout   ACK k1 v1",
+   "    6  fsync    log",
+   "    7  stdout   PUT k2 v2",
+   "    8  write    log  13 B @ 13",
+   "    9  stdout   ACK k2 v2",
+   "   10  fsync    log",
+   "   11  stdout   PUT k3 v3",
+   "   12  write    log  13 B @ 26",
+   "   13  stdout   ACK k3 v3",
+   "   14  fsync    log",
+   "   15  stdout   PUT k4 v4",
+   "   16  write    log  13 B @ 39",
+   "   17  stdout   ACK k4 v4",
+   "   18  fsync    log",
+   "   19  stdout   PUT k5 v5",
+   "   20  write    log  13 B @ 52",
+   "   21  stdout   ACK k5 v5",
+   "   22  fsync    log"
+  ],
+  "exit": 0
+ },
+ "gridOpsOk": {
+  "cmd": "wal-crash ops logok.json",
+  "out": [
+   "/w/bin/kvstore -engine log -dir /tmp/wal-crash-run-1760348397 load 5",
+   "in /tmp/wal-crash-run-1760348397",
+   "",
+   "    1  create   log",
+   "    2  fsync    ./  (directory)",
+   "    3  stdout   PUT k1 v1",
+   "    4  write    log  13 B @ 0",
+   "    5  fsync    log",
+   "    6  stdout   ACK k1 v1",
+   "    7  stdout   PUT k2 v2",
+   "    8  write    log  13 B @ 13",
+   "    9  fsync    log",
+   "   10  stdout   ACK k2 v2",
+   "   11  stdout   PUT k3 v3",
+   "   12  write    log  13 B @ 26",
+   "   13  fsync    log",
+   "   14  stdout   ACK k3 v3",
+   "   15  stdout   PUT k4 v4",
+   "   16  write    log  13 B @ 39",
+   "   17  fsync    log",
+   "   18  stdout   ACK k4 v4",
+   "   19  stdout   PUT k5 v5",
+   "   20  write    log  13 B @ 52",
+   "   21  fsync    log",
+   "   22  stdout   ACK k5 v5"
+  ],
+  "exit": 0
+ },
+ "logAll": {
+  "cmd": "wal-crash run --model all --checker \"$kv -engine log -dir . check\" -- $kv -engine log -dir {dir} load 5",
+  "out": [
+   "22 operations recorded, 5 acknowledged",
+   "",
+   "process  23 states (17 distinct) checked   PASS",
+   "ordered  38 states (32 distinct) checked   PASS",
+   "posix    44 states (32 distinct) checked   PASS"
+  ],
+  "exit": 0
+ },
+ "noCheckerCmd": {
+  "cmd": "wal-crash run --checker nosuchchecker -- $kv -engine log -dir {dir} load 2",
+  "out": [
+   "10 operations recorded, 2 acknowledged",
+   "",
+   "wal-crash: checker did not run: \"nosuchchecker\" exited 127: sh: 1: nosuchchecker: not found"
+  ],
+  "exit": 2
+ },
+ "refuseLink": {
+  "cmd": "wal-crash run --checker true -- sh -c \"echo hi > {dir}/a && ln {dir}/a {dir}/b\"",
+  "out": [
+   "wal-crash: strace line 62 (linkat): hard and symbolic links are not supported"
+  ],
+  "exit": 2
+ },
+ "refuseSym": {
+  "cmd": "wal-crash run --checker true -- sh -c \"echo hi > {dir}/a && ln -s a {dir}/b\"",
+  "out": [
+   "wal-crash: strace line 62 (symlinkat): hard and symbolic links are not supported"
+  ],
+  "exit": 2
+ },
+ "sdfCheck": {
+  "cmd": "cd /tmp/state/state && WAL_CRASH_ACKED=../acked WAL_CRASH_STDOUT=../stdout $kv -engine snapshot -dir . check",
+  "out": [
+   "acknowledged k1=v1 is missing"
+  ],
+  "exit": 1
+ },
+ "sdfLs": {
+  "cmd": "ls /tmp/state/state; cat /tmp/state/acked",
+  "out": [
+   "data.tmp",
+   "k1 v1"
+  ],
+  "exit": 0
+ },
+ "sdfOps": {
+  "cmd": "wal-crash ops trace.json",
+  "out": [
+   "/w/bin/kvstore -engine snapshot -bug skip-dir-fsync -dir /tmp/wal-crash-run-167172303 load 5",
+   "in /tmp/wal-crash-run-167172303",
+   "",
+   "    1  stdout   PUT k1 v1",
+   "    2  create   data.tmp  (never synced)",
+   "    3  write    data.tmp  19 B @ 0",
+   "    4  fsync    data.tmp",
+   "    5  rename   data.tmp -> data  (never synced)",
+   "    6  stdout   ACK k1 v1",
+   "    7  stdout   PUT k2 v2",
+   "    8  create   data.tmp  (never synced)",
+   "    9  write    data.tmp  25 B @ 0",
+   "   10  fsync    data.tmp",
+   "   11  rename   data.tmp -> data  (never synced)",
+   "   12  stdout   ACK k2 v2",
+   "   13  stdout   PUT k3 v3",
+   "   14  create   data.tmp  (never synced)",
+   "   15  write    data.tmp  31 B @ 0",
+   "   16  fsync    data.tmp",
+   "   17  rename   data.tmp -> data  (never synced)",
+   "   18  stdout   ACK k3 v3",
+   "   19  stdout   PUT k4 v4",
+   "   20  create   data.tmp  (never synced)",
+   "   21  write    data.tmp  37 B @ 0",
+   "   22  fsync    data.tmp",
+   "   23  rename   data.tmp -> data  (never synced)",
+   "   24  stdout   ACK k4 v4",
+   "   25  stdout   PUT k5 v5",
+   "   26  create   data.tmp  (never synced)",
+   "   27  write    data.tmp  43 B @ 0",
+   "   28  fsync    data.tmp",
+   "   29  rename   data.tmp -> data  (never synced)",
+   "   30  stdout   ACK k5 v5"
+  ],
+  "exit": 0
+ },
+ "sdfRun": {
+  "cmd": "wal-crash run --checker \"$kv -engine snapshot -bug skip-dir-fsync -dir . check\" -o trace.json -- $kv -engine snapshot -bug skip-dir-fsync -dir {dir} load 5",
+  "out": [
+   "30 operations recorded, 5 acknowledged",
+   "",
+   "posix    391 states (112 distinct) checked   FAIL  71 of them break the checker",
+   "",
+   "  crash after op 6 of 30 (state c6.drop5), 1 operation lost:",
+   "",
+   "        3  write    data.tmp  19 B @ 0",
+   "        4  fsync    data.tmp",
+   "   ✗    5  rename   data.tmp -> data                             LOST: directory not fsynced after it",
+   "        6  stdout   ACK k1 v1",
+   "",
+   "  checker: acknowledged k1=v1 is missing",
+   "",
+   "  reproduce: wal-crash state trace.json c6.drop5 -o /tmp/state",
+   "",
+   "  70 more states fail the same way"
+  ],
+  "exit": 1
+ },
+ "sdfState": {
+  "cmd": "wal-crash state trace.json c6.drop5 -o /tmp/state",
+  "out": [
+   "  crash after op 6 of 30 (state c6.drop5), 1 operation lost:",
+   "",
+   "        3  write    data.tmp  19 B @ 0",
+   "        4  fsync    data.tmp",
+   "   ✗    5  rename   data.tmp -> data                             LOST: directory not fsynced after it",
+   "        6  stdout   ACK k1 v1",
+   "",
+   "files:  /tmp/state/state",
+   "run your checker there with",
+   "  WAL_CRASH_ACKED=/tmp/state/acked WAL_CRASH_STDOUT=/tmp/state/stdout"
+  ],
+  "exit": 0
+ },
+ "snapOps": {
+  "cmd": "wal-crash ops good.json",
+  "out": [
+   "/w/bin/kvstore -engine snapshot -dir /tmp/wal-crash-run-3788099385 load 5",
+   "in /tmp/wal-crash-run-3788099385",
+   "",
+   "    1  stdout   PUT k1 v1",
+   "    2  create   data.tmp",
+   "    3  write    data.tmp  19 B @ 0",
+   "    4  fsync    data.tmp",
+   "    5  rename   data.tmp -> data",
+   "    6  fsync    ./  (directory)",
+   "    7  stdout   ACK k1 v1",
+   "    8  stdout   PUT k2 v2",
+   "    9  create   data.tmp",
+   "   10  write    data.tmp  25 B @ 0",
+   "   11  fsync    data.tmp",
+   "   12  rename   data.tmp -> data",
+   "   13  fsync    ./  (directory)",
+   "   14  stdout   ACK k2 v2",
+   "   15  stdout   PUT k3 v3",
+   "   16  create   data.tmp",
+   "   17  write    data.tmp  31 B @ 0",
+   "   18  fsync    data.tmp",
+   "   19  rename   data.tmp -> data",
+   "   20  fsync    ./  (directory)",
+   "   21  stdout   ACK k3 v3",
+   "   22  stdout   PUT k4 v4",
+   "   23  create   data.tmp",
+   "   24  write    data.tmp  37 B @ 0",
+   "   25  fsync    data.tmp",
+   "   26  rename   data.tmp -> data",
+   "   27  fsync    ./  (directory)",
+   "   28  stdout   ACK k4 v4",
+   "   29  stdout   PUT k5 v5",
+   "   30  create   data.tmp",
+   "   31  write    data.tmp  43 B @ 0",
+   "   32  fsync    data.tmp",
+   "   33  rename   data.tmp -> data",
+   "   34  fsync    ./  (directory)",
+   "   35  stdout   ACK k5 v5"
+  ],
+  "exit": 0
+ },
+ "snapRec": {
+  "cmd": "wal-crash record -o good.json -- $kv -engine snapshot -dir {dir} load 5",
+  "out": [
+   "recorded 35 operations (5 acknowledged) to good.json"
+  ],
+  "exit": 0
+ },
+ "sqExtra": {
+  "cmd": "wal-crash run --checker $PWD/examples/sqlite/check.sh -- sqlite-workload {dir}/test.db delete extra 6",
+  "out": [
+   "151 operations recorded, 6 acknowledged",
+   "",
+   "posix    2,181 states (722 distinct) checked   PASS"
+  ],
+  "exit": 0
+ },
+ "sqFull": {
+  "cmd": "wal-crash run --checker $PWD/examples/sqlite/check.sh -- sqlite-workload {dir}/test.db delete full 6",
+  "out": [
+   "144 operations recorded, 6 acknowledged",
+   "",
+   "posix    2,354 states (734 distinct) checked   FAIL  11 of them break the checker",
+   "",
+   "  crash after op 34 of 144 (state c34.synced), 1 operation lost:",
+   "",
+   "       31  write    test.db  4096 B @ 8192",
+   "       32  fsync    test.db",
+   "   ✗   33  unlink   test.db-journal                              LOST: directory not fsynced after it",
+   "       34  stdout   ACK k1 v1-00000000000000000000000000000000…",
+   "",
+   "  checker: acknowledged row k1 is missing",
+   "",
+   "  10 more states fail the same way"
+  ],
+  "exit": 1
+ },
+ "sqNormal": {
+  "cmd": "wal-crash run --checker $PWD/examples/sqlite/check.sh -o normal.json -- sqlite-workload {dir}/test.db delete normal 6",
+  "out": [
+   "137 operations recorded, 6 acknowledged",
+   "",
+   "posix    2,694 states (844 distinct) checked   FAIL  35 of them break the checker",
+   "",
+   "  crash after op 24 of 137 (state c24.drop16), 1 operation lost:",
+   "",
+   "       14  write    test.db-journal  512 B @ 0",
+   "       15  write    test.db-journal  4 B @ 512",
+   "   ✗   16  write    test.db-journal  4096 B @ 516                LOST: file not fsynced after it",
+   "         ...",
+   "       21  write    test.db-journal  4 B @ 8720",
+   "       22  write    test.db-journal  4096 B @ 8724",
+   "       23  write    test.db-journal  4 B @ 12820",
+   "       24  write    test.db-journal  12 B @ 0",
+   "",
+   "  checker: integrity_check: Tree 3 page 3: btreeInitPage() returns error code 11",
+   "",
+   "  reproduce: wal-crash state normal.json c24.drop16 -o /tmp/state",
+   "",
+   "  other kinds of failure:",
+   "       11 like: acknowledged row k1 is missing  (e.g. c32.synced)",
+   "        6 like: database does not open: Error: stepping, database disk image is malformed (11)  (e.g. c24.drop19)",
+   "        6 like: database does not open: Error: in prepare, file is not a database (26)  (e.g. c24.drop22)",
+   "        6 like: database does not open: Error: in prepare, malformed database schema (?) (11)  (e.g. c24.half22)",
+   "        5 like: integrity_check: Fragmentation of 2 bytes reported as 0 on page 3  (e.g. c45.half37)"
+  ],
+  "exit": 1
+ },
+ "sqWalNormal": {
+  "cmd": "wal-crash run --checker $PWD/examples/sqlite/check.sh -- sqlite-workload {dir}/test.db wal normal 6",
+  "out": [
+   "74 operations recorded, 6 acknowledged",
+   "warning: strace line 110: test.db-shm is mapped shared and writable: writes through the mapping are not recorded, so crash states treat them as never reaching the disk",
+   "",
+   "posix    4,742 states (1,896 distinct) checked   FAIL  1440 of them break the checker",
+   "",
+   "  crash after op 36 of 74 (state c36.drop25), 1 operation lost:",
+   "",
+   "       23  fsync    test.db-wal",
+   "       24  fsync    ./  (directory)",
+   "   ✗   25  write    test.db-wal  24 B @ 32                       LOST: file not fsynced after it",
+   "         ...",
+   "       33  write    test.db-wal  4096 B @ 12416",
+   "       34  write    test.db-wal  24 B @ 16512",
+   "       35  write    test.db-wal  4096 B @ 16536",
+   "       36  stdout   ACK k1 v1-00000000000000000000000000000000…",
+   "",
+   "  checker: acknowledged row k1 is missing",
+   "",
+   "  1439 more states fail the same way"
+  ],
+  "exit": 1
+ },
+ "versions": {
+  "cmd": "go version; strace -V | head -1; sqlite3 --version",
+  "out": [
+   "go version go1.25.14 linux/amd64",
+   "strace -- version 6.13",
+   "3.46.1 2024-08-13 09:16:08 c9c2ab54ba1f5f46360f1b4f35d849cd3f080e6fc2b6c60e91b16c63f69aalt1 (64-bit)"
+  ],
+  "exit": 0
+ },
+ "statesBug": {
+  "forcedBy": [
+   2,
+   -1,
+   -1,
+   6,
+   -1,
+   -1,
+   -1,
+   10,
+   -1,
+   -1,
+   -1,
+   14,
+   -1,
+   -1,
+   -1,
+   18,
+   -1,
+   -1,
+   -1,
+   22,
+   -1,
+   -1
+  ],
+  "process": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    4,
+    1
+   ],
+   [
+    6,
+    "",
+    -1,
+    4,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    5,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    6,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    10,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    8,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    10,
+    1
+   ],
+   [
+    14,
+    "",
+    -1,
+    10,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    11,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    12,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    18,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    14,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    16,
+    1
+   ],
+   [
+    22,
+    "",
+    -1,
+    16,
+    1
+   ]
+  ],
+  "ordered": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    4,
+    "half",
+    4,
+    4,
+    1
+   ],
+   [
+    4,
+    "short",
+    4,
+    5,
+    1
+   ],
+   [
+    4,
+    "zeros",
+    4,
+    6,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    6,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    8,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    8,
+    "half",
+    8,
+    10,
+    1
+   ],
+   [
+    8,
+    "short",
+    8,
+    11,
+    1
+   ],
+   [
+    8,
+    "zeros",
+    8,
+    12,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    10,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    14,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    12,
+    "half",
+    12,
+    16,
+    1
+   ],
+   [
+    12,
+    "short",
+    12,
+    17,
+    1
+   ],
+   [
+    12,
+    "zeros",
+    12,
+    18,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    19,
+    1
+   ],
+   [
+    14,
+    "",
+    -1,
+    19,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    20,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    21,
+    1
+   ],
+   [
+    16,
+    "half",
+    16,
+    22,
+    1
+   ],
+   [
+    16,
+    "short",
+    16,
+    23,
+    1
+   ],
+   [
+    16,
+    "zeros",
+    16,
+    24,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    25,
+    1
+   ],
+   [
+    18,
+    "",
+    -1,
+    25,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    26,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    20,
+    "half",
+    20,
+    28,
+    1
+   ],
+   [
+    20,
+    "short",
+    20,
+    29,
+    1
+   ],
+   [
+    20,
+    "zeros",
+    20,
+    30,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    31,
+    1
+   ],
+   [
+    22,
+    "",
+    -1,
+    31,
+    1
+   ]
+  ],
+  "posix": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    1,
+    "synced",
+    -1,
+    0,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    4,
+    "synced",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "half",
+    4,
+    4,
+    1
+   ],
+   [
+    4,
+    "short",
+    4,
+    5,
+    1
+   ],
+   [
+    4,
+    "zeros",
+    4,
+    6,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    5,
+    "synced",
+    -1,
+    8,
+    0
+   ],
+   [
+    5,
+    "half",
+    4,
+    9,
+    0
+   ],
+   [
+    5,
+    "short",
+    4,
+    10,
+    0
+   ],
+   [
+    5,
+    "zeros",
+    4,
+    11,
+    0
+   ],
+   [
+    6,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    12,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    8,
+    "synced",
+    -1,
+    12,
+    1
+   ],
+   [
+    8,
+    "half",
+    8,
+    14,
+    1
+   ],
+   [
+    8,
+    "short",
+    8,
+    15,
+    1
+   ],
+   [
+    8,
+    "zeros",
+    8,
+    16,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    17,
+    1
+   ],
+   [
+    9,
+    "synced",
+    -1,
+    18,
+    0
+   ],
+   [
+    9,
+    "half",
+    8,
+    19,
+    0
+   ],
+   [
+    9,
+    "short",
+    8,
+    20,
+    0
+   ],
+   [
+    9,
+    "zeros",
+    8,
+    21,
+    0
+   ],
+   [
+    10,
+    "",
+    -1,
+    17,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    22,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    23,
+    1
+   ],
+   [
+    12,
+    "synced",
+    -1,
+    22,
+    1
+   ],
+   [
+    12,
+    "half",
+    12,
+    24,
+    1
+   ],
+   [
+    12,
+    "short",
+    12,
+    25,
+    1
+   ],
+   [
+    12,
+    "zeros",
+    12,
+    26,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    13,
+    "synced",
+    -1,
+    28,
+    0
+   ],
+   [
+    13,
+    "half",
+    12,
+    29,
+    0
+   ],
+   [
+    13,
+    "short",
+    12,
+    30,
+    0
+   ],
+   [
+    13,
+    "zeros",
+    12,
+    31,
+    0
+   ],
+   [
+    14,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    32,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    33,
+    1
+   ],
+   [
+    16,
+    "synced",
+    -1,
+    32,
+    1
+   ],
+   [
+    16,
+    "half",
+    16,
+    34,
+    1
+   ],
+   [
+    16,
+    "short",
+    16,
+    35,
+    1
+   ],
+   [
+    16,
+    "zeros",
+    16,
+    36,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    37,
+    1
+   ],
+   [
+    17,
+    "synced",
+    -1,
+    38,
+    0
+   ],
+   [
+    17,
+    "half",
+    16,
+    39,
+    0
+   ],
+   [
+    17,
+    "short",
+    16,
+    40,
+    0
+   ],
+   [
+    17,
+    "zeros",
+    16,
+    41,
+    0
+   ],
+   [
+    18,
+    "",
+    -1,
+    37,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    42,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    43,
+    1
+   ],
+   [
+    20,
+    "synced",
+    -1,
+    42,
+    1
+   ],
+   [
+    20,
+    "half",
+    20,
+    44,
+    1
+   ],
+   [
+    20,
+    "short",
+    20,
+    45,
+    1
+   ],
+   [
+    20,
+    "zeros",
+    20,
+    46,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    47,
+    1
+   ],
+   [
+    21,
+    "synced",
+    -1,
+    48,
+    0
+   ],
+   [
+    21,
+    "half",
+    20,
+    49,
+    0
+   ],
+   [
+    21,
+    "short",
+    20,
+    50,
+    0
+   ],
+   [
+    21,
+    "zeros",
+    20,
+    51,
+    0
+   ],
+   [
+    22,
+    "",
+    -1,
+    47,
+    1
+   ]
+  ]
+ },
+ "statesOk": {
+  "forcedBy": [
+   2,
+   -1,
+   -1,
+   5,
+   -1,
+   -1,
+   -1,
+   9,
+   -1,
+   -1,
+   -1,
+   13,
+   -1,
+   -1,
+   -1,
+   17,
+   -1,
+   -1,
+   -1,
+   21,
+   -1,
+   -1
+  ],
+  "process": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    6,
+    "",
+    -1,
+    4,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    5,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    6,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    6,
+    1
+   ],
+   [
+    10,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    8,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    14,
+    "",
+    -1,
+    10,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    11,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    12,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    12,
+    1
+   ],
+   [
+    18,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    14,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    22,
+    "",
+    -1,
+    16,
+    1
+   ]
+  ],
+  "ordered": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    4,
+    "half",
+    4,
+    4,
+    1
+   ],
+   [
+    4,
+    "short",
+    4,
+    5,
+    1
+   ],
+   [
+    4,
+    "zeros",
+    4,
+    6,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    6,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    8,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    8,
+    "half",
+    8,
+    10,
+    1
+   ],
+   [
+    8,
+    "short",
+    8,
+    11,
+    1
+   ],
+   [
+    8,
+    "zeros",
+    8,
+    12,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    10,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    14,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    12,
+    "half",
+    12,
+    16,
+    1
+   ],
+   [
+    12,
+    "short",
+    12,
+    17,
+    1
+   ],
+   [
+    12,
+    "zeros",
+    12,
+    18,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    14,
+    "",
+    -1,
+    19,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    20,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    21,
+    1
+   ],
+   [
+    16,
+    "half",
+    16,
+    22,
+    1
+   ],
+   [
+    16,
+    "short",
+    16,
+    23,
+    1
+   ],
+   [
+    16,
+    "zeros",
+    16,
+    24,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    21,
+    1
+   ],
+   [
+    18,
+    "",
+    -1,
+    25,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    26,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    20,
+    "half",
+    20,
+    28,
+    1
+   ],
+   [
+    20,
+    "short",
+    20,
+    29,
+    1
+   ],
+   [
+    20,
+    "zeros",
+    20,
+    30,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    22,
+    "",
+    -1,
+    31,
+    1
+   ]
+  ],
+  "posix": [
+   [
+    0,
+    "",
+    -1,
+    0,
+    1
+   ],
+   [
+    1,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    1,
+    "synced",
+    -1,
+    0,
+    1
+   ],
+   [
+    2,
+    "",
+    -1,
+    1,
+    1
+   ],
+   [
+    3,
+    "",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    4,
+    "synced",
+    -1,
+    2,
+    1
+   ],
+   [
+    4,
+    "half",
+    4,
+    4,
+    1
+   ],
+   [
+    4,
+    "short",
+    4,
+    5,
+    1
+   ],
+   [
+    4,
+    "zeros",
+    4,
+    6,
+    1
+   ],
+   [
+    5,
+    "",
+    -1,
+    3,
+    1
+   ],
+   [
+    6,
+    "",
+    -1,
+    7,
+    1
+   ],
+   [
+    7,
+    "",
+    -1,
+    8,
+    1
+   ],
+   [
+    8,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    8,
+    "synced",
+    -1,
+    8,
+    1
+   ],
+   [
+    8,
+    "half",
+    8,
+    10,
+    1
+   ],
+   [
+    8,
+    "short",
+    8,
+    11,
+    1
+   ],
+   [
+    8,
+    "zeros",
+    8,
+    12,
+    1
+   ],
+   [
+    9,
+    "",
+    -1,
+    9,
+    1
+   ],
+   [
+    10,
+    "",
+    -1,
+    13,
+    1
+   ],
+   [
+    11,
+    "",
+    -1,
+    14,
+    1
+   ],
+   [
+    12,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    12,
+    "synced",
+    -1,
+    14,
+    1
+   ],
+   [
+    12,
+    "half",
+    12,
+    16,
+    1
+   ],
+   [
+    12,
+    "short",
+    12,
+    17,
+    1
+   ],
+   [
+    12,
+    "zeros",
+    12,
+    18,
+    1
+   ],
+   [
+    13,
+    "",
+    -1,
+    15,
+    1
+   ],
+   [
+    14,
+    "",
+    -1,
+    19,
+    1
+   ],
+   [
+    15,
+    "",
+    -1,
+    20,
+    1
+   ],
+   [
+    16,
+    "",
+    -1,
+    21,
+    1
+   ],
+   [
+    16,
+    "synced",
+    -1,
+    20,
+    1
+   ],
+   [
+    16,
+    "half",
+    16,
+    22,
+    1
+   ],
+   [
+    16,
+    "short",
+    16,
+    23,
+    1
+   ],
+   [
+    16,
+    "zeros",
+    16,
+    24,
+    1
+   ],
+   [
+    17,
+    "",
+    -1,
+    21,
+    1
+   ],
+   [
+    18,
+    "",
+    -1,
+    25,
+    1
+   ],
+   [
+    19,
+    "",
+    -1,
+    26,
+    1
+   ],
+   [
+    20,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    20,
+    "synced",
+    -1,
+    26,
+    1
+   ],
+   [
+    20,
+    "half",
+    20,
+    28,
+    1
+   ],
+   [
+    20,
+    "short",
+    20,
+    29,
+    1
+   ],
+   [
+    20,
+    "zeros",
+    20,
+    30,
+    1
+   ],
+   [
+    21,
+    "",
+    -1,
+    27,
+    1
+   ],
+   [
+    22,
+    "",
+    -1,
+    31,
+    1
+   ]
+  ]
+ },
+ "golden": [
+  "12    write(1</dev/null>, \"PUT k1 v1\\n\", 10) = 10",
+  "12    openat(AT_FDCWD</w>, \"/tmp/golden/data.tmp\", O_WRONLY|O_CREAT|O_TRUNC|O_CLOEXEC, 0644) = 3</tmp/golden/data.tmp>",
+  "12    fcntl(3</tmp/golden/data.tmp>, F_GETFL) = 0x8001 (flags O_WRONLY|O_LARGEFILE)",
+  "12    fcntl(3</tmp/golden/data.tmp>, F_SETFL, O_WRONLY|O_NONBLOCK|O_LARGEFILE) = 0",
+  "12    epoll_create1(EPOLL_CLOEXEC)      = 4<anon_inode:[eventpoll]>",
+  "12    eventfd2(0, EFD_CLOEXEC|EFD_NONBLOCK) = 5<anon_inode:[eventfd]>",
+  "12    epoll_ctl(4<anon_inode:[eventpoll]>, EPOLL_CTL_ADD, 5<anon_inode:[eventfd]>, {events=EPOLLIN, data=0x5cc290}) = 0",
+  "12    epoll_ctl(4<anon_inode:[eventpoll]>, EPOLL_CTL_ADD, 3</tmp/golden/data.tmp>, {events=EPOLLIN|EPOLLOUT|EPOLLRDHUP|EPOLLET, data=0x3a50ddb466000001}) = -1 EPERM (Operation not permitted)",
+  "12    fcntl(3</tmp/golden/data.tmp>, F_GETFL) = 0x8801 (flags O_WRONLY|O_NONBLOCK|O_LARGEFILE)",
+  "12    fcntl(3</tmp/golden/data.tmp>, F_SETFL, O_WRONLY|O_LARGEFILE) = 0",
+  "12    write(3</tmp/golden/data.tmp>, \"k1=v1\\ncrc 3b05153e\\n\", 19) = 19",
+  "12    fsync(3</tmp/golden/data.tmp>) = 0",
+  "12    close(3</tmp/golden/data.tmp>) = 0",
+  "12    newfstatat(AT_FDCWD</w>, \"/tmp/golden/data\", 0xc000112448, AT_SYMLINK_NOFOLLOW) = -1 ENOENT (No such file or directory)",
+  "12    renameat(AT_FDCWD</w>, \"/tmp/golden/data.tmp\", AT_FDCWD</w>, \"/tmp/golden/data\") = 0",
+  "12    openat(AT_FDCWD</w>, \"/tmp/golden\", O_RDONLY|O_CLOEXEC) = 3</tmp/golden>",
+  "12    fcntl(3</tmp/golden>, F_GETFL) = 0x8000 (flags O_RDONLY|O_LARGEFILE)",
+  "12    fcntl(3</tmp/golden>, F_SETFL, O_RDONLY|O_NONBLOCK|O_LARGEFILE) = 0",
+  "12    epoll_ctl(4<anon_inode:[eventpoll]>, EPOLL_CTL_ADD, 3</tmp/golden>, {events=EPOLLIN|EPOLLOUT|EPOLLRDHUP|EPOLLET, data=0x3a50ddb466000002}) = -1 EPERM (Operation not permitted)",
+  "12    fcntl(3</tmp/golden>, F_GETFL) = 0x8800 (flags O_RDONLY|O_NONBLOCK|O_LARGEFILE)",
+  "12    fcntl(3</tmp/golden>, F_SETFL, O_RDONLY|O_LARGEFILE) = 0",
+  "12    fsync(3</tmp/golden> <unfinished ...>",
+  "13    epoll_pwait(4<anon_inode:[eventpoll]>, [], 128, 0, NULL, 0) = 0",
+  "12    <... fsync resumed>)              = 0",
+  "12    close(3</tmp/golden>) = 0",
+  "12    write(1</dev/null>, \"ACK k1 v1\\n\", 10) = 10"
+ ],
+ "goldenOps": [
+  "   1  stdout   PUT k1 v1",
+  "   2  create   data.tmp",
+  "   3  write    data.tmp  19 B @ 0",
+  "   4  fsync    data.tmp",
+  "   5  rename   data.tmp -> data",
+  "   6  fsync    ./  (directory)",
+  "   7  stdout   ACK k1 v1",
+  "   8  stdout   PUT k2 v2",
+  "   9  create   data.tmp",
+  "  10  write    data.tmp  25 B @ 0",
+  "  11  fsync    data.tmp",
+  "  12  rename   data.tmp -> data",
+  "  13  fsync    ./  (directory)",
+  "  14  stdout   ACK k2 v2",
+  "  15  stdout   PUT k3 v3",
+  "  16  create   data.tmp",
+  "  17  write    data.tmp  31 B @ 0",
+  "  18  fsync    data.tmp",
+  "  19  rename   data.tmp -> data",
+  "  20  fsync    ./  (directory)",
+  "  21  stdout   ACK k3 v3",
+  "final:",
+  "  data 31 B"
+ ],
+ "sqlite": [
+  {
+   "mode": "delete",
+   "sync": "off",
+   "models": [
+    [
+     "process",
+     110,
+     110,
+     0
+    ],
+    [
+     "ordered",
+     320,
+     285,
+     0
+    ],
+    [
+     "posix",
+     22614,
+     1618,
+     569
+    ]
+   ]
+  },
+  {
+   "mode": "delete",
+   "sync": "normal",
+   "models": [
+    [
+     "process",
+     138,
+     117,
+     0
+    ],
+    [
+     "ordered",
+     355,
+     299,
+     0
+    ],
+    [
+     "posix",
+     2694,
+     844,
+     35
+    ]
+   ]
+  },
+  {
+   "mode": "delete",
+   "sync": "full",
+   "models": [
+    [
+     "process",
+     145,
+     117,
+     0
+    ],
+    [
+     "ordered",
+     362,
+     299,
+     0
+    ],
+    [
+     "posix",
+     2354,
+     734,
+     11
+    ]
+   ]
+  },
+  {
+   "mode": "delete",
+   "sync": "extra",
+   "models": [
+    [
+     "process",
+     152,
+     117,
+     0
+    ],
+    [
+     "ordered",
+     369,
+     299,
+     0
+    ],
+    [
+     "posix",
+     2181,
+     722,
+     0
+    ]
+   ]
+  },
+  {
+   "mode": "wal",
+   "sync": "off",
+   "models": [
+    [
+     "process",
+     71,
+     66,
+     0
+    ],
+    [
+     "ordered",
+     178,
+     169,
+     0
+    ],
+    [
+     "posix",
+     6114,
+     2001,
+     1489
+    ]
+   ]
+  },
+  {
+   "mode": "wal",
+   "sync": "normal",
+   "models": [
+    [
+     "process",
+     75,
+     66,
+     0
+    ],
+    [
+     "ordered",
+     182,
+     169,
+     0
+    ],
+    [
+     "posix",
+     4742,
+     1896,
+     1440
+    ]
+   ]
+  },
+  {
+   "mode": "wal",
+   "sync": "full",
+   "models": [
+    [
+     "process",
+     82,
+     66,
+     0
+    ],
+    [
+     "ordered",
+     189,
+     169,
+     0
+    ],
+    [
+     "posix",
+     1882,
+     552,
+     0
+    ]
+   ]
+  },
+  {
+   "mode": "wal",
+   "sync": "extra",
+   "models": [
+    [
+     "process",
+     82,
+     66,
+     0
+    ],
+    [
+     "ordered",
+     189,
+     169,
+     0
+    ],
+    [
+     "posix",
+     1882,
+     552,
+     0
+    ]
+   ]
+  }
+ ],
+ "matrix": [
+  "kvstore, 5 puts                          process  ordered  posix    simplest failure, weakest model that finds it",
+  "snapshot  correct                        pass     pass     pass     ",
+  "snapshot  write-in-place                 FAIL     FAIL     FAIL     recovery failed: data file is corrupt (0 bytes, checksum do…",
+  "snapshot  skip-file-fsync                pass     pass     FAIL     recovery failed: data file is corrupt (0 bytes, checksum do…",
+  "snapshot  skip-dir-fsync                 pass     pass     FAIL     acknowledged k1=v1 is missing",
+  "log       correct                        pass     pass     pass     ",
+  "log       ack-before-fsync               pass     pass     FAIL     acknowledged k1=v1 is missing",
+  "log       skip-create-dir-fsync          pass     pass     FAIL     acknowledged k1=v1 is missing",
+  "log       no-crc                         pass     FAIL     FAIL     \"\\x00\\x00\\x00\\x00\\x00\"=\"\" was never written",
+  "",
+  "SQLite 3.46.1, 6 transactions            process  ordered  posix    simplest failure, weakest model that finds it",
+  "journal_mode=delete synchronous=off      pass     pass     FAIL     database does not open: Error: in prepare, database disk im…",
+  "journal_mode=delete synchronous=normal   pass     pass     FAIL     integrity_check: Tree 3 page 3: btreeInitPage() returns err…",
+  "journal_mode=delete synchronous=full     pass     pass     FAIL     acknowledged row k1 is missing",
+  "journal_mode=delete synchronous=extra    pass     pass     pass     ",
+  "journal_mode=wal    synchronous=off      pass     pass     FAIL     acknowledged row k1 is missing",
+  "journal_mode=wal    synchronous=normal   pass     pass     FAIL     acknowledged row k1 is missing",
+  "journal_mode=wal    synchronous=full     pass     pass     pass     ",
+  "journal_mode=wal    synchronous=extra    pass     pass     pass     "
+ ],
+ "journal": [
+  "journal 12824 bytes; header: nRec 3, original size 3 pages",
+  "record 0  page 3  data all zeros: True  checksum ok: True",
+  "record 1  page 2  data all zeros: False  checksum ok: True",
+  "record 2  page 1  data all zeros: False  checksum ok: True"
+ ],
+ "matrixTime": "0m59.371s"
+}

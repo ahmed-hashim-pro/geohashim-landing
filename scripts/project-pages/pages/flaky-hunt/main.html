@@ -1,0 +1,330 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">flaky-hunt</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Finds flaky pytest tests and says why each one flakes. It re-runs the suite while changing one thing at a time, names the factor that makes each test fail, measures how often, and gives a plain pytest command that reproduces the failure.</p>
+            <p>A flaky test is usually reported as "fails sometimes", which is the least useful thing to know about it. Rerunning until green, or marking it <code>@flaky</code>, hides it and the bug ships. What a developer needs is the cause: it fails after one particular test, in the last minutes of the day, or when the hash seed is 0. Each of those is a short fix once it is known.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/flaky-hunt">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/flaky-hunt#how-reliable-the-diagnosis-is">How reliable the diagnosis is</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.10 or newer; a pytest plugin and a CLI</dd>
+              <dt>Tests</dt><dd>47 passing with pytest: 42 fast, 5 that run whole hunts</dd>
+              <dt>Dependencies</dt><dd>pytest and time-machine</dd>
+              <dt>Factors</dt><dd>7: order, time, time zone, random, timing, environment, network</dd>
+              <dt>Statistics</dt><dd>One-sided Fisher exact test, Wilson 95% intervals</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="pytest">Plain pytest</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="hunt">flaky-hunt run</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="factors">Factors</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="real">humanize 4.10.0</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">pytest -q</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of flaky-hunt 0.1.0 on <code>examples/planted</code>, the repository's small shop with nine planted flaky tests, output verbatim; the lines starting with a dot are its progress on stderr. This machine's zone is Africa/Cairo, so <code>test_receipt_epoch</code>, which is right only in UTC, failed in every plain run here. The last tab is the repository's own recorded run in <code>docs/real</code>.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a flaky test moves through flaky-hunt">
+          <div class="sign-group">
+            <p>Before the line: probe, suspect, confirm, bisect</p>
+            <ol>
+              <li><a class="sign-link" href="#s-probe"><b>1</b> Probe</a></li>
+              <li><a class="sign-link" href="#s-suspect"><b>2</b> Suspect</a></li>
+              <li><a class="sign-link" href="#s-confirm"><b>3</b> Confirm</a></li>
+              <li><a class="sign-link" href="#s-order"><b>4</b> Order</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person fixes the cause</p>
+            <ol>
+              <li><a class="sign-link" href="#s-repro"><b>5</b> Reproduce</a></li>
+              <li><a class="sign-link" href="#s-check"><b>6</b> Checked</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-probe" aria-labelledby="h-probe">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-probe"><span class="num" data-mark="1">1</span>Run the whole suite 39 times, one change at a time</h2>
+          <p>Three runs as-is, then one under each setting: four test orders, four clock times, five time zones, ten random and hash seeds, four timing perturbations tried twice each, four environment changes, and the network switched off.</p>
+          <ul class="st-points">
+            <li>Every run is a fresh pytest process with its own empty <code>TMPDIR</code>, so nothing leaks from one run to the next unless that is the thing being tested.</li>
+            <li>The perturbations live in a pytest plugin, each an ordinary pytest option such as <code>--fh-seed=5</code> or <code>--fh-switch-interval=1e-6</code>. Installed but unused, the plugin changes nothing.</li>
+            <li>With order among the factors and up to 200 tests, every test is also run on its own, to find tests that need an earlier one.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-probe" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every probe run of the planted suite, test by test</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="fh-map" id="fh-map"></div>
+              <div class="legend-row"><span class="key"><i class="fh-cell fh-key" data-o="p"></i>Passed</span><span class="key"><i class="fh-cell fh-key" data-o="f"></i>Failed</span><span class="key"><i class="fh-cell fh-key" data-o="n"></i>Not in that run</span></div>
+            </div>
+            <figcaption class="demo-note">One hunt of the planted suite on this machine, recorded run by run: 16 tests down the side, the 39 suite runs across, grouped by factor. Bold names are the nine planted flaky tests. The empty column is "run from another directory": with no test paths given, that run collected no tests at all a problem in flaky-hunt found while making this page.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-suspect" aria-labelledby="h-suspect">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-suspect"><span class="num" data-mark="2">2</span>Suspect a factor where one value fails and another passes</h2>
+          <p>Settings that are alternative values of one thing share a knob: seed 5 and seed 1, <code>TZ=Pacific/Kiritimati</code> and <code>TZ=UTC</code>. A test that failed under one value and passed under another, or under a setting and as-is, is a suspect for that knob.</p>
+          <ul class="st-points">
+            <li>A test that failed in every run, perturbed or not, isn't flaky. It is listed apart as failing every time.</li>
+            <li>A test that fails at random is a suspect under nearly every knob. That is expected; stage 3 is what clears the innocent ones.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-suspect" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Suspects per test, and what became of them</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="fh-sus" id="fh-sus"></ol>
+              <div class="legend-row"><span class="key"><i class="fh-pip fh-key" data-r="yes"></i>Confirmed in stage 3</span><span class="key"><i class="fh-pip fh-key" data-r="no"></i>Not confirmed</span></div>
+            </div>
+            <figcaption class="demo-note">The same hunt: each square is one cause tried for that test in stage 3, against another value of the same knob or as-is. <code>test_render_tags</code> fails at random about half the time as-is, so it collected ten suspects. Nine reached stage 3 and only <code>PYTHONHASHSEED</code> survived; the tenth, an order suspect, was dropped when the bisection found no single test that breaks it. Hover a square for the pair compared.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-confirm" aria-labelledby="h-confirm">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-confirm"><span class="num" data-mark="3">3</span>Confirm it in fresh processes, both sides at once</h2>
+          <p>Each suspect is run on its own, 8 times under the failing setting and 8 under the passing one, alternating between the two so a change in the machine's load hits both sides alike. The knob is reported only if the failing side fails significantly more often, by a one-sided Fisher exact test.</p>
+          <ul class="st-points">
+            <li>Inconclusive but leaning (p under 0.25): both sides go to 32 runs. That is for a race that also fails now and then as-is, where 8 of 8 against 3 of 8 proves nothing and 32 of 32 against 10 of 32 does.</li>
+            <li>The 1% significance level is split over both stages and over every cause tried for that test (Bonferroni), so for each test the chance of blaming a cause that isn't there stays under 1%.</li>
+            <li>Rates carry Wilson 95% intervals: 8 of 8 means at least 68%, not always.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-confirm" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every cause tried for <code>test_render_tags</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="fh-conf" id="fh-conf"></ol>
+            </div>
+            <figcaption class="demo-note">Each dot is one fresh pytest process running only that test, in the order the hunt started them; red failed. The significance needed is 1% split over two stages and the ten causes tried for this test, 0.0005. The time-zone comparison leaned far enough at 8 a side to earn 32, and still came out no.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-order" aria-labelledby="h-order">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-order"><span class="num" data-mark="4">4</span>Bisect an order failure down to one test</h2>
+          <p>A test that fails in some order but passes on its own is bisected over the tests that ran before it: keep whichever half still breaks it, then try the last few one by one. The pair is then confirmed the same way as any other cause.</p>
+          <ul class="st-points">
+            <li>The other direction too: a test that fails on its own but passes in the suite is bisected to the test it silently depends on.</li>
+            <li>The search is tested on its own against an oracle with the culprit at every position in lists of 1 to 333 tests.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-order" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Who breaks <code>test_checkout_hides_debug_details</code>?</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="fh-bis" id="fh-bis"></ol>
+              <div class="fh-mt" id="fh-ord-term"></div>
+            </div>
+            <figcaption class="demo-note">Each bar is the 14 tests that ran before the victim in the shuffled order where it failed; the filled ones ran ahead of it in that process. Eight runs, the last a single test: <code>test_enable_debug_mode</code>, which sets <code>settings.DEBUG</code> and never resets it. Recorded from the same hunt; the report lines are from a plain <code>flaky-hunt run</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Reported</span>Above this line flaky-hunt probes and proves. It never reruns a test to green and never marks one flaky; it exits 1 and hands each cause, with a command, to a person.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-repro" aria-labelledby="h-repro">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-repro"><span class="num" data-mark="5">5</span>A person gets a command that fails</h2>
+          <p>Each diagnosis ends with a reproducing command in plain pytest: an environment variable, a plugin option, or two test ids in order. A developer runs it, sees the failure on demand, and fixes the cause.</p>
+          <ul class="st-points">
+            <li>Every plugin option is an ordinary pytest option, so the command works anywhere flaky-hunt is installed.</li>
+            <li>Tests that fail for one reason are grouped, the way one polluter breaking 24 tests is one problem. <code>--json</code> lists every test one by one.</li>
+            <li>Exit 1 when it finds a flaky test, 0 when it finds none, 2 when pytest itself can't run. It takes dozens of suite runs, so it belongs in a nightly job.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-repro" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The reproducing commands, run by hand</p>
+              {{REPLAY}}
+            </div>
+            <div class="fh-rep-tabs">
+              <div class="seg" id="fh-rep-seg" role="group" aria-label="Test"></div>
+            </div>
+            <div class="fh-rep">
+              <div class="fh-rep-src">
+                <p class="fh-k" id="fh-rep-name"></p>
+                <pre class="fh-code" id="fh-rep-code"></pre>
+              </div>
+              <div class="fh-mt fh-rep-term" id="fh-rep-term" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The commands are the ones the hunt printed, run by hand in the planted project, with and without the setting. Only pytest's assertion lines and summary are kept; exit codes are pytest's. The race passed three times out of three on its own and failed three out of three with frequent thread switches.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-check" aria-labelledby="h-check">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-check"><span class="num" data-mark="6">6</span>Check the checker</h2>
+          <p><code>examples/planted</code> is a small shop with nine tests that are flaky in nine known ways and seven that aren't. <code>expected.json</code> says which factor each flaky one must be blamed on. The self-tests run whole hunts and require exactly that: every planted cause found, nothing blamed on anything else, no stable test reported.</p>
+          <ul class="st-points">
+            <li>Six deliberately broken versions of flaky-hunt, switched on by an environment variable, must each fail the self-tests.</li>
+            <li>CI runs ten more whole hunts on every push and scores each against <code>expected.json</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-check" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Nine planted causes, six mutants</p>
+              {{REPLAY}}
+            </div>
+            <ol class="fh-plant" id="fh-plant"></ol>
+            <div class="fh-mt fh-mut" id="fh-mut"></div>
+            <figcaption class="demo-note">The nine rows are what the recorded hunt blamed; each matches <code>expected.json</code>. The mutant table is <code>python scripts/mutants.py</code>, run on this machine: each mutant runs only the self-tests aimed at what it breaks, and is caught when they fail.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Five releases of four well-known projects, each hunted with every factor in a clean <code>python:3.12-slim</code> container by <code>make real</code>. Plain pytest passes all five.</p>
+        </div>
+        <div class="panel fh-real" data-reveal>
+          <div class="fh-real-head" aria-hidden="true"><span>Project</span><span>Tests</span><span>Flaky</span><span>What it found</span><span>Hunt took</span></div>
+          <ol class="fh-real-rows" id="fh-real"></ol>
+          <p class="demo-note">The repository's own runs, in <code>docs/real</code>, on a 12-core machine with 3 workers. click and both humanize releases were hunted again for this page with the same script: click 0 flaky in 25 s; humanize 4.10.0 the same 25 tests with the same causes and rates, line for line, in 4m 50s; humanize 4.11.0 clean in 1m 50s. Neither finding is a new bug report: humanize fixed its pair upstream, and the arrow pair was found with <code>pytest-randomly</code> in 2021 and is still open. No time, zone, seed, timing, environment or network dependence turned up in any of them, which is not proof that none exists.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>The planted suite, on this machine</h3>
+            <p>One <code>flaky-hunt run</code> with every factor, four workers, on a 12-core Linux box that was also running other jobs:</p>
+            <div class="tally"><span>39 suite runs</span><span>392 single-test runs</span><span>1m 40s</span></div>
+            <p>All nine planted causes found, nothing else blamed, exit 1. Most of the single-test runs are stage 3, which had 18 suspects to settle. <code>--factors order</code> alone took 17 s.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Right, hunt after hunt</h3>
+            <p>Whole hunts of the planted suite, each scored against <code>expected.json</code>: nine causes, nothing else blamed.</p>
+            <div class="bars"><div class="bar-row"><span>This machine</span><span class="bar"><i style="--w:100%"></i></span><span>5 / 5</span></div><div class="bar-row"><span>First release, starved</span><span class="bar"><i style="--w:66.7%"></i></span><span>8 / 12</span></div><div class="bar-row"><span>Now, starved</span><span class="bar"><i style="--w:100%"></i></span><span>10 / 10</span></div></div>
+            <p>The first row is <code>python scripts/reliability.py 5</code> here: 56 s to 227 s a hunt, 9 min 18 s in all. The other two are the README's, on 4 CPUs with 4 busy loops; it also reports 10 of 10 on 2 CPUs and on GitHub's runners. 30 of 30 is a 95% interval of 89 to 100%: good, not proven perfect.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Why the statistics matter</h3>
+            <p>With the confirmation step switched off (the <code>no-confirm</code> mutant), the hash-order test is also blamed on the time zone and on thread timing. Before the second stage and the split significance level, the README records 8 of 12 hunts right on a starved machine, and a seed once "confirmed" as a race's cause, 13 of 32 against 1 of 32.</p>
+            <div class="tally"><span>8 / 8 vs 0 / 8: p = 0.00008</span><span>8 / 8 vs 3 / 8: p = 0.013</span></div>
+            <p>Both computed with flaky-hunt's own <code>fisher_greater</code>. The second isn't enough at a level split over two stages and several causes, which is why a race gets 32 runs a side.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">47 tests, five of them whole hunts</h2>
+          <p>Counted with <code>pytest -q</code>: 47 tests, all passing. CI splits them: <code>pytest -m "not slow"</code> runs 42 in about 18 s here, and <code>pytest -m slow</code> runs the 5 whole hunts, which took 4 min 57 s on this machine while other work was running.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Tested the way it tests others</h3>
+            <ul>
+              <li><strong>Whole hunts:</strong> the planted suite, every factor, scored against <code>expected.json</code>; then order, environment and time zone alone; and a test that fails at random must not be blamed on anything.</li>
+              <li><strong>Every plugin option</strong> in a real pytest process, through pytester: seeds, the clock, thread switching, sleep jitter, the busy thread, the fast clock, the network block.</li>
+              <li><strong>The hunt logic</strong> against a fake runner, including tests that need an earlier test, and both sides of a comparison run alternately.</li>
+              <li><strong>The bisection</strong> against an oracle with the culprit at every position in lists of 1 to 333 tests.</li>
+              <li><strong>Statistics:</strong> Wilson intervals at 0 of n and n of n, and the Fisher test against known values and in the right direction.</li>
+            </ul>
+            <p>CI lints with ruff and runs the fast tests on Python 3.10, 3.12 and 3.13. A separate job runs the whole hunts, the six mutants, ten scored hunts and the README quickstart.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Two causes at once</dt><dd>It finds causes that one factor triggers. A test that fails only when a shuffled order and a slow machine coincide is reported as flaky with no single factor, not diagnosed.</dd></div>
+              <div><dt>Real CPU starvation</dt><dd>Timing is simulated in-process: frequent thread switches, longer sleeps, a busy thread, a fast monotonic clock. No cgroups, no slow disk, nothing inside C extensions.</dd></div>
+              <div><dt>Clocks outside Python</dt><dd>time-machine moves <code>time.time</code>, <code>datetime.now</code> and friends. Code that reads the clock in C, or in a subprocess, still sees the real time.</dd></div>
+              <div><dt>Every order</dt><dd>Three shuffles and a reversal won't find every order dependency in a large suite, and running each test alone is skipped above 200 tests unless <code>--isolated-max</code> is raised.</dd></div>
+              <div><dt>xdist, nose, tox</dt><dd>Runs are serial inside each pytest process; flaky-hunt runs several processes at once instead. Plain pytest only, and not on PyPI.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/flaky-hunt
+cd flaky-hunt
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+pytest -q -m "not slow"        <span class="c"># 42 tests, seconds</span>
+
+cd examples/planted
+flaky-hunt run                 <span class="c"># exits 1: it finds 9</span>
+flaky-hunt run --factors order
+
+<span class="c"># Your project, where you run pytest:</span>
+flaky-hunt run tests/ --json flaky.json</pre>
+            <p>Python 3.10 or newer. Install it into the environment your tests run in. <code>make check</code> adds the whole hunts, <code>make mutants</code> the broken versions, and <code>make real</code> repeats the real-project runs in Docker.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

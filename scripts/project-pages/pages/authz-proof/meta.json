@@ -1,0 +1,9 @@
+{
+  "title": "authz-proof · Ahmed Hashim",
+  "description": "A Zanzibar-style permission engine for SpiceDB schemas that answers who gains and who loses access when a schema or its relationships change, and fails the pull request when the change isn't expected. How it works end to end, with real runs.",
+  "tour_seconds": "65",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the SpiceDB numbers"
+  }
+}

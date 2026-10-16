@@ -1,0 +1,9 @@
+{
+  "title": "fieldlog · Ahmed Hashim",
+  "description": "An offline-first Android notebook for logging boreholes, where phones merge their edits with no server deciding, and the merged logs go to strata only once they would pass its checks. How it works end to end, with real runs on an emulator.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See what was measured"
+  }
+}

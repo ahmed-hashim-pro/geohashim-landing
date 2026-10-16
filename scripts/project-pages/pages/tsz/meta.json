@@ -1,0 +1,9 @@
+{
+  "title": "tsz · Ahmed Hashim",
+  "description": "Lossless compression for (i64, f64) time series in Rust: Gorilla, Chimp, Chimp128 and a decimal codec for values that were printed as text, chosen per block. How it works end to end, with real runs on six real datasets.",
+  "tour_seconds": "65",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See it against other compressors"
+  }
+}

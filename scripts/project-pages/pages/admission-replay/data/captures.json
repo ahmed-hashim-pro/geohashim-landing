@@ -1,0 +1,261 @@
+{
+ "compare": {
+  "cmd": "admission-replay compare examples/audit.log examples/policies/*.yaml --bad examples/bad.txt",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad",
+   "",
+   "     policy              bad caught  legit blocked  by controllers  warned  skipped",
+   "  1  targeted                   3/3              0               0      21        0",
+   "  2  registry-allowlist         1/3              0               0       0        0",
+   "  3  strict-baseline            1/3             26               0       0        0",
+   "",
+   "ranked by bad writes caught, then legitimate writes blocked, then warnings.",
+   "",
+   "let through:",
+   "  registry-allowlist  log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "                      checkout gets a privileged init container (sysctl tweak)",
+   "  strict-baseline     log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "                      checkout gets a privileged init container (sysctl tweak)"
+  ],
+  "exit": 0
+ },
+ "compareNoBad": {
+  "cmd": "admission-replay compare examples/audit.log examples/policies/*.yaml",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days)",
+   "",
+   "     policy              blocked  by controllers  warned  skipped",
+   "  1  registry-allowlist        1               0       0        0",
+   "  2  targeted                  3               0      21        0",
+   "  3  strict-baseline          27               0       0        0",
+   "",
+   "no --bad labels: nothing to score as caught or missed."
+  ],
+  "exit": 0
+ },
+ "replayStrict": {
+  "cmd": "admission-replay replay examples/audit.log examples/policies/strict-baseline.yaml --bad examples/bad.txt --limit 3",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad",
+   "strict-baseline: binding strict-baseline -> policy strict-baseline (Deny)",
+   "",
+   "BLOCKED 26 legitimate writes",
+   "  2026-09-01 10:12  ci-deploy  create deployments shop-staging/search",
+   "      strict-baseline: every container needs CPU and memory limits",
+   "      audit ID 5e9a0011-0000-4000-8000-000000000011",
+   "  2026-09-01 15:00  dana       create deployments platform/ingress-proxy",
+   "      strict-baseline: images must come from registry.example.com",
+   "      strict-baseline: pods must run as non-root",
+   "      audit ID 5e9a0023-0000-4000-8000-000000000023",
+   "  2026-09-01 15:10  dana       create deployments platform/cert-renewer",
+   "      strict-baseline: images must come from registry.example.com",
+   "      audit ID 5e9a0024-0000-4000-8000-000000000024",
+   "  ... 23 more (--limit 0 lists them all)",
+   "  by user:",
+   "      17  ci-deploy",
+   "       5  dana",
+   "       4  carol",
+   "  by failed validation:",
+   "      21  every container needs CPU and memory limits",
+   "       5  images must come from registry.example.com",
+   "       3  pods must run as non-root",
+   "",
+   "LET THROUGH 2 of 3 bad writes",
+   "  2026-09-19 03:12  bob        update daemonsets monitoring/log-shipper",
+   "      labelled bad: log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a0081-0000-4000-8000-000000000081",
+   "  2026-09-26 16:05  bob        update deployments shop-prod/checkout",
+   "      labelled bad: checkout gets a privileged init container (sysctl tweak)",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a00a6-0000-4000-8000-0000000000a6",
+   "",
+   "CAUGHT 1 of 3 bad writes",
+   "  2026-09-12 22:47  alice      update deployments shop-prod/payments",
+   "      labelled bad: payments hotfix image from a personal Docker Hub account",
+   "      strict-baseline: images must come from registry.example.com",
+   "      audit ID 5e9a005a-0000-4000-8000-00000000005a"
+  ],
+  "exit": 0
+ },
+ "strictMissed": {
+  "cmd": "admission-replay replay examples/audit.log examples/policies/strict-baseline.yaml --bad examples/bad.txt --show missed",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad",
+   "strict-baseline: binding strict-baseline -> policy strict-baseline (Deny)",
+   "",
+   "LET THROUGH 2 of 3 bad writes",
+   "  2026-09-19 03:12  bob        update daemonsets monitoring/log-shipper",
+   "      labelled bad: log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a0081-0000-4000-8000-000000000081",
+   "  2026-09-26 16:05  bob        update deployments shop-prod/checkout",
+   "      labelled bad: checkout gets a privileged init container (sysctl tweak)",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a00a6-0000-4000-8000-0000000000a6"
+  ],
+  "exit": 0
+ },
+ "strictGate": {
+  "cmd": "admission-replay replay examples/audit.log examples/policies/strict-baseline.yaml --bad examples/bad.txt --show missed --fail-on-block --fail-on-miss",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad",
+   "strict-baseline: binding strict-baseline -> policy strict-baseline (Deny)",
+   "",
+   "LET THROUGH 2 of 3 bad writes",
+   "  2026-09-19 03:12  bob        update daemonsets monitoring/log-shipper",
+   "      labelled bad: log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a0081-0000-4000-8000-000000000081",
+   "  2026-09-26 16:05  bob        update deployments shop-prod/checkout",
+   "      labelled bad: checkout gets a privileged init container (sysctl tweak)",
+   "      admitted: no validation failed",
+   "      audit ID 5e9a00a6-0000-4000-8000-0000000000a6"
+  ],
+  "exit": 1
+ },
+ "targetedGate": {
+  "cmd": "admission-replay replay examples/audit.log examples/policies/targeted.yaml --bad examples/bad.txt --show caught --fail-on-block --fail-on-miss",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad",
+   "targeted: binding no-host-escape -> policy no-host-escape (Deny)",
+   "targeted: binding trusted-images -> policy trusted-images (Deny)",
+   "targeted: binding resource-limits -> policy resource-limits (Warn, Audit)",
+   "",
+   "CAUGHT 3 of 3 bad writes",
+   "  2026-09-12 22:47  alice      update deployments shop-prod/payments",
+   "      labelled bad: payments hotfix image from a personal Docker Hub account",
+   "      trusted-images: image docker.io/alice-dev/payments:hotfix-2 is not from a trusted registry",
+   "      audit ID 5e9a005a-0000-4000-8000-00000000005a",
+   "  2026-09-19 03:12  bob        update daemonsets monitoring/log-shipper",
+   "      labelled bad: log-shipper DaemonSet made privileged with the host's / mounted read-write",
+   "      no-host-escape: container shipper is privileged",
+   "      no-host-escape: hostPath volumes must be mounted read-only",
+   "      audit ID 5e9a0081-0000-4000-8000-000000000081",
+   "  2026-09-26 16:05  bob        update deployments shop-prod/checkout",
+   "      labelled bad: checkout gets a privileged init container (sysctl tweak)",
+   "      no-host-escape: container sysctl is privileged",
+   "      audit ID 5e9a00a6-0000-4000-8000-0000000000a6"
+  ],
+  "exit": 0
+ },
+ "check": {
+  "cmd": "admission-replay check examples/policies/targeted.yaml",
+  "out": [
+   "examples/policies/targeted.yaml: 3 policies, 3 bindings, every expression compiles",
+   "  binding no-host-escape -> policy no-host-escape (Deny)",
+   "  binding trusted-images -> policy trusted-images (Deny)",
+   "  binding resource-limits -> policy resource-limits (Warn, Audit)"
+  ],
+  "exit": 0
+ },
+ "checkAll": {
+  "cmd": "admission-replay check examples/policies/*.yaml",
+  "out": [
+   "examples/policies/registry-allowlist.yaml: 1 policies, 1 bindings, every expression compiles",
+   "  binding registry-allowlist -> policy registry-allowlist (Deny)",
+   "examples/policies/strict-baseline.yaml: 1 policies, 1 bindings, every expression compiles",
+   "  binding strict-baseline -> policy strict-baseline (Deny)",
+   "examples/policies/targeted.yaml: 3 policies, 3 bindings, every expression compiles",
+   "  binding no-host-escape -> policy no-host-escape (Deny)",
+   "  binding trusted-images -> policy trusted-images (Deny)",
+   "  binding resource-limits -> policy resource-limits (Warn, Audit)"
+  ],
+  "exit": 0
+ },
+ "version": {
+  "cmd": "admission-replay version",
+  "out": [
+   "admission-replay dev"
+  ],
+  "exit": 0
+ },
+ "cut": {
+  "cmd": "admission-replay compare from-sep-15.log examples/policies/*.yaml",
+  "out": [
+   "from-sep-15.log: 87 writes from 2026-09-15 to 2026-09-30 (15.1 days)",
+   "",
+   "     policy              blocked  by controllers  warned  skipped",
+   "  1  registry-allowlist        0               0       0       25",
+   "  2  targeted                  1               0       8       25",
+   "  3  strict-baseline           8               0       0       25",
+   "",
+   "no --bad labels: nothing to score as caught or missed.",
+   "note: namespaces never created in the log, replayed with no labels of their own: shop-staging, shop-prod, data-prod, monitoring, platform, search-experiment (pass --initial)",
+   "note: 25 writes skipped: object existed before the log starts (pass --initial)"
+  ],
+  "exit": 0
+ },
+ "cutInitial": {
+  "cmd": "admission-replay compare from-sep-15.log examples/policies/*.yaml --initial initial-sep-15.json",
+  "out": [
+   "from-sep-15.log: 87 writes from 2026-09-15 to 2026-09-30 (15.1 days)",
+   "",
+   "     policy              blocked  by controllers  warned  skipped",
+   "  1  registry-allowlist        0               0       0        0",
+   "  2  targeted                  2               0      10        0",
+   "  3  strict-baseline          12               0       0        0",
+   "",
+   "no --bad labels: nothing to score as caught or missed."
+  ],
+  "exit": 0
+ },
+ "errMisspelt": {
+  "cmd": "admission-replay check misspelt.yaml",
+  "out": [
+   "admission-replay: misspelt.yaml: document at line 4 (ValidatingAdmissionPolicy): strict decoding error: unknown field \"spec.validatons\""
+  ],
+  "exit": 2
+ },
+ "errCel": {
+  "cmd": "admission-replay check bad-cel.yaml",
+  "out": [
+   "bad-cel.yaml: 1 policies, 1 bindings, 1 expressions do not compile",
+   "  policy strict-baseline: spec.validations[0].expression: compilation failed: ERROR: <input>:1:51: undeclared reference to 'startswith' (in container '')",
+   " | variables.pod.containers.all(c, c.image.startswith('registry.example.com/'))",
+   " | ..................................................^",
+   "  binding strict-baseline -> policy strict-baseline (Deny)"
+  ],
+  "exit": 1
+ },
+ "checkBadField": {
+  "cmd": "admission-replay check bad-field.yaml",
+  "out": [
+   "bad-field.yaml: 1 policies, 1 bindings, every expression compiles",
+   "  binding strict-baseline -> policy strict-baseline (Deny)"
+  ],
+  "exit": 0
+ },
+ "replayBadField": {
+  "cmd": "admission-replay replay examples/audit.log bad-field.yaml --limit 1",
+  "out": [
+   "examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days)",
+   "bad-field: binding strict-baseline -> policy strict-baseline (Deny)",
+   "",
+   "BLOCKED 133 legitimate writes",
+   "  2026-09-01 10:00  ci-deploy  create deployments shop-staging/web",
+   "      strict-baseline: expression 'variables.pod.containers.all(c, c.imag.contains(':') && !c.image.endsWith(':latest'))' resulted in error: no such key: imag",
+   "      audit ID 5e9a0005-0000-4000-8000-000000000005",
+   "  ... 132 more (--limit 0 lists them all)",
+   "  by user:",
+   "     114  ci-deploy",
+   "       7  bob",
+   "       5  dana",
+   "       4  carol",
+   "       3  alice",
+   "  by failed validation:",
+   "     133  expression 'variables.pod.containers.all(c, c.imag.contains(':') && !c.image.endsWith(':latest'))' resulted in error: no such key: imag",
+   "      21  every container needs CPU and memory limits",
+   "       6  images must come from registry.example.com",
+   "       3  pods must run as non-root"
+  ],
+  "exit": 0
+ },
+ "errBadId": {
+  "cmd": "admission-replay replay examples/audit.log examples/policies/strict-baseline.yaml --bad bad-typo.txt",
+  "out": [
+   "admission-replay: bad-typo.txt:4: audit ID 5e9a0081-0000-4000-8000-000000000018 is not a write in the log"
+  ],
+  "exit": 2
+ }
+}

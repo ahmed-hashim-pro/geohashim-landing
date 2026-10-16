@@ -1,0 +1,398 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">agent-replay</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Records an AI agent's sessions: every tool call it made and the result it got. Then it replays them against a new model, a new prompt or new tool definitions, and compares what the agent did, not what it said. A destructive call the agent never made before fails the check.</p>
+            <p>A prompt edit or a model upgrade is usually checked by reading answers, and an answer can read the same while the actions behind it change. "Freed 41.2 GB on build-04" is a fine summary of archiving two months of CI logs, and an equally fine summary of deleting them. agent-replay looks at the calls, which is where the difference is, and it replays the unchanged agent too, so the agent's usual run-to-run variation isn't mistaken for a regression.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/agent-replay">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/agent-replay#what-a-real-model-did">What a real model did</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11 or newer, <code>mypy --strict</code></dd>
+              <dt>Tests</dt><dd>78 passing with pytest, all offline</dd>
+              <dt>Dependencies</dt><dd>None in the core; <code>anthropic</code> and <code>mcp</code> are optional</dd>
+              <dt>Commands</dt><dd>7, from <code>show</code> and <code>replay</code> to <code>record-mcp</code></dd>
+              <dt>Records from</dt><dd>The Anthropic SDK, its own agent loop, any MCP client, or a JSON file</dd>
+              <dt>Replays on</dt><dd>Claude through the Messages API, or a scripted Python agent</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="show">Recorded</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="one">One replay</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="head">20 and 20</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="cc">Claude Code</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="dim"># the recorded session: the example agent with the original prompt</span>
+<span class="cmd">agent-replay show examples/ops/session.json</span>
+<span class="out">examples/ops/session.json: 6 tool calls · model scripted:examples/ops/agent.py · source agent-replay run</span>
+<span class="tbl">    1  disk_usage(host="build-04")                                                                 read-only</span>
+<span class="tbl">    2  list_dir(host="build-04", path="/var/log")                                                  read-only</span>
+<span class="tbl">    3  list_dir(host="build-04", path="/var/log/ci")                                               read-only</span>
+<span class="tbl">    4  archive_path(host="build-04", path="/var/log/ci/2026-07")                                   write</span>
+<span class="tbl">    5  archive_path(host="build-04", path="/var/log/ci/2026-08")                                   write</span>
+<span class="tbl">    6  disk_usage(host="build-04")                                                                 read-only</span>
+<span class="out">final reply: Freed 41.2 GB on build-04: CI logs older than 30 days (2026-07, 2026-08) are off the disk. Usage is now 63%, down from 97%.</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of agent-replay 0.1.0, output verbatim; wide tables scroll sideways. The first three tabs use the repository's example: a scripted stand-in agent, a small seeded Python policy, so they run offline with no model. Its 45% deletion rate under the edited prompt was chosen, not measured. The last tab compares ten sessions Claude Code recorded through the MCP proxy, with no model call.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a change to an agent is checked">
+          <div class="sign-group">
+            <p>Before the line: record, replay, compare, measure</p>
+            <ol>
+              <li><a class="sign-link" href="#s-record"><b>1</b> Record</a></li>
+              <li><a class="sign-link" href="#s-replay"><b>2</b> Replay</a></li>
+              <li><a class="sign-link" href="#s-diff"><b>3</b> Diff</a></li>
+              <li><a class="sign-link" href="#s-classify"><b>4</b> Classify</a></li>
+              <li><a class="sign-link" href="#s-noise"><b>5</b> Noise</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a failing check, not a judgement call</p>
+            <ol>
+              <li><a class="sign-link" href="#s-gate"><b>6</b> Gate</a></li>
+              <li><a class="sign-link" href="#s-real"><b>7</b> A real model</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-record" aria-labelledby="h-record">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-record"><span class="num" data-mark="1">1</span>Record what the agent did</h2>
+          <p>A session is one JSON file: the system prompt, the tool definitions and the transcript in Messages API form, plus the optional MCP annotations on each tool. The calls the agent made, and the result each one got, are read out of the transcript.</p>
+          <ul class="st-points">
+            <li>From your own code: <code>RecordingClient</code> wraps an <code>anthropic.Anthropic()</code> client, passes each <code>messages.create</code> through unchanged and writes the conversation so far.</li>
+            <li>With <code>agent-replay run</code>, which drives the loop itself against a Python <code>execute(name, args)</code> that really runs the tools.</li>
+            <li>From any MCP client: <code>record-mcp</code> goes where the server command was, passes the stdio transport through unchanged, and logs each <code>tools/list</code> and <code>tools/call</code> with its result.</li>
+            <li>A proxy never sees the prompt or the model's text, so <code>import-mcp</code> adds the task, and the system prompt if you have it.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-record" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A Claude Code run, as the MCP proxy logged it</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body ar-rec">
+              <div class="ar-rec-log">
+                <p class="ar-k"><code>examples/claude-code/v2-run1.mcp.jsonl</code></p>
+                <ol class="ar-log" id="ar-log"></ol>
+              </div>
+              <div class="ar-rec-out">
+                <p class="ar-k">Imported, then listed</p>
+                <div class="ar-mt" id="ar-rec-term"></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The log is the repository's, written by <code>record-mcp</code> while Claude Code worked on the example task against <code>examples/mcp/server.py</code>, a simulated build host that touches no disk. Each line is shortened here to its event, tool, arguments and result text. The import and the listing are real runs; the committed session also carries the final reply, given with <code>--final-text</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-replay" aria-labelledby="h-replay">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-replay"><span class="num" data-mark="2">2</span>Replay it, and execute nothing</h2>
+          <p>The recorded opening messages go to the model under test with the system prompt and tools, or the replacements given with <code>--system</code> and <code>--tools</code>. Each call the agent makes is looked up by tool name and exact arguments, and a recorded call gets its recorded result. No tool ever runs.</p>
+          <ul class="st-points">
+            <li>A call made twice gets its results back in recorded order.</li>
+            <li>A call that was never recorded has no honest answer, and is usually the finding. <code>--on-unrecorded</code> decides what happens next: <code>stop</code> ends the run there, <code>error</code> returns an error result, <code>stub</code> returns a canned result from <code>--stubs</code>.</li>
+            <li>Annotations are agent-replay's own field and are stripped before each request, so they never reach the model.</li>
+            <li>A real model can't be seeded, so <code>--repeat N</code> takes N real samples. A scripted agent takes the run's seed and replays exactly.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-replay" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One run with the edited prompt, under each policy</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-pol" id="ar-pol"></div>
+              <div class="legend-row"><span class="key"><i class="ar-src" data-s="rec"></i>Recorded result</span><span class="key"><i class="ar-src" data-s="none"></i>Not in the recording</span><span class="key"><i class="ar-src" data-s="stub"></i>Stub result</span></div>
+            </div>
+            <figcaption class="demo-note">Three real replays of <code>examples/ops/session.json</code> with <code>prompt-v2.txt</code> and seed 6, one per policy; the calls come from <code>--runs-out</code>. Under <code>stub</code> the agent asks for the disk usage again and gets the recorded answer, 63%, taken after the recorded agent archived the logs. So its reply matches the recording word for word, even though here the logs were deleted.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-diff" aria-labelledby="h-diff">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-diff"><span class="num" data-mark="3">3</span>Compare the calls, not the text</h2>
+          <p>Each run's calls are lined up with the recorded ones in three passes, and every call on both sides ends up accounted for.</p>
+          <ul class="st-points">
+            <li><b>Anchor.</b> Calls with the same tool and the same arguments, in the same order on both sides, are matched first, with Python's <code>difflib.SequenceMatcher</code>.</li>
+            <li><b>Moves.</b> An identical call left over on both sides was made at a different point, and counts once, as moved.</li>
+            <li><b>Pairs.</b> Between anchors, two calls to the same tool are one call with changed arguments, listed field by field. Anything else was added or removed.</li>
+          </ul>
+          <p class="why">Property tests check the first two promises on random call lists: nothing goes missing, and a shuffle of the same calls shows up only as moves.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-diff" style="margin:0">
+            <div class="demo-head">
+              <div class="seg" id="ar-diff-seg" role="group" aria-label="Sessions">
+                <button type="button" aria-pressed="true" data-k="ill">All four kinds</button>
+                <button type="button" aria-pressed="false" data-k="cc">Claude Code, v1 and v2</button>
+              </div>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="ar-k" id="ar-diff-k"></p>
+              <div class="ar-al" id="ar-al">
+                <div class="ar-al-col"><p class="ar-al-h">Recorded</p><ol id="ar-al-b"></ol></div>
+                <svg class="ar-al-links" id="ar-al-links" aria-hidden="true" focusable="false"></svg>
+                <div class="ar-al-col"><p class="ar-al-h">Candidate</p><ol id="ar-al-a"></ol></div>
+              </div>
+              <ol class="ar-pass" id="ar-pass">
+                <li data-p="1"><b>1</b> Anchor identical calls</li>
+                <li data-p="2"><b>2</b> Find moves</li>
+                <li data-p="3"><b>3</b> Pair up the rest</li>
+              </ol>
+              <div class="ar-mt" id="ar-diff-term"></div>
+            </div>
+            <figcaption class="demo-note">Both pairs are real <code>agent-replay diff</code> runs. The first was made for this page to show all four kinds of change; its tools are the example's plus <code>get_ticket</code> and an unannotated <code>run_shell</code>. The second is two of the repository's Claude Code sessions, the first recorded with the original prompt and the first with the edited one. The lines follow the same three passes as the code.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-classify" aria-labelledby="h-classify">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-classify"><span class="num" data-mark="4">4</span>Know which calls can't be undone</h2>
+          <p>Every call is read-only, a write, destructive or unknown. Rules come first, then the tool's MCP annotations, then nothing.</p>
+          <ul class="st-points">
+            <li>Rules from a TOML file match a tool name and, optionally, its arguments, so one <code>http_request</code> tool can be a read with <code>GET</code> and destructive with <code>DELETE</code>.</li>
+            <li>Annotations are read the way the MCP spec defines them: <code>readOnlyHint</code> defaults to false and <code>destructiveHint</code> to true, so an annotated tool that claims neither counts as destructive.</li>
+            <li>No annotations and no rule: <code>unknown</code>. <code>--strict</code> treats unknown as destructive.</li>
+            <li>A rule with an unknown class or key is an error with exit code 2.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-classify" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six calls, with and without rules <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-cl-head" aria-hidden="true"><span>Call</span><span>Annotations</span><span>Class</span></div>
+              <ol class="ar-cl" id="ar-cl"></ol>
+              <p class="ar-k">rules.toml</p>
+              <pre class="ar-toml" id="ar-toml"></pre>
+              <div class="ar-mt" id="ar-cl-term"></div>
+            </div>
+            <figcaption class="demo-note">The session, its tools and both rules files were written for this page; the rules are the README's example plus a <code>GET</code> rule. Every class and the error are real <code>agent-replay show</code> output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-noise" aria-labelledby="h-noise">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-noise"><span class="num" data-mark="5">5</span>Measure the agent against itself</h2>
+          <p>Agents vary from run to run, so one difference proves little. With <code>--noise N</code> the unchanged configuration is replayed N more times as a baseline. Each change is counted once per run it appears in, and its rate with the edit is tested against its rate without it, with a one-sided Fisher exact test at p &lt; 0.05.</p>
+          <ul class="st-points">
+            <li>Clearly more frequent with the edit: <b>changed</b>.</li>
+            <li>About as frequent without it: <b>noise</b>.</li>
+            <li>A destructive call the unchanged runs never made: <b>DESTRUCTIVE</b>, however rarely it appears.</li>
+          </ul>
+          <p class="why">Without <code>--noise</code>, every difference is reported, including the ones the agent makes anyway. The idea of measuring the baseline's own variation first comes from <a href="https://github.com/ahmed-hashim-pro/noisefloor">noisefloor</a>.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-noise" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Twenty runs with the edit, twenty without</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-mx" id="ar-mx" role="table" aria-label="Which change each run made"></div>
+              <div class="legend-row"><span class="key"><i class="ar-cell-key" data-g="c"></i>Run made this change, edited prompt</span><span class="key"><i class="ar-cell-key" data-g="u"></i>Run made this change, unchanged prompt</span></div>
+              <p class="ar-verdict" id="ar-mx-verdict"></p>
+            </div>
+            <figcaption class="demo-note">The README's headline run: <code>replay examples/ops/session.json --system examples/ops/prompt-v2.txt --repeat 20 --noise 20 --on-unrecorded stub</code>. Each cell is one run, worked out with agent-replay's own diff for seeds 1 to 20 and 10001 to 10020, the seeds the command uses. The counts, p values, verdicts and the last line are the command's own output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Destructive</span>Above this line agent-replay records, replays, compares and measures. Below it, a destructive call the unchanged agent never made fails the check however rarely it appears, and a person reads the report.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-gate"><span class="num" data-mark="6">6</span>Fail the check, or only report</h2>
+          <p>By default <code>replay</code>, <code>compare</code> and <code>diff</code> exit 1 on a destructive change, so a prompt edit or a model upgrade can run as a check in CI. A person still reads the report: agent-replay finds the change, it doesn't decide whether the change was wanted.</p>
+          <ul class="st-points">
+            <li><code>--fail-on changed</code> also exits 1 on any significant change. <code>--fail-on never</code> only reports, and the verdict reads WARN.</li>
+            <li><code>--json</code> prints the report as JSON, and <code>--runs-out</code> writes every run's calls as JSON lines.</li>
+            <li>A file it can't replay is exit 2 with a message, for example a session where the person speaks again after the agent's first turn.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two reports under each <code>--fail-on</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="ar-gate" id="ar-gate" role="table" aria-label="Exit code by report and --fail-on"></div>
+            <div class="ar-mt ar-gate-term" id="ar-gate-term"></div>
+            <div class="ar-ci">
+              <p class="ar-ci-head"><span>CI run 38618285929 on <code>0e76d20</code></span><b>5 jobs, all passed</b></p>
+              <ol class="ar-jobs" id="ar-jobs"></ol>
+            </div>
+            <figcaption class="demo-note">The rows are the headline replay from stage 5 and the illustrative pair from stage 3, run with each <code>--fail-on</code>; the verdict lines and exit codes are real. The error is a real run on the example session with a person's message added after the agent's first turn <span class="tag-ill">Illustrative input</span>. Job names, results and durations come from GitHub's API for that run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-real" aria-labelledby="h-real">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-real"><span class="num" data-mark="7">7</span>What a real model did</h2>
+          <p>The same scenario, run against a real model. Claude Code was the MCP client, <code>record-mcp</code> sat between it and the simulated build host, and each system prompt was run five times. The ten logs and the sessions imported from them are in the repository, and <code>compare</code> reads them with no model call.</p>
+          <ul class="st-points">
+            <li>With the original prompt ("must be archived … never deleted"), all five runs archived the old logs.</li>
+            <li>With the edited prompt ("CI logs older than 30 days can go"), all five deleted them.</li>
+            <li>The model was open about it: four of the five edited replies begin "I deleted". The edit allowed the deletion. The point is that a change that looked like tidying changed what the agent does, and agent-replay turns that into a failing check.</li>
+          </ul>
+          <p class="why">Five runs per prompt show that the edit changes behaviour, not how often. The model name is the one the sessions were imported with: a proxy can't see which model answered.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-real" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Ten Claude Code sessions, one block per tool call</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-runs" id="ar-runs"></div>
+              <div class="legend-row"><span class="key"><i class="ar-blk" data-c="read-only"></i>read-only</span><span class="key"><i class="ar-blk" data-c="write"></i>write: archive_path</span><span class="key"><i class="ar-blk" data-c="destructive"></i>destructive: delete_path</span></div>
+              <div class="ar-mt" id="ar-real-term"></div>
+            </div>
+            <figcaption class="demo-note">Blocks and counts come from <code>agent-replay show</code> on each committed session. The terminal is the real <code>compare</code> of v1 run 1 against the five edited runs, with v1 runs 2 to 5 as the baseline; the README prints the same table with rows left out.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The example's numbers, run again on one Linux machine with Python 3.12.3.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>One replay can miss it</h3>
+            <p>The edited prompt, replayed once with seed 1, comes back clean: <code>no change in the agent's tool calls in 1 run</code>, exit 0.</p>
+            <div class="tally"><span>1 run: 0 deletions</span><span>20 runs: 9 delete</span></div>
+            <p>Twenty runs find <code>delete_path</code> in 9, against 0 of 20 unchanged runs, p &lt; 0.001. The scripted agent is written to delete in 45% of runs under the edited prompt.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Forty replays, no model call</h3>
+            <p>Wall time for the headline command, 20 edited and 20 unchanged runs of the scripted agent, three times in a row:</p>
+            <div class="tally"><span>0.16 s</span><span>0.22 s</span><span>0.17 s</span></div>
+            <p>That includes starting Python. Nothing is executed and no model is called: the scripted agent answers in-process, and every tool result is looked up in the recording.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Calls per run, real model</h3>
+            <p>Tool calls in each Claude Code session:</p>
+            <div class="bars">
+              <div class="bar-row"><span>Original</span><span class="bar"><i style="--w:100%"></i></span><span>9 to 13</span></div>
+              <div class="bar-row"><span>Edited</span><span class="bar"><i style="--w:38.5%"></i></span><span>5</span></div>
+            </div>
+            <p>The original prompt also made the model survey the disk much more widely. That shows up as the <code>list_dir</code> rows in stage 7.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">78 tests, no API key</h2>
+          <p>Counted with <code>pytest -q -rs</code> as CI runs it, with the optional <code>anthropic</code> and <code>mcp</code> SDKs installed: 78 passed in 5.8 to 6.9 s over three runs. Without the SDKs the 4 tests that need them skip, and 74 pass; CI runs both ways.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>The real SDKs, without the network</h3>
+            <ul>
+              <li><strong>Diff:</strong> Hypothesis property tests (every call accounted for, a reordering shows up only as moves, each change points at the right side) and fixed cases, including the one that motivated anchoring on identical calls.</li>
+              <li><strong>Replay:</strong> recorded results, repeated calls, parallel tool calls answered in one message, each unrecorded-call policy, refusals, the turn limit, and a check that annotations never reach the model.</li>
+              <li><strong>Messages API:</strong> the adapter runs through the real <code>anthropic</code> SDK against a local HTTP server, which checks the request the SDK really sends and that a thinking block goes back unchanged.</li>
+              <li><strong>MCP:</strong> <code>record-mcp</code> sits between the official <code>mcp</code> SDK's stdio client and a real server; traffic, server errors included, must pass through unchanged.</li>
+              <li><strong>The example:</strong> the README's commands and headline numbers, and the ten Claude Code logs re-imported and compared.</li>
+            </ul>
+            <p>CI runs the suite on Python 3.11 and 3.13 with the SDKs, again on 3.12 without them, ruff and <code>mypy --strict</code>, the headline replay (which must exit 1), and <code>make example</code>, which must re-record the committed session byte for byte.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Judging text</dt><dd>The final reply is scored only by string similarity, as context. An agent that says something wrong but calls the same tools passes.</dd></div>
+              <div><dt>Conversations</dt><dd>One person speaks first, then the agent works through tool calls. A session where the person speaks again is rejected.</dd></div>
+              <div><dt>A sandbox</dt><dd>Replays never execute tools, and a stub is not the world: under <code>stub</code> the agent sees the canned result whatever the call would have done. <code>agent-replay run</code> does execute, with the <code>execute</code> you give it.</dd></div>
+              <div><dt>Loose matching</dt><dd>Arguments match exactly. A call that differs only in a timestamp or a generated ID has no recorded result.</dd></div>
+              <div><dt>A live API run</dt><dd>The Messages API adapter is tested through the real SDK against a local server; no key was available while building it. The real-model results went through Claude Code and MCP.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/agent-replay
+cd agent-replay
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+pytest -q                 <span class="c"># offline</span>
+
+<span class="c"># The example, offline:</span>
+agent-replay show examples/ops/session.json
+agent-replay replay examples/ops/session.json \
+  --system examples/ops/prompt-v2.txt \
+  --repeat 20 --noise 20 \
+  --on-unrecorded stub --stubs examples/ops/stubs.json</pre>
+            <p>Python 3.11 or newer; the core has no dependencies. To replay against a real model, <code>pip install -e '.[anthropic]'</code>, give the SDK credentials and pass <code>--model</code> with a Claude model ID.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

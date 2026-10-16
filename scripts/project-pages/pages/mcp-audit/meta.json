@@ -1,0 +1,9 @@
+{
+  "title": "mcp-audit · Ahmed Hashim",
+  "description": "An auditor for MCP servers that connects as a real MCP client, reads what each server tells the model, and calls every tool in a traced sandbox to check it does what its annotations claim. How it works, with real runs.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the real-server results"
+  }
+}

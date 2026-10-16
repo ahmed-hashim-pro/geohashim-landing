@@ -1,0 +1,9 @@
+{
+  "title": "wal-crash · Ahmed Hashim",
+  "description": "A crash-consistency tester for storage code: it records a program's file-system calls with strace, builds every state a power failure could leave, and runs the program's own recovery on each. How it works end to end, with real runs.",
+  "tour_seconds": "55",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See SQLite's eight settings"
+  }
+}

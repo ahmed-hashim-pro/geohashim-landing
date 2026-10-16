@@ -1,0 +1,9 @@
+{
+  "title": "rate-proof · Ahmed Hashim",
+  "description": "Measures what six rate-limiting algorithms let through once deployed across nodes with skewed clocks, a remote store and restarts, then checks the simulator against a real Redis. How it works end to end, with real runs.",
+  "tour_seconds": "55",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the skew sweep"
+  }
+}

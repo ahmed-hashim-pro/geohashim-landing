@@ -1,0 +1,354 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">admission-replay</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Replays a Kubernetes cluster's audit log through a proposed admission policy before it goes live. It reports which legitimate writes the policy would have blocked, and which of the writes you know were bad it would have let through.</p>
+            <p>Turning on a ValidatingAdmissionPolicy is a bet on traffic nobody has looked at. The usual advice is to run it in audit mode for a few weeks, which only tells you about the weeks to come. The API server's audit log already holds the past month of writes. admission-replay sends every one of them through the policy, using the API server's own admission code, and scores the result.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/admission-replay">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/admission-replay#is-the-replay-faithful">Is the replay faithful?</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.24 or newer</dd>
+              <dt>Tests</dt><dd>38 passing (30 tests plus 8 subtests)</dd>
+              <dt>Admission code</dt><dd><code>k8s.io/apiserver</code> v0.34.1, as in Kubernetes 1.34</dd>
+              <dt>Reads</dt><dd><code>audit.k8s.io/v1</code> events, one per line or an EventList, gzip or not</dd>
+              <dt>Checked against</dt><dd>A real kube-apiserver on kind, write by write</dd>
+              <dt>Binary</dt><dd>Static, about 69 MB</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="compare">Compare</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="replay">One policy</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="gate">The gate</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="check">Check</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">admission-replay compare examples/audit.log examples/policies/*.yaml --bad examples/bad.txt</span>
+<span class="out">examples/audit.log: 198 writes from 2026-09-01 to 2026-09-30 (29.2 days), 3 labelled bad</span>
+<span class="out"></span>
+<span class="out">     policy              bad caught  legit blocked  by controllers  warned  skipped</span>
+<span class="out">  1  targeted                   3/3              0               0      21        0</span>
+<span class="out">  2  registry-allowlist         1/3              0               0       0        0</span>
+<span class="out">  3  strict-baseline            1/3             26               0       0        0</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of admission-replay at commit <code>46bfbfb</code>, output verbatim. The month is the repository's example: the company, its people and the three bad writes are invented, but the audit log was written by a real kube-apiserver on kind while those requests were sent to it.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a policy moves through admission-replay">
+          <div class="sign-group">
+            <p>Before the line: read, rebuild, evaluate, score</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-rebuild"><b>2</b> Rebuild</a></li>
+              <li><a class="sign-link" href="#s-admit"><b>3</b> Evaluate</a></li>
+              <li><a class="sign-link" href="#s-score"><b>4</b> Score</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: people decide</p>
+            <ol>
+              <li><a class="sign-link" href="#s-label"><b>5</b> Label</a></li>
+              <li><a class="sign-link" href="#s-gate"><b>6</b> Gate</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read the audit log, write by write</h2>
+          <p>The input is what the API server's <code>--audit-log-path</code> already writes: one <code>audit.k8s.io/v1</code> event per line. An EventList and gzip work too. Only completed creates, updates, patches and deletes are kept.</p>
+          <ul class="st-points">
+            <li>The user is the impersonated one when there is one. Here every request came through one admin credential acting as a named person, and the person is who a policy's <code>matchConditions</code> should see.</li>
+            <li>Writes are put back in the order they arrived. The log backend writes an event when a request completes, so concurrent requests can appear out of order.</li>
+            <li>A write the cluster refused at the time is still replayed, but it never counts as blocked: it changed nothing.</li>
+            <li>Subresources are skipped, and a log below <code>Request</code> level has no object to replay.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One event from the example log, and the write it becomes</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ar-ev" id="ar-ev" aria-label="Audit event, abridged"></ol>
+              <dl class="ar-w" id="ar-w"></dl>
+              <p class="ar-k">The month, as read</p>
+              <ul class="ar-who" id="ar-who"></ul>
+            </div>
+            <figcaption class="demo-note">The event is line 103 of <code>examples/audit.log</code>, abridged to the fields that matter: the request and response bodies are cut to the one container. The counts are the whole log's, from admission-replay's own <code>--json</code> output. The one refused write is a controller's, made while the <code>search-experiment</code> namespace was being deleted.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-rebuild" aria-labelledby="h-rebuild">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-rebuild"><span class="num" data-mark="2">2</span>Rebuild each write as admission saw it</h2>
+          <p>Validating admission runs after mutation, so the object to judge is the one the server stored, the event's <code>responseObject</code>. An update or delete also needs the object as it was, and that is the previous write to the same object in the log.</p>
+          <ul class="st-points">
+            <li>Namespaces change as the log changes them, so a <code>namespaceSelector</code> sees each namespace's labels as they were at that moment.</li>
+            <li>An object created before the log starts has no old object. Its updates are skipped and counted, unless <code>--initial</code> supplies a dump of the cluster from when the log begins.</li>
+            <li>A namespace never created in the log is replayed with only the name label the API server gives every namespace, and the report says which ones.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-rebuild" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The log-shipper DaemonSet, then a log cut in half</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ar-tl" id="ar-tl"></ol>
+              <div class="ar-diff" id="ar-diff">
+                <div class="ar-obj"><p class="ar-k">oldObject: the write of Sep 1</p><pre id="ar-old"></pre></div>
+                <div class="ar-obj"><p class="ar-k">object: bob's write of Sep 19</p><pre id="ar-new"></pre></div>
+              </div>
+              <p class="ar-k">The same 15 days, three ways <span class="tag-ill">Illustrative input</span></p>
+              <div class="ar-cut" id="ar-cut" role="table" aria-label="Sep 15 to 30 replayed three ways">
+                <div class="ar-cut-row ar-cut-head" role="row"><span role="columnheader">Replay</span><span role="columnheader">strict-baseline blocks</span><span role="columnheader">targeted blocks</span><span role="columnheader">targeted warns</span><span role="columnheader">Skipped</span></div>
+              </div>
+              <div class="mini-term ar-mt" id="ar-cut-term"></div>
+            </div>
+            <figcaption class="demo-note">The three writes are lines 49, 142 and 143 of the example log, cut to the shipper container and its volumes. For the second part the log was cut to start on Sep 15, and <code>initial-sep-15.json</code> was built from the log's own stored objects as of that moment, standing in for a <code>kubectl get -o yaml</code> dump. The first row counts the full month's replay over the same 87 writes. Every number is real output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-admit" aria-labelledby="h-admit">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-admit"><span class="num" data-mark="3">3</span>Run the API server's own admission code</h2>
+          <p>The evaluation isn't a reimplementation. Each write goes through the ValidatingAdmissionPolicy plugin from <code>k8s.io/apiserver</code> v0.34.1, running against an in-memory fake API that holds the policies, the bindings and the namespaces seen so far. Matching, <code>matchConditions</code>, variables, <code>messageExpression</code>, <code>failurePolicy</code> and CEL's cost limits are all the server's code.</p>
+          <ul class="st-points">
+            <li>Every binding is loaded as <code>[Audit]</code>, so the plugin reports every failed validation instead of stopping at the first denial. The binding's real actions, Deny, Warn or Audit, are applied afterwards.</li>
+            <li><code>check</code> parses a policy file the way <code>kubectl apply --validate=strict</code> would, and compiles every CEL expression with the server's environment.</li>
+            <li>CEL's <code>authorizer</code> always answers yes: there is no RBAC in the replay.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-admit" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">strict-baseline's five validations on five writes</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-mx-wrap"><table class="ar-mx" id="ar-mx"></table></div>
+              <div class="legend-row"><span class="key"><i class="ar-dot" data-v="fail"></i>Failed</span><span class="key"><i class="ar-dot" data-v="pass"></i>Passed</span><span class="key"><i class="ar-dot" data-v="skip"></i>Not matched: the policy covers Deployments only</span></div>
+              <p class="ar-k">Policies that are wrong before they run <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg" id="ar-pol-seg" role="group" aria-label="Broken policy"></div>
+              <div class="mini-term ar-mt" id="ar-pol-term" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The grid is strict-baseline's real verdicts, from <code>replay --json</code>; a validation counts as passed when it isn't among the write's failures. The three broken policies are strict-baseline with one change each, made for this page: <code>validations</code> spelt <code>validatons</code>, <code>startsWith</code> spelt <code>startswith</code>, and <code>c.image</code> spelt <code>c.imag</code>. The last one compiles, so <code>check</code> passes it; only the replay shows what it would do under <code>failurePolicy: Fail</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-score" aria-labelledby="h-score">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-score"><span class="num" data-mark="4">4</span>Score the month, policy against policy</h2>
+          <p><code>compare</code> replays the log once per candidate and ranks them: bad writes caught first, then legitimate writes blocked, then warnings. <code>replay</code> takes one candidate and lists its verdicts write by write, grouped by user and by the validation that failed.</p>
+          <ul class="st-points">
+            <li>A write that fails two validations counts once under each in the "by failed validation" totals, and once as blocked.</li>
+            <li>Writes made by the cluster's own controllers are counted apart, as "by controllers": a policy that blocks them breaks the cluster, not a deploy.</li>
+            <li><code>--json</code> gives every verdict, for anything further.</li>
+          </ul>
+          <p class="why">strict-baseline reads as the safest of the three: trusted registry, pinned tags, limits, non-root, nothing privileged. Over the month it blocks 26 legitimate writes and catches one bad one. It matches Deployments, so the DaemonSet never reaches it, and it checks <code>containers</code>, so the init container doesn't either.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-score" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">198 writes, three candidates, September</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ar-strip" id="ar-strip"></div>
+              <div class="legend-row"><span class="key"><i class="ar-tk" data-v="b"></i>Blocked a legitimate write</span><span class="key"><i class="ar-tk" data-v="w"></i>Warned</span><span class="key"><i class="ar-tk" data-v="c"></i>Caught a bad write</span><span class="key"><i class="ar-tk" data-v="m"></i>Let a bad write through</span><span class="key"><i class="ar-tk" data-v="."></i>Admitted</span></div>
+              <div class="mini-term ar-mt" id="ar-score-term"></div>
+            </div>
+            <figcaption class="demo-note">Each mark is one write, placed at the time it was made; hover a mark to see the write. The verdicts are admission-replay's <code>--json</code> output for each candidate, and the table is <code>compare</code>'s, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Decided by people</span>Above this line admission-replay reads, rebuilds, evaluates and scores. Below it, a person says which writes should never have got in, and the team decides what fails the build.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-label" aria-labelledby="h-label">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-label"><span class="num" data-mark="5">5</span>A person labels the bad writes</h2>
+          <p><code>--bad</code> takes a file of audit IDs, each with an optional note: the writes an incident review says should never have been admitted. The score is only as good as these labels.</p>
+          <ul class="st-points">
+            <li>An ID that isn't a write in the log is an error, exit 2, so a typo can't quietly count as missed.</li>
+            <li>An ID listed twice is an error too.</li>
+            <li>Without labels nothing is caught or missed. A policy only gets credit for what someone labelled, and nothing marks an unlabelled bad write as missed.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-label" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">examples/bad.txt, found in the log</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ar-bad" id="ar-bad"></ol>
+              <div class="mini-term ar-mt" id="ar-bad-term"></div>
+            </div>
+            <figcaption class="demo-note">The three labels are the repository's. <code>bad-typo.txt</code> is the same file with two digits of one ID swapped, made for this page <span class="tag-ill">Illustrative input</span>. Both runs are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-gate"><span class="num" data-mark="6">6</span>Gate the policy change in CI</h2>
+          <p>On a pull request that changes a policy, run <code>replay</code> against a recent log. <code>--fail-on-block</code> fails when a legitimate write in the window would have been blocked, and <code>--fail-on-miss</code> when a labelled one would have got through.</p>
+          <ul class="st-points">
+            <li>Exit 0 when nothing tripped, 1 when a gate tripped, 2 for bad input.</li>
+            <li><code>targeted</code> holds: it catches all three and blocks nothing. It denies privilege and writable host mounts in every workload kind and every container list, trusts known registries, and only warns about missing limits.</li>
+            <li>The repository's own CI checks the README against the CLI, and the replay against a real API server, on every push.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two candidates through the gate, and CI on the repository</p>
+              {{REPLAY}}
+            </div>
+            <div class="ar-gates" id="ar-gates"></div>
+            <div class="ar-ci">
+              <p class="ar-ci-head"><span>CI run 38611892810 on <code>46bfbfb</code></span><b>4 jobs, all passed</b></p>
+              <ol class="ar-jobs" id="ar-jobs"></ol>
+            </div>
+            <figcaption class="demo-note">Both gate runs are real, with <code>--show missed</code> and <code>--show caught</code> to keep them short; the terminals show their first lines and exit codes. Job names, results and durations come from GitHub's API for that run, rounded to whole seconds.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The claim the tool rests on, re-run here against a real API server, and what the replay costs. One Linux machine, shared with other work while these ran.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>A real API server agrees</h3>
+            <p><code>make crosscheck</code> starts a kind cluster on Kubernetes 1.34 per candidate, binds it in audit mode, resends the month's writes under their original audit IDs, and compares the server's own audit log with the replay.</p>
+            <div class="bars">
+              <div class="bar-row"><span>strict-baseline</span><span class="bar"><i style="--w:100%"></i></span><span>27</span></div>
+              <div class="bar-row"><span>targeted</span><span class="bar"><i style="--w:88.9%"></i></span><span>24</span></div>
+              <div class="bar-row"><span>registry-allowlist</span><span class="bar"><i style="--w:3.7%"></i></span><span>1</span></div>
+            </div>
+            <p>Writes that failed a validation on both sides, of 185 compared each. Disagreements: 0, 0 and 0. The other 13 writes are controllers' and can't be resent. The whole run took 6 min 47 s.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>A month in about two seconds</h3>
+            <p>Wall time for <code>compare</code> of all three candidates over the 198 writes, three runs:</p>
+            <div class="tally"><span>2.08 s</span><span>2.01 s</span><span>1.48 s</span></div>
+            <p>Each candidate starts its own copy of the admission plugin and compiles its policies; the binary is static and about 69 MB, because it carries the API server's admission and CEL stack.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Build once, then seconds</h3>
+            <p>From a fresh copy, <code>go vet</code> and <code>go test ./...</code> took 3 min 10 s, mostly fetching and compiling the Kubernetes libraries. Run again:</p>
+            <div class="tally"><span>3 min 10 s cold</span><span>10 s warm</span></div>
+            <p>The slowest package is the CLI's, 5.7 s: its tests replay the example month and compare every <code>docs/*.txt</code> file the README quotes with the CLI's real output.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">38 tests, and the README checked by one</h2>
+          <p>Counted with <code>go test -count=1 -json ./...</code>: 30 tests plus 8 subtests, all passing, none skipped, with Go 1.27.2. <code>go vet</code> and <code>gofmt</code> are clean, and <code>go test -race ./...</code> passes, as CI runs it.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Aimed at what a replay could get wrong</h3>
+            <ul>
+              <li><strong>Engine:</strong> deny and admit, every failure reported, Warn and Audit not denying, a compile error denying under <code>failurePolicy: Fail</code>, a runtime error following the failure policy, <code>matchConditions</code> seeing the user, and a <code>namespaceSelector</code> following label changes.</li>
+              <li><strong>Replay:</strong> updates see the old object, deletes need state, failed writes don't change state, a terminating namespace stays known, and an unknown one is assumed.</li>
+              <li><strong>Audit log:</strong> events and EventLists, gzip, Metadata-level events skipped, and malformed input refused.</li>
+              <li><strong>Policy files:</strong> strict parsing with eight ways to be wrong, error lines that point at the right document, and every example compiling.</li>
+              <li><strong>CLI:</strong> exit codes, <code>--json</code>, compile errors in <code>check</code>, and the README's quoted outputs regenerated and compared.</li>
+            </ul>
+            <p>CI runs vet, gofmt and the race-enabled tests on Go 1.24 and stable, checks that <code>docs/</code> is current, and runs the crosscheck against kind on every push.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Webhooks and other admission</dt><dd>Only ValidatingAdmissionPolicy is replayed. Gatekeeper, Kyverno, MutatingAdmissionPolicy and Pod Security Admission already shaped the stored objects; their own decisions aren't replayed.</dd></div>
+              <div><dt>Parameters</dt><dd>A policy with <code>paramKind</code> or <code>paramRef</code> is refused with that message, not evaluated without them.</dd></div>
+              <div><dt>RBAC</dt><dd>CEL's <code>authorizer</code> answers as it would for a cluster-admin, so a policy that branches on it is replayed as if everyone may do everything.</dd></div>
+              <div><dt>Byte-exact objects</dt><dd>The object is rebuilt from <code>responseObject</code>, so a policy that reads the new <code>resourceVersion</code>, or status a controller wrote in between, can differ from the cluster.</dd></div>
+              <div><dt>A verdict on the policy</dt><dd>It shows how a policy would have treated the past, scored against what someone labelled. It can't say a policy is good.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/admission-replay
+cd admission-replay
+make build          <span class="c"># a static binary, minutes cold</span>
+make test           <span class="c"># vet, then 38 tests</span>
+
+./admission-replay compare examples/audit.log \
+  examples/policies/*.yaml --bad examples/bad.txt
+./admission-replay check examples/policies/targeted.yaml
+
+<span class="c"># Your cluster: a log at RequestResponse level</span>
+./admission-replay replay audit.log policy.yaml \
+  --initial initial.yaml --bad bad.txt \
+  --fail-on-block --fail-on-miss</pre>
+            <p>Go 1.24 or newer, or only Docker: the README shows the one-line build in <code>golang:1.25</code>. <code>make crosscheck</code> also needs kind and kubectl.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

@@ -1,0 +1,568 @@
+{
+ "lintHero": {
+  "cmd": "migrate-safe lint examples/migrations/03-set-not-null/unsafe.sql",
+  "out": [
+   "examples/migrations/03-set-not-null/unsafe.sql (PostgreSQL 17)",
+   "",
+   "line 2    ALTER TABLE orders ALTER COLUMN status SET NOT NULL",
+   "          ACCESS EXCLUSIVE on orders · reads every row",
+   "  DANGER  reads the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: ADD CONSTRAINT ... CHECK (status IS NOT NULL) NOT VALID, then VALIDATE CONSTRAINT, then SET NOT NULL (no scan), then drop the check",
+   "  RISK    takes ACCESS EXCLUSIVE on orders with no lock_timeout: if any transaction is using orders, this waits, and reads and writes on orders queue behind it",
+   "          fix: SET lock_timeout = '2s' before it, and retry the migration if it times out",
+   "",
+   "1 danger, 1 risk"
+  ],
+  "exit": 1
+ },
+ "lintSchema": {
+  "cmd": "migrate-safe lint -v --schema examples/schema.sql look-alike.sql",
+  "out": [
+   "ill/look-alike.sql (PostgreSQL 17)",
+   "",
+   "line 1    SET lock_timeout = '2s'",
+   "          lock_timeout 2s",
+   "",
+   "line 3    ALTER TABLE orders ADD COLUMN placed_at timestamptz DEFAULT now()",
+   "          ACCESS EXCLUSIVE on orders · lock_timeout 2s",
+   "",
+   "line 4    ALTER TABLE orders ADD COLUMN seen_at timestamptz DEFAULT clock_timesta…",
+   "          ACCESS EXCLUSIVE on orders · rewrites it · lock_timeout 2s",
+   "  DANGER  rewrites the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: add the column without the default, SET DEFAULT for new rows, then backfill existing rows in batches",
+   "",
+   "line 5    ALTER TABLE orders ALTER COLUMN note TYPE varchar(200)",
+   "          ACCESS EXCLUSIVE on orders · lock_timeout 2s",
+   "          note: raising a varchar length limit is binary-compatible",
+   "",
+   "line 6    ALTER TABLE orders ALTER COLUMN note TYPE varchar(50)",
+   "          ACCESS EXCLUSIVE on orders · rewrites it · lock_timeout 2s",
+   "  DANGER  rewrites the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: add a new column of the new type, keep it in sync with a trigger, backfill it in batches, then swap the columns in one short transaction",
+   "",
+   "line 9    ALTER TABLE orders RENAME COLUMN status TO state",
+   "          ACCESS EXCLUSIVE on orders · lock_timeout 2s",
+   "",
+   "line 10   UPDATE orders SET state = 'paid' WHERE state IS NULL",
+   "          ROW EXCLUSIVE on orders (holding ACCESS EXCLUSIVE) · lock_timeout 2s",
+   "          note: row-locks every row it matches until it commits; if that is most of orders, batch it",
+   "",
+   "line 13   DO $$ BEGIN PERFORM pg_sleep(1); END $$",
+   "          not analysed: procedural code is not analysed: write its statements out, or measure it",
+   "",
+   "2 dangers, 1 statement not analysed"
+  ],
+  "exit": 1
+ },
+ "lintNoSchema": {
+  "cmd": "migrate-safe lint -v look-alike.sql",
+  "out": [
+   "ill/look-alike.sql (PostgreSQL 17)",
+   "",
+   "line 1    SET lock_timeout = '2s'",
+   "          lock_timeout 2s",
+   "",
+   "line 3    ALTER TABLE orders ADD COLUMN placed_at timestamptz DEFAULT now()",
+   "          ACCESS EXCLUSIVE on orders · lock_timeout 2s",
+   "",
+   "line 4    ALTER TABLE orders ADD COLUMN seen_at timestamptz DEFAULT clock_timesta…",
+   "          ACCESS EXCLUSIVE on orders · rewrites it · lock_timeout 2s",
+   "  DANGER  rewrites the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: add the column without the default, SET DEFAULT for new rows, then backfill existing rows in batches",
+   "",
+   "line 5    ALTER TABLE orders ALTER COLUMN note TYPE varchar(200)",
+   "          ACCESS EXCLUSIVE on orders · rewrites it · lock_timeout 2s",
+   "  DANGER  rewrites the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: add a new column of the new type, keep it in sync with a trigger, backfill it in batches, then swap the columns in one short transaction",
+   "",
+   "line 6    ALTER TABLE orders ALTER COLUMN note TYPE varchar(50)",
+   "          ACCESS EXCLUSIVE on orders · rewrites it · lock_timeout 2s",
+   "  DANGER  rewrites the whole table while holding ACCESS EXCLUSIVE on orders: reads and writes on orders wait until it finishes",
+   "          fix: add a new column of the new type, keep it in sync with a trigger, backfill it in batches, then swap the columns in one short transaction",
+   "",
+   "line 9    ALTER TABLE orders RENAME COLUMN status TO state",
+   "          ACCESS EXCLUSIVE on orders · lock_timeout 2s",
+   "",
+   "line 10   UPDATE orders SET state = 'paid' WHERE state IS NULL",
+   "          ROW EXCLUSIVE on orders (holding ACCESS EXCLUSIVE) · lock_timeout 2s",
+   "          note: row-locks every row it matches until it commits; if that is most of orders, batch it",
+   "",
+   "line 13   DO $$ BEGIN PERFORM pg_sleep(1); END $$",
+   "          not analysed: procedural code is not analysed: write its statements out, or measure it",
+   "",
+   "3 dangers, 1 statement not analysed"
+  ],
+  "exit": 1
+ },
+ "idx": {
+  "cmd": "migrate-safe measure --dsn $DSN examples/migrations/01-create-index/unsafe.sql",
+  "out": [
+   "examples/migrations/01-create-index/unsafe.sql on migrate_safe_demo_shadow_833148 (PostgreSQL 17.11)",
+   "tables: accounts 100,000 rows, orders 5,000,060 rows",
+   "workload: read ×4 (p99 3.7 ms), write ×4 (p99 65 ms), insert ×2 (p99 51 ms)",
+   "",
+   "line 2    CREATE INDEX orders_account_id_idx ON orders (account_id)",
+   "          took 3.01 s · SHARE on orders · scanned orders",
+   "          lint: DANGER",
+   "          longest query: read 87 ms, write 3.03 s, insert 3.03 s",
+   "          locked out: orders reads 0.0 ms, writes 2.99 s",
+   "",
+   "migration: 3.01 s",
+   "longest query during it: read 87 ms, write 3.03 s, insert 3.03 s",
+   "locked out (lock probes): accounts reads 0.0 ms, writes 0.0 ms; orders reads 0.0 ms, writes 2.99 s",
+   "lint: agrees with every measured lock, rewrite and scan"
+  ],
+  "exit": 0,
+  "err": [
+   "  copied migrate_safe_demo to migrate_safe_demo_shadow_833148",
+   "  workload running: 10 workers",
+   "  line 2: CREATE INDEX orders_account_id_idx ON orders (account_id)"
+  ]
+ },
+ "idxSafe": {
+  "cmd": "migrate-safe measure --dsn $DSN examples/migrations/01-create-index/safe.sql",
+  "out": [
+   "examples/migrations/01-create-index/safe.sql on migrate_safe_demo_shadow_614536 (PostgreSQL 17.11)",
+   "tables: accounts 100,000 rows, orders 5,000,060 rows",
+   "workload: read ×4 (p99 4.1 ms), write ×4 (p99 47 ms), insert ×2 (p99 49 ms)",
+   "",
+   "line 4    CREATE INDEX CONCURRENTLY orders_account_id_idx ON orders (account_id)",
+   "          took 4.68 s · SHARE UPDATE EXCLUSIVE on orders · scanned orders",
+   "          longest query: read 11 ms, write 528 ms, insert 342 ms",
+   "",
+   "migration: 4.68 s",
+   "longest query during it: read 11 ms, write 528 ms, insert 342 ms",
+   "locked out (lock probes): accounts reads 0.0 ms, writes 0.0 ms; orders reads 0.0 ms, writes 0.0 ms",
+   "lint: agrees with every measured lock, rewrite and scan"
+  ],
+  "exit": 0,
+  "err": [
+   "  copied migrate_safe_demo to migrate_safe_demo_shadow_614536",
+   "  workload running: 10 workers",
+   "  line 4: CREATE INDEX CONCURRENTLY orders_account_id_idx ON orders (account_id)"
+  ]
+ },
+ "queue": {
+  "cmd": "migrate-safe measure --dsn $DSN examples/migrations/06-lock-queue/unsafe.sql",
+  "out": [
+   "examples/migrations/06-lock-queue/unsafe.sql on migrate_safe_demo_shadow_674868 (PostgreSQL 17.11)",
+   "tables: accounts 100,000 rows, orders 5,000,060 rows",
+   "workload: read ×4 (p99 1.6 ms), write ×4 (p99 48 ms), insert ×2 (p99 47 ms)",
+   "",
+   "line 5    ALTER TABLE orders ADD COLUMN priority smallint NOT NULL DEFAULT 0",
+   "          (a transaction holding ACCESS SHARE on orders for 8.00 s started 1 s before this)",
+   "          took 7.01 s · ACCESS EXCLUSIVE on orders · waited 6.99 s for its lock",
+   "          lint: RISK",
+   "          longest query: read 7.01 s, write 7.00 s, insert 7.02 s",
+   "          locked out: orders reads 7.01 s, writes 7.01 s",
+   "",
+   "migration: 7.01 s",
+   "longest query during it: read 7.01 s, write 7.00 s, insert 7.02 s",
+   "locked out (lock probes): accounts reads 0.0 ms, writes 0.0 ms; orders reads 7.01 s, writes 7.01 s",
+   "lint: agrees with every measured lock, rewrite and scan"
+  ],
+  "exit": 0,
+  "err": [
+   "  copied migrate_safe_demo to migrate_safe_demo_shadow_674868",
+   "  workload running: 10 workers",
+   "  line 5: a transaction now holds ACCESS SHARE on orders for 8s",
+   "  line 5: ALTER TABLE orders ADD COLUMN priority smallint NOT NULL DEFAULT 0"
+  ]
+ },
+ "queueSafe": {
+  "cmd": "migrate-safe measure --dsn $DSN examples/migrations/06-lock-queue/safe.sql",
+  "out": [
+   "examples/migrations/06-lock-queue/safe.sql on migrate_safe_demo_shadow_188762 (PostgreSQL 17.11)",
+   "tables: accounts 100,000 rows, orders 5,000,060 rows",
+   "workload: read ×4 (p99 1.4 ms), write ×4 (p99 46 ms), insert ×2 (p99 46 ms)",
+   "",
+   "line 4    SET lock_timeout = '200ms'",
+   "          took 1.8 ms",
+   "          longest query: read 0.4 ms, write 24 ms, insert 19 ms",
+   "",
+   "line 8    ALTER TABLE orders ADD COLUMN priority smallint NOT NULL DEFAULT 0",
+   "          (a transaction holding ACCESS SHARE on orders for 8.00 s started 1 s before this)",
+   "          took 200 ms · waited 195 ms for its lock",
+   "          failed as expected: ERROR: canceling statement due to lock timeout (SQLSTATE 55P03)",
+   "          longest query: read 198 ms, write 209 ms, insert 230 ms",
+   "          locked out: orders reads 191 ms, writes 190 ms",
+   "",
+   "migration: 1.21 s",
+   "longest query during it: read 198 ms, write 209 ms, insert 230 ms",
+   "locked out (lock probes): accounts reads 0.0 ms, writes 0.0 ms; orders reads 191 ms, writes 190 ms",
+   "lint: agrees with every measured lock, rewrite and scan"
+  ],
+  "exit": 0,
+  "err": [
+   "  copied migrate_safe_demo to migrate_safe_demo_shadow_188762",
+   "  workload running: 10 workers",
+   "  line 4: SET lock_timeout = '200ms'",
+   "  line 8: a transaction now holds ACCESS SHARE on orders for 8s",
+   "  line 8: ALTER TABLE orders ADD COLUMN priority smallint NOT NULL DEFAULT 0",
+   "  line 8: failed as expected (55P03)"
+  ]
+ },
+ "fk": {
+  "cmd": "migrate-safe measure --dsn $DSN examples/migrations/02-add-foreign-key/unsafe.sql",
+  "out": [
+   "examples/migrations/02-add-foreign-key/unsafe.sql on migrate_safe_demo_shadow_949865 (PostgreSQL 17.11)",
+   "tables: accounts 100,000 rows, orders 5,000,060 rows",
+   "workload: read ×4 (p99 0.6 ms), write ×4 (p99 92 ms), insert ×2 (p99 81 ms)",
+   "",
+   "line 2    ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey FOREIGN KEY (a…",
+   "          took 639 ms · SHARE ROW EXCLUSIVE on accounts · SHARE ROW EXCLUSIVE on orders · scanned accounts · scanned orders",
+   "          lint: DANGER",
+   "          longest query: read 1.1 ms, write 653 ms, insert 650 ms",
+   "          locked out: accounts reads 0.0 ms, writes 622 ms; orders reads 0.0 ms, writes 622 ms",
+   "",
+   "migration: 639 ms",
+   "longest query during it: read 1.1 ms, write 653 ms, insert 650 ms",
+   "locked out (lock probes): accounts reads 0.0 ms, writes 622 ms; orders reads 0.0 ms, writes 622 ms",
+   "lint: agrees with every measured lock, rewrite and scan"
+  ],
+  "exit": 0,
+  "err": [
+   "  copied migrate_safe_demo to migrate_safe_demo_shadow_949865",
+   "  workload running: 10 workers",
+   "  line 2: ALTER TABLE orders ADD CONSTRAINT orders_account_id_fkey FOREIGN KEY …"
+  ]
+ },
+ "examples": {
+  "cmd": "migrate-safe examples --dsn $DSN --rows 5000000 --check",
+  "out": [
+   "",
+   "example                         variant  lint    took                             reads locked out  writes locked out  longest query  rewrote  lint agrees",
+   "01-create-index                 unsafe   DANGER  3.67 s                           0.0 ms            3.65 s             3.69 s         -        yes",
+   "                                safe     ok      10.74 s                          0.0 ms            0.0 ms             175 ms         -        yes",
+   "02-add-foreign-key              unsafe   DANGER  2.95 s                           0.0 ms            2.94 s             2.95 s         -        yes",
+   "                                safe     ok      2.19 s                           0.0 ms            42 ms              59 ms          -        yes",
+   "03-set-not-null                 unsafe   DANGER  2.23 s                           2.22 s            2.22 s             2.25 s         -        yes",
+   "                                safe     ok      13.71 s                          96 ms             95 ms              176 ms         -        yes",
+   "04-add-column-volatile-default  unsafe   DANGER  28.40 s                          28.34 s           28.34 s            28.39 s        orders   yes",
+   "                                safe     ok      111.63 s                         39 ms             39 ms              4.21 s         -        yes",
+   "05-change-column-type           unsafe   DANGER  21.14 s                          21.08 s           21.08 s            21.10 s        orders   yes",
+   "                                safe     ok      139.09 s                         1.14 s            1.18 s             5.21 s         -        yes",
+   "06-lock-queue                   unsafe   RISK    7.02 s                           7.01 s            7.01 s             7.01 s         -        yes",
+   "                                safe     ok      1.22 s (timed out, as intended)  184 ms            184 ms             236 ms         -        yes",
+   "",
+   "lint agreed with every measured lock, rewrite, scan and lock-queue wait"
+  ],
+  "exit": 0
+ },
+ "failOn": {
+  "cmd": "migrate-safe lint --fail-on danger examples/migrations/06-lock-queue/unsafe.sql",
+  "out": [
+   "examples/migrations/06-lock-queue/unsafe.sql (PostgreSQL 17)",
+   "",
+   "line 5    ALTER TABLE orders ADD COLUMN priority smallint NOT NULL DEFAULT 0",
+   "          ACCESS EXCLUSIVE on orders",
+   "  RISK    takes ACCESS EXCLUSIVE on orders with no lock_timeout: if any transaction is using orders, this waits, and reads and writes on orders queue behind it",
+   "          fix: SET lock_timeout = '2s' before it, and retry the migration if it times out",
+   "",
+   "1 risk"
+  ],
+  "exit": 0
+ },
+ "agree": [
+  {
+   "line": 6,
+   "sql": "ALTER TABLE orders ADD COLUMN amount_cents_new bigint",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 24,
+   "wait": 14,
+   "batches": 0
+  },
+  {
+   "line": 8,
+   "sql": "CREATE FUNCTION orders_amount_cents_sync() RETURNS trigger\nLANGUAGE plpgsql AS $$\nBEGIN\n    NEW.amount_cents_new := NEW.amount_cents;\n    RETURN NEW;\nEND\n$$",
+   "held": {},
+   "pred": {},
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {},
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 46,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 16,
+   "sql": "CREATE TRIGGER orders_amount_cents_sync\n    BEFORE INSERT OR UPDATE ON orders\n    FOR EACH ROW EXECUTE FUNCTION orders_amount_cents_sync()",
+   "held": {
+    "orders": "SHARE ROW EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "SHARE ROW EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "SHARE ROW EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 32,
+   "wait": 16,
+   "batches": 0
+  },
+  {
+   "line": 21,
+   "sql": "UPDATE orders SET amount_cents_new = amount_cents\nWHERE id >= :lo AND id < :hi AND amount_cents_new IS NULL",
+   "held": {
+    "orders": "ROW EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ROW EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ROW EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 137040,
+   "wait": 0,
+   "batches": 251
+  },
+  {
+   "line": 24,
+   "sql": "ALTER TABLE orders\n    ADD CONSTRAINT orders_amount_cents_new_not_null\n    CHECK (amount_cents_new IS NOT NULL) NOT VALID",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 1087,
+   "wait": 1071,
+   "batches": 0
+  },
+  {
+   "line": 28,
+   "sql": "ALTER TABLE orders VALIDATE CONSTRAINT orders_amount_cents_new_not_null",
+   "held": {
+    "orders": "SHARE UPDATE EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "SHARE UPDATE EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [
+    "orders"
+   ],
+   "meas": {
+    "orders": "SHARE UPDATE EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [
+    "orders"
+   ],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 776,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 31,
+   "sql": "ALTER TABLE orders ALTER COLUMN amount_cents_new SET NOT NULL",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 20,
+   "wait": 14,
+   "batches": 0
+  },
+  {
+   "line": 32,
+   "sql": "ALTER TABLE orders DROP CONSTRAINT orders_amount_cents_new_not_null",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 1,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 33,
+   "sql": "DROP TRIGGER orders_amount_cents_sync ON orders",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 0,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 34,
+   "sql": "ALTER TABLE orders DROP COLUMN amount_cents",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 0,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 35,
+   "sql": "ALTER TABLE orders RENAME COLUMN amount_cents_new TO amount_cents",
+   "held": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pred": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {
+    "orders": "ACCESS EXCLUSIVE"
+   },
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 0,
+   "wait": 0,
+   "batches": 0
+  },
+  {
+   "line": 38,
+   "sql": "DROP FUNCTION orders_amount_cents_sync()",
+   "held": {},
+   "pred": {},
+   "pRewrite": [],
+   "pScan": [],
+   "meas": {},
+   "mRewrite": [],
+   "mScan": [],
+   "scanMeasured": true,
+   "exact": true,
+   "took": 33,
+   "wait": 0,
+   "batches": 0
+  }
+ ],
+ "examplesReadme": {
+  "cmd": "docs/examples.txt",
+  "out": [
+   "",
+   "example                         variant  lint    took                             reads locked out  writes locked out  longest query  rewrote  lint agrees",
+   "01-create-index                 unsafe   DANGER  1.75 s                           0.0 ms            1.73 s             1.77 s         -        yes",
+   "                                safe     ok      2.65 s                           0.0 ms            0.0 ms             102 ms         -        yes",
+   "02-add-foreign-key              unsafe   DANGER  1.03 s                           0.0 ms            1.02 s             1.05 s         -        yes",
+   "                                safe     ok      644 ms                           0.0 ms            38 ms              41 ms          -        yes",
+   "03-set-not-null                 unsafe   DANGER  386 ms                           376 ms            375 ms             394 ms         -        yes",
+   "                                safe     ok      312 ms                           57 ms             57 ms              36 ms          -        yes",
+   "04-add-column-volatile-default  unsafe   DANGER  50.47 s                          50.42 s           50.42 s            50.43 s        orders   yes",
+   "                                safe     ok      182.40 s                         19 ms             19 ms              5.14 s         -        yes",
+   "05-change-column-type           unsafe   DANGER  33.88 s                          33.80 s           33.80 s            33.81 s        orders   yes",
+   "                                safe     ok      200.09 s                         1.04 s            1.06 s             10.48 s        -        yes",
+   "06-lock-queue                   unsafe   RISK    7.00 s                           6.99 s            6.99 s             7.02 s         -        yes",
+   "                                safe     ok      1.22 s (timed out, as intended)  181 ms            181 ms             203 ms         -        yes",
+   "",
+   "lint agreed with every measured lock, rewrite, scan and lock-queue wait"
+  ],
+  "exit": 0
+ },
+ "examples1m": {
+  "cmd": "migrate-safe examples --dsn $DSN --rows 1000000 --check",
+  "out": [
+   "",
+   "example                         variant  lint    took                             reads locked out  writes locked out  longest query  rewrote  lint agrees",
+   "01-create-index                 unsafe   DANGER  432 ms                           0.0 ms            419 ms             436 ms         -        yes",
+   "                                safe     ok      1.69 s                           0.0 ms            0.0 ms             16 ms          -        yes",
+   "02-add-foreign-key              unsafe   DANGER  378 ms                           0.0 ms            341 ms             366 ms         -        yes",
+   "                                safe     ok      188 ms                           0.0 ms            32 ms              32 ms          -        yes",
+   "03-set-not-null                 unsafe   DANGER  113 ms                           103 ms            103 ms             119 ms         -        yes",
+   "                                safe     ok      142 ms                           20 ms             20 ms              24 ms          -        yes",
+   "04-add-column-volatile-default  unsafe   DANGER  2.37 s                           2.34 s            2.34 s             2.36 s         orders   yes",
+   "                                safe     ok      13.07 s                          79 ms             78 ms              1.01 s         -        yes",
+   "05-change-column-type           unsafe   DANGER  1.34 s                           1.31 s            1.31 s             1.32 s         orders   yes",
+   "                                safe     ok      17.06 s                          282 ms            321 ms             724 ms         -        yes",
+   "06-lock-queue                   unsafe   RISK    7.03 s                           7.03 s            7.03 s             7.07 s         -        yes",
+   "                                safe     ok      1.22 s (timed out, as intended)  197 ms            196 ms             207 ms         -        yes",
+   "",
+   "lint agreed with every measured lock, rewrite, scan and lock-queue wait"
+  ],
+  "exit": 0
+ }
+}

@@ -1,0 +1,168 @@
+{
+ "table": {
+  "cmd": "rateproof table",
+  "out": [
+   "100 requests/s per key, 20s per run, seeds 1-10. Deployments: 4 nodes, 1 ms round trip to the store.",
+   "Cell: most admitted in any 1 s, as a multiple of the limit (worst seed, worst attack pattern),",
+   "then attack traffic admitted beyond the same algorithm on one node with a true clock.",
+   "",
+   "                 ideal   50ms skew,       50ms skew,       store wiped      local split,     honest client",
+   "                         node clocks      store clock      once             restarts         turned away*",
+   "fixed-window     2.00x   2.00x -0.4%      2.00x -1.0%      2.22x +1.0%      1.97x +5.5%      2.5%",
+   "sliding-log      1.00x   1.21x +2.8%      1.00x +0.0%      2.00x +2.6%      1.25x +5.5%      6.6%",
+   "sliding-counter  1.02x   1.50x +12.0%     1.02x +0.1%      1.81x +1.5%      1.25x +6.1%      6.0%",
+   "token-bucket     1.99x   5.79x +273%      1.99x +0.1%      2.01x +2.4%      2.21x +11.1%     0.0%",
+   "leaky-bucket     1.99x   2.04x +0.5%      1.99x +0.1%      2.01x +2.4%      2.21x +11.1%     0.0%",
+   "gcra             1.99x   2.04x +0.5%      1.99x +0.1%      2.01x +2.4%      2.21x +11.1%     0.0%",
+   "",
+   "* a client sending evenly at 90% of its limit, under local split. In every other column it was never turned away."
+  ],
+  "exit": 0
+ },
+ "tb50": {
+  "cmd": "rateproof run --algo token-bucket --skew 50ms",
+  "out": [
+   "token-bucket, node-clock, 4 nodes, 1ms round trip, 50ms skew, 20s, seed 1. Limit 100 per 1s.",
+   "Contract: at most Limit + rate*t in any interval t.",
+   "",
+   "key        requests  admitted  ideal*     over    peak  violations  turned away",
+   "flood          9970      9970    2099    +375%   5.47x        9849         0.0%",
+   "boundary       2000      2000    1010   +98.0%   2.00x         999         0.0%",
+   "on-off         3989      3989    1196    +234%   5.38x        3862         0.0%",
+   "honest         1800      1800    1800    +0.0%   0.91x           0         0.0%",
+   "",
+   "* the same algorithm on one node, with the true clock and no latency, on the same requests.",
+   "store round trips per request: 1.00",
+   "rateproof: 14710 admits broke the contract"
+  ],
+  "exit": 1
+ },
+ "tb50store": {
+  "cmd": "rateproof run --algo token-bucket --skew 50ms --mode store-clock",
+  "out": [
+   "token-bucket, store-clock, 4 nodes, 1ms round trip, 50ms skew, 20s, seed 1. Limit 100 per 1s.",
+   "Contract: at most Limit + rate*t in any interval t.",
+   "",
+   "key        requests  admitted  ideal*     over    peak  violations  turned away",
+   "flood          9970      2099    2099    +0.0%   1.99x           0        78.9%",
+   "boundary       2000      1011    1010    +0.1%   1.02x           0        49.5%",
+   "on-off         3989      1196    1196    +0.0%   1.99x           0        70.0%",
+   "honest         1800      1800    1800    +0.0%   0.91x           0         0.0%",
+   "",
+   "* the same algorithm on one node, with the true clock and no latency, on the same requests.",
+   "store round trips per request: 1.00"
+  ],
+  "exit": 0
+ },
+ "lb50": {
+  "cmd": "rateproof run --algo leaky-bucket --skew 50ms",
+  "out": [
+   "leaky-bucket, node-clock, 4 nodes, 1ms round trip, 50ms skew, 20s, seed 1. Limit 100 per 1s.",
+   "Contract: at most Limit + rate*t in any interval t.",
+   "",
+   "key        requests  admitted  ideal*     over    peak  violations  turned away",
+   "flood          9970      2104    2099    +0.2%   2.04x        1983        78.9%",
+   "boundary       2000      1034    1010    +2.4%   1.06x          27        48.3%",
+   "on-off         3989      1200    1196    +0.3%   2.02x         635        69.9%",
+   "honest         1800      1800    1800    +0.0%   0.91x           0         0.0%",
+   "",
+   "* the same algorithm on one node, with the true clock and no latency, on the same requests.",
+   "store round trips per request: 1.00",
+   "rateproof: 2645 admits broke the contract"
+  ],
+  "exit": 1
+ },
+ "gcra50": {
+  "cmd": "rateproof run --algo gcra --skew 50ms",
+  "out": [
+   "gcra, node-clock, 4 nodes, 1ms round trip, 50ms skew, 20s, seed 1. Limit 100 per 1s.",
+   "Contract: at most Limit + rate*t in any interval t.",
+   "",
+   "key        requests  admitted  ideal*     over    peak  violations  turned away",
+   "flood          9970      2104    2099    +0.2%   2.04x        1982        78.9%",
+   "boundary       2000      1034    1010    +2.4%   1.06x          26        48.3%",
+   "on-off         3989      1200    1196    +0.3%   2.02x         592        69.9%",
+   "honest         1800      1800    1800    +0.0%   0.91x           0         0.0%",
+   "",
+   "* the same algorithm on one node, with the true clock and no latency, on the same requests.",
+   "store round trips per request: 1.00",
+   "rateproof: 2600 admits broke the contract"
+  ],
+  "exit": 1
+ },
+ "sweep": {
+  "cmd": "rateproof sweep",
+  "out": [
+   "node clocks, 4 nodes, 1 ms round trip; most admitted in any 1 s / limit (worst of 10 seeds)",
+   "",
+   "skew                0ms    2ms    5ms   10ms   25ms   50ms  100ms  200ms",
+   "fixed-window       2.00   2.00   2.00   2.00   2.00   2.00   2.00   2.00",
+   "sliding-log        1.02   1.02   1.04   1.06   1.14   1.21   1.32   1.55",
+   "sliding-counter    1.02   1.05   1.13   1.22   1.40   1.50   1.55   1.55",
+   "token-bucket       2.00   2.06   2.30   2.81   4.56   5.79   5.79   5.79",
+   "leaky-bucket       2.00   2.00   2.00   2.00   2.02   2.04   2.07   2.08",
+   "gcra               2.00   2.00   2.00   2.00   2.02   2.04   2.07   2.08"
+  ],
+  "exit": 0
+ },
+ "mutants": {
+  "cmd": "rateproof mutants",
+  "out": [
+   "4 nodes, 1 ms round trip, clocks in agreement, nothing restarting: every contract must hold exactly.",
+   "Seeds 1-200, 12s each, flood + boundary bursts + on/off + an honest client.",
+   "",
+   "variant                              result  first seed seeds",
+   "fixed-window / store-clock           clean   -          0/200",
+   "fixed-window / local                 clean   -          0/200",
+   "sliding-log / store-clock            clean   -          0/200",
+   "sliding-log / local                  clean   -          0/200",
+   "sliding-counter / store-clock        clean   -          0/200",
+   "sliding-counter / local              clean   -          0/200",
+   "token-bucket / store-clock           clean   -          0/200",
+   "token-bucket / local                 clean   -          0/200",
+   "leaky-bucket / store-clock           clean   -          0/200",
+   "leaky-bucket / local                 clean   -          0/200",
+   "gcra / store-clock                   clean   -          0/200",
+   "gcra / local                         clean   -          0/200",
+   "fixed-window-off-by-one              caught  1          200/200      admits while count <= limit",
+   "sliding-log-units                    caught  1          200/200      trims with the window in ms, timestamps in µs",
+   "token-bucket-no-cap                  caught  1          200/200      refill not capped at capacity",
+   "gcra-no-max                          caught  1          200/200      TAT advanced from the old TAT, not max(TAT, now)",
+   "non-atomic                           caught  1          200/200      GET, decide in the app, SET: two round trips",
+   "local-unsplit                        caught  1          200/200      local limiters, each given the full limit"
+  ],
+  "exit": 0
+ },
+ "redis": {
+  "cmd": "rateproof redis --addr localhost:56379 --check",
+  "out": [
+   "1. The same calls to the Lua script in Redis and to the Go code the simulator runs.",
+   "   Clocks up to 60 ms apart, idle gaps, window edges; every decision and state value compared.",
+   "",
+   "   fixed-window      20000 calls   17540 admitted  0 mismatches",
+   "   sliding-log       20000 calls   16897 admitted  0 mismatches",
+   "   sliding-counter   20000 calls   16661 admitted  0 mismatches",
+   "   token-bucket      20000 calls   18602 admitted  0 mismatches",
+   "   leaky-bucket      20000 calls   17785 admitted  0 mismatches",
+   "   gcra              20000 calls   17763 admitted  0 mismatches",
+   "",
+   "2. Live: 4 node goroutines send real traffic for 6s per case. The simulator then replays",
+   "   every request's measured timing, recomputing each decision with its own store model.",
+   "",
+   "   case                                            Redis       simulator   mean delay* admitted (Redis / sim)",
+   "   fixed-window, boundary bursts            peak   1.86x       1.86x       1.63x       494 / 494",
+   "   sliding-log, boundary bursts             peak   1.00x       1.00x       1.00x       300 / 300",
+   "   token-bucket, 50ms skew, node clock      over   +330%       +330%       +330%       3006 / 3006",
+   "   leaky-bucket, 50ms skew, node clock      over   +0.3%       +0.3%       +0.3%       701 / 701",
+   "   gcra, 50ms skew, node clock              over   +0.1%       +0.1%       +0.3%       700 / 700",
+   "   sliding-log, 50ms skew, node clock       over   +3.5%       +3.5%       +4.8%       621 / 621",
+   "   sliding-counter, 50ms skew, node clock   over   +0.7%       +0.7%       +0.7%       599 / 599",
+   "   token-bucket, 50ms skew, store clock     over   +0.0%       +0.0%       +0.0%       699 / 699",
+   "   fixed-window, non-atomic GET/SET         over   +24.5%      +24.7%      +17.8%      747 / 748",
+   "",
+   "   peak: most admitted in any 1 s / limit. over: admitted beyond one node with a true clock.",
+   "   * the simulator given only each step's mean delay instead of every request's own."
+  ],
+  "exit": 0
+ }
+}

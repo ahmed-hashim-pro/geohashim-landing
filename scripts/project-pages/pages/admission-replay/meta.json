@@ -1,0 +1,9 @@
+{
+  "title": "admission-replay · Ahmed Hashim",
+  "description": "Replays a Kubernetes audit log through a proposed ValidatingAdmissionPolicy, using the API server's own admission code, and reports which legitimate writes it would have blocked and which bad ones it would have let through. How it works end to end, with real runs.",
+  "tour_seconds": "55",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the API server crosscheck"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "title": "ota-safe · Ahmed Hashim",
+  "description": "A/B firmware updates for microcontrollers with a trial boot and automatic rollback, in no_std Rust, and a NOR flash simulator that cuts power at every erase and program of a device's life to check it still boots. How it works end to end, with real runs.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the full search, measured"
+  }
+}

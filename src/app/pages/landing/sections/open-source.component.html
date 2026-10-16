@@ -11,8 +11,8 @@
         </div>
         <div class="panel os-head">
           <h2 id="os-title">Open source</h2>
-          <p class="os-lead">Sixteen public repos across AI systems, data systems, developer tooling and robotics. Each waypoint is drawn with one dot per passing test: 2,386 as of October 2026.</p>
-          <p>The three ringed in magenta come first: two agent tools that stop for human approval, and a graph database built from scratch. I ran every suite on 13 October 2026, and each count matches the repo's CI. Where a few tests need something this machine lacks, such as ROS 2, the panel says so.</p>
+          <p class="os-lead">Thirty-two public repos across AI systems, data systems, developer tooling and robotics. Each waypoint is drawn with one dot per passing test: 3,292 as of October 2026.</p>
+          <p>The three ringed in magenta come first: two agent tools that stop for human approval, and a graph database built from scratch. I ran every suite between 13 and 16 October 2026, and each count matches the repo's CI. Where some tests need a service such as PostgreSQL, Redis or an Android emulator, the panel says so, and where this machine lacks something, such as ROS 2, the panel says that too.</p>
           <ul class="key">
             <li>
               <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><circle class="k-ring" r="14.5"/><circle class="k-dot" r="1.5"/><circle class="k-dot" cx="3.6" r="1.5"/><circle class="k-dot" cx="-3.6" r="1.5"/><circle class="k-dot" cx="1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="-3.1" r="1.5"/></svg>
@@ -24,7 +24,7 @@
             </li>
             <li>
               <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><path class="k-route" d="M-20 0H20"/></svg>
-              <span>Route through all sixteen.</span>
+              <span>Route through all thirty-two.</span>
             </li>
           </ul>
         </div>
@@ -415,6 +415,374 @@
                 <dt>Counted with</dt><dd><code>cargo test --locked</code></dd>
               </dl>
               <div class="rp-actions"><a class="btn btn-ink" href="/open-source/strata/">How it works<span class="vh">: strata</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/strata">View on GitHub<span class="vh">: strata</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="38" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-admission-replay">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">admission-replay</span><span class="wp-data">Go, 38 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-admission-replay" tabindex="-1" aria-labelledby="h-admission-replay">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-admission-replay">admission-replay</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>38</strong> passing tests</p>
+              </header>
+              <p>Replays a Kubernetes cluster's audit log through a proposed admission policy, using the API server's own admission code, and reports which legitimate writes it would have blocked and which bad ones it would have let through.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go, Kubernetes apiserver libraries v0.34.1, kind, GitHub Actions</dd>
+                <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(30 tests plus 8 subtests)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/admission-replay/">How it works<span class="vh">: admission-replay</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/admission-replay">View on GitHub<span class="vh">: admission-replay</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="78" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-agent-replay">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">agent-replay</span><span class="wp-data">Python, 78 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-agent-replay" tabindex="-1" aria-labelledby="h-agent-replay">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-agent-replay">agent-replay</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-ai"/></svg>AI systems</p>
+                </div>
+                <p class="rp-count"><strong>78</strong> passing tests</p>
+              </header>
+              <p>Records an AI agent's tool calls, replays them against a new model or prompt, and fails the check when the agent starts making a destructive call it never made before.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Python standard library only (optional Anthropic and MCP SDKs), pytest, Hypothesis</dd>
+                <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(with the optional Anthropic and MCP SDKs installed, as in CI)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/agent-replay/">How it works<span class="vh">: agent-replay</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/agent-replay">View on GitHub<span class="vh">: agent-replay</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="27" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-authz-proof">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">authz-proof</span><span class="wp-data">Go, 27 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-authz-proof" tabindex="-1" aria-labelledby="h-authz-proof">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-authz-proof">authz-proof</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>27</strong> passing tests</p>
+              </header>
+              <p>A permission engine for SpiceDB schemas that works out who gains and who loses access when a schema or its relationships change, shows the chain behind each change, and fails the pull request when the change isn't expected.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go standard library only, SpiceDB in Docker, GitHub Actions</dd>
+                <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(2 of them need a live SpiceDB, as in CI)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/authz-proof/">How it works<span class="vh">: authz-proof</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/authz-proof">View on GitHub<span class="vh">: authz-proof</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="49" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-deadline">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">deadline</span><span class="wp-data">Java, 49 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-deadline" tabindex="-1" aria-labelledby="h-deadline">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-deadline">deadline</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>49</strong> passing tests</p>
+              </header>
+              <p>A Java 21 library that passes a request's remaining time budget from service to service over HTTP, so each hop stops work nobody is waiting for, skips retries that can't finish, and reports where the time went.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Java</dd>
+                <dt>Stack</dt><dd>Java 21 standard library only (JDK HttpClient and HttpServer), JUnit 5, Maven</dd>
+                <dt>Counted with</dt><dd><code>./mvnw -B verify</code> <span class="note">(39 test methods plus 10 parameterised cases)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/deadline/">How it works<span class="vh">: deadline</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/deadline">View on GitHub<span class="vh">: deadline</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="39" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-fieldlog">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">fieldlog</span><span class="wp-data">Kotlin, 39 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-fieldlog" tabindex="-1" aria-labelledby="h-fieldlog">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-fieldlog">fieldlog</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-data"/></svg>Data systems</p>
+                </div>
+                <p class="rp-count"><strong>39</strong> passing tests</p>
+              </header>
+              <p>An offline-first Android notebook for logging boreholes, where phones merge their edits through CRDTs with no server deciding, and the merged logs reach strata only once they pass strata's own checks.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Kotlin</dd>
+                <dt>Stack</dt><dd>Kotlin 2.0, Jetpack Compose, CRDTs with no merge library, Android emulator in CI</dd>
+                <dt>Counted with</dt><dd><code>./gradlew test</code> and <code>connectedDebugAndroidTest</code> <span class="note">(33 JVM tests, 3 app unit tests and 3 Compose UI tests on an emulator)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/fieldlog/">How it works<span class="vh">: fieldlog</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/fieldlog">View on GitHub<span class="vh">: fieldlog</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="47" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-flaky-hunt">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">flaky-hunt</span><span class="wp-data">Python, 47 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-flaky-hunt" tabindex="-1" aria-labelledby="h-flaky-hunt">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-flaky-hunt">flaky-hunt</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>47</strong> passing tests</p>
+              </header>
+              <p>Finds flaky pytest tests and the one factor that makes each fail, confirms it with a significance test in fresh processes, and hands back a plain pytest command that reproduces it.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>pytest plugin, time-machine</dd>
+                <dt>Counted with</dt><dd><code>pytest -m &quot;not slow&quot;</code> and <code>pytest -m slow</code> <span class="note">(42 fast tests plus 5 slow ones that run whole hunts, as CI splits them)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/flaky-hunt/">How it works<span class="vh">: flaky-hunt</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/flaky-hunt">View on GitHub<span class="vh">: flaky-hunt</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="65" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-mcp-audit">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">mcp-audit</span><span class="wp-data">Python, 65 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-mcp-audit" tabindex="-1" aria-labelledby="h-mcp-audit">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-mcp-audit">mcp-audit</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>65</strong> passing tests</p>
+              </header>
+              <p>An auditor for MCP servers that connects as a real MCP client, scans what each server tells the model, and calls every tool in a traced, offline sandbox to check it does what its annotations claim.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Official MCP Python SDK, Docker, strace</dd>
+                <dt>Counted with</dt><dd><code>make images &amp;&amp; pytest -q</code> <span class="note">(4 of them need the Docker sandbox images, as in CI&#x27;s sandbox job)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/mcp-audit/">How it works<span class="vh">: mcp-audit</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/mcp-audit">View on GitHub<span class="vh">: mcp-audit</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="40" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-migrate-safe">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">migrate-safe</span><span class="wp-data">Go, 40 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-migrate-safe" tabindex="-1" aria-labelledby="h-migrate-safe">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-migrate-safe">migrate-safe</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-data"/></svg>Data systems</p>
+                </div>
+                <p class="rp-count"><strong>40</strong> passing tests</p>
+              </header>
+              <p>Shows what a PostgreSQL migration will do to a live database before it ships, by running it on a copy under live traffic, and checks its linter's predictions against the server in CI.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go and PostgreSQL (pgx), Docker</dd>
+                <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> <span class="note">(28 tests plus 12 subtests, against a live PostgreSQL as in CI)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/migrate-safe/">How it works<span class="vh">: migrate-safe</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/migrate-safe">View on GitHub<span class="vh">: migrate-safe</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="60" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-ops-console">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">ops-console</span><span class="wp-data">TypeScript, 60 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-ops-console" tabindex="-1" aria-labelledby="h-ops-console">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-ops-console">ops-console</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>60</strong> passing tests</p>
+              </header>
+              <p>A real-time Angular 22 dashboard that streams 5,000 services at 10,000 events a second, measures its frames, input delay and memory in Chromium, and works from the keyboard alone.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>TypeScript</dd>
+                <dt>Stack</dt><dd>Angular 22 zoneless with signals, no UI or chart library, Playwright, axe-core</dd>
+                <dt>Counted with</dt><dd><code>npm test</code> and <code>npx playwright test</code> <span class="note">(32 unit tests plus 28 Playwright tests)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/ops-console/">How it works<span class="vh">: ops-console</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/ops-console">View on GitHub<span class="vh">: ops-console</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="33" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-ota-safe">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">ota-safe</span><span class="wp-data">Rust, 33 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-ota-safe" tabindex="-1" aria-labelledby="h-ota-safe">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-ota-safe">ota-safe</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-robot"/></svg>Robotics</p>
+                </div>
+                <p class="rp-count"><strong>33</strong> passing tests</p>
+              </header>
+              <p>A/B firmware updates for microcontrollers with a trial boot and automatic rollback, checked by cutting power at every flash operation of a device's life and run on a Cortex-M3 in QEMU.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Rust</dd>
+                <dt>Stack</dt><dd>no_std Rust with sha2 and ed25519-dalek, QEMU Cortex-M3</dd>
+                <dt>Counted with</dt><dd><code>cargo test --locked</code> <span class="note">(the depth-2 search, run by make deep, is ignored by default)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/ota-safe/">How it works<span class="vh">: ota-safe</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/ota-safe">View on GitHub<span class="vh">: ota-safe</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="67" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-paramguard">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">paramguard</span><span class="wp-data">Python, 67 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-paramguard" tabindex="-1" aria-labelledby="h-paramguard">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-paramguard">paramguard</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-robot"/></svg>Robotics</p>
+                </div>
+                <p class="rp-count"><strong>67</strong> passing tests</p>
+              </header>
+              <p>A CI check for PX4 and ArduPilot parameter files that compares what the vehicle will actually run, checks it against the firmware's own metadata and rules, and blocks the pull request until a named person accepts the change.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Python standard library only, composite GitHub Action, PX4 SITL in Docker</dd>
+                <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(1 of them needs ArduCopter 4.6.3&#x27;s parameter metadata from make ap-meta, as in CI)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/paramguard/">How it works<span class="vh">: paramguard</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/paramguard">View on GitHub<span class="vh">: paramguard</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="33" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-rate-proof">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">rate-proof</span><span class="wp-data">Go, 33 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-rate-proof" tabindex="-1" aria-labelledby="h-rate-proof">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-rate-proof">rate-proof</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>33</strong> passing tests</p>
+              </header>
+              <p>Measures what six rate-limiting algorithms let through once deployed across nodes with skewed clocks, a remote store and restarts, and checks its simulator against a real Redis, decision for decision.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go standard library only, Redis and Lua</dd>
+                <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(2 of them need a real Redis, as in CI)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/rate-proof/">How it works<span class="vh">: rate-proof</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/rate-proof">View on GitHub<span class="vh">: rate-proof</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="237" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-terrain-follow">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">terrain-follow</span><span class="wp-data">Python, 237 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-terrain-follow" tabindex="-1" aria-labelledby="h-terrain-follow">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-terrain-follow">terrain-follow</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-robot"/></svg>Robotics</p>
+                </div>
+                <p class="rp-count"><strong>237</strong> passing tests</p>
+              </header>
+              <p>Proves that a drone mission clears the terrain, counting elevation, altitude and cross-track error, refuses any leg it can't prove, and raises the mission until every leg is proven.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Python</dd>
+                <dt>Stack</dt><dd>Python standard library only, Hypothesis, PX4 SITL in Docker</dd>
+                <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(38 test functions, 203 of the items parametrised)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/terrain-follow/">How it works<span class="vh">: terrain-follow</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/terrain-follow">View on GitHub<span class="vh">: terrain-follow</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="37" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-trace-diff">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">trace-diff</span><span class="wp-data">Go, 37 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-trace-diff" tabindex="-1" aria-labelledby="h-trace-diff">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-trace-diff">trace-diff</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>37</strong> passing tests</p>
+              </header>
+              <p>Compares OpenTelemetry traces from before and after a change and reports the N+1 queries, retry storms and new blocking calls that tests and latency dashboards miss, with trace ids to open.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go, OTLP protobuf types; OpenTelemetry Collector and Postgres demo in Docker</dd>
+                <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> and <code>make demo-test</code> <span class="note">(21 tests plus 12 subtests, and 4 demo tests, one of which needs Postgres as in CI&#x27;s demo job)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/trace-diff/">How it works<span class="vh">: trace-diff</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/trace-diff">View on GitHub<span class="vh">: trace-diff</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="left" data-n="21" style="--x:76%;--x-md:79%">
+            <a class="wp" href="#repo-tsz">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">tsz</span><span class="wp-data">Rust, 21 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-tsz" tabindex="-1" aria-labelledby="h-tsz">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-tsz">tsz</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-data"/></svg>Data systems</p>
+                </div>
+                <p class="rp-count"><strong>21</strong> passing tests</p>
+              </header>
+              <p>Lossless compression for (i64, f64) time series in Rust that measures Gorilla, Chimp, Chimp128 and a decimal codec on every block and writes the smallest, so values printed as text shrink up to 29 times.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Rust</dd>
+                <dt>Stack</dt><dd>Rust standard library only, no dependencies, GitHub Actions</dd>
+                <dt>Counted with</dt><dd><code>cargo test --locked</code> <span class="note">(4 unit, 5 cli, 4 corrupt, 7 roundtrip, 1 doc test; the 1M-series soak test is ignored by default)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/tsz/">How it works<span class="vh">: tsz</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/tsz">View on GitHub<span class="vh">: tsz</span></a></div>
+            </article>
+          </li>
+          <li class="repo" data-side="right" data-n="35" style="--x:22%;--x-md:20%">
+            <a class="wp" href="#repo-wal-crash">
+              <canvas aria-hidden="true"></canvas>
+              <span class="wp-label"><span class="wp-name">wal-crash</span><span class="wp-data">Go, 35 tests</span></span>
+              <span class="vh">, details</span>
+            </a>
+            <article class="panel repo-panel" id="repo-wal-crash" tabindex="-1" aria-labelledby="h-wal-crash">
+              <header class="rp-head">
+                <div class="rp-title">
+                  <h3 id="h-wal-crash">wal-crash</h3>
+                  <p class="tag"><svg aria-hidden="true" focusable="false"><use href="#s-tests"/></svg>Testing and developer tooling</p>
+                </div>
+                <p class="rp-count"><strong>35</strong> passing tests</p>
+              </header>
+              <p>Records a program's file-system calls with strace, builds every state a power failure could leave on disk, and runs the program's own recovery on each to find which lost operation broke a promise.</p>
+              <dl class="rp-data">
+                <dt>Language</dt><dd>Go</dd>
+                <dt>Stack</dt><dd>Go standard library only, strace, SQLite in a Docker dev image</dd>
+                <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> <span class="note">(33 tests plus 2 subtests)</span></dd>
+              </dl>
+              <div class="rp-actions"><a class="btn btn-ink" href="/open-source/wal-crash/">How it works<span class="vh">: wal-crash</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/wal-crash">View on GitHub<span class="vh">: wal-crash</span></a></div>
             </article>
           </li>
         </ol>

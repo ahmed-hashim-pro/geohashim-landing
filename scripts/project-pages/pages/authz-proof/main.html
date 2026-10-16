@@ -1,0 +1,389 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">authz-proof</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A permission engine for SpiceDB-style schemas, Google Zanzibar's model, built to answer the question a schema review can't answer by reading: if this change merges, who gains access and who loses it?</p>
+            <p>Authorization schemas are short, and they read as if they were obviously right. authz-proof evaluates every relation and permission of every object for every subject, once before a change and once after, and lists each difference with the chain of relationships that causes it. In CI it fails the pull request when access changes in a way an allowlist doesn't expect.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/authz-proof">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/authz-proof#what-the-cross-check-found-in-spicedb">What it found in SpiceDB</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.22 or newer, standard library only</dd>
+              <dt>Tests</dt><dd>27 passing, 2 of them against a live SpiceDB</dd>
+              <dt>Schema</dt><dd>SpiceDB's language: <code>+</code> <code>&amp;</code> <code>-</code> <code>-&gt;</code>, wildcards, subject sets</dd>
+              <dt>Commands</dt><dd><code>diff</code>, <code>check</code>, <code>lookup-resources</code>, <code>lookup-subjects</code>, <code>expand</code>, <code>validate</code></dd>
+              <dt>Checked against</dt><dd>A naive second evaluator, seven planted bugs, and SpiceDB v1.56.2</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="refactor">The refactor</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="reordered">Reordered</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="why">Why not</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="mutants">Mutants</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">authz-proof diff schema.zed schema-refactor.zed relationships.txt --fail-on-gain</span>
+<span class="out">compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects</span>
+<span class="out">6 grants gained, 0 lost</span>
+<span class="out"></span>
+<span class="err">GAINED  document:budget#view         user:bob, user:carol</span>
+<span class="err">GAINED  document:offer-letters#view  user:bob, user:carol</span>
+<span class="err">GAINED  document:payroll#view        user:bob, user:carol</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of authz-proof at commit <code>1e6e95e</code>, output verbatim, in <code>examples/drive</code>: a shared drive with five definitions, 30 relationships and four versions of the schema. The refactor moves one exclusion and is described as changing nothing.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a change moves through authz-proof">
+          <div class="sign-group">
+            <p>Before the line: parse, check, diff, and prove the engine</p>
+            <ol>
+              <li><a class="sign-link" href="#s-parse"><b>1</b> Parse</a></li>
+              <li><a class="sign-link" href="#s-check"><b>2</b> Check</a></li>
+              <li><a class="sign-link" href="#s-diff"><b>3</b> Diff</a></li>
+              <li><a class="sign-link" href="#s-twin"><b>4</b> Twin</a></li>
+              <li><a class="sign-link" href="#s-spicedb"><b>5</b> SpiceDB</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person says what should change</p>
+            <ol>
+              <li><a class="sign-link" href="#s-allow"><b>6</b> Allow</a></li>
+              <li><a class="sign-link" href="#s-ci"><b>7</b> Every PR</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-parse" aria-labelledby="h-parse">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-parse"><span class="num" data-mark="1">1</span>Parse the schema the way SpiceDB does</h2>
+          <p>SpiceDB binds <code>+</code> before <code>&amp;</code> before <code>-</code>, all left-associative, so <code>a - b + c</code> means <code>a - (b + c)</code>. authz-proof parses with the same precedence, and <code>validate</code> warns whenever a permission depends on it.</p>
+          <ul class="st-points">
+            <li>SpiceDB's schema errors are refused too: permissions or wildcards on the left of an arrow, permissions that alias each other in a loop, wildcards reached through a subject set on another definition.</li>
+            <li>A permission that subtracts something depending on itself, such as <code>view = viewer - view</code>, has no single meaning. SpiceDB accepts it; authz-proof refuses it.</li>
+            <li>Caveats, <code>nil</code> and the <code>.any()</code> and <code>.all()</code> arrows aren't supported, and say so.</li>
+            <li>Every relationship is checked against the schema: the relation must exist and allow that subject type.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-parse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One pair of parentheses dropped</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <p class="az-k">schema.zed, document#view</p>
+              <p class="az-ex" id="az-ex-a"></p>
+              <p class="az-k">schema-no-parens.zed reads like</p>
+              <p class="az-ex" id="az-ex-b"></p>
+              <p class="az-k">and means</p>
+              <p class="az-ex az-ex-m" id="az-ex-c"></p>
+              <div class="mini-term az-mt" id="az-parse-term"></div>
+              <p class="az-k">What it refuses <span class="tag-ill">Illustrative input</span></p>
+              <div class="mini-term az-mt" id="az-refuse-term"></div>
+            </div>
+            <figcaption class="demo-note">The two schemas are the repository's. The seven refused files were written for this page, one mistake each; the errors and exit codes are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-check" aria-labelledby="h-check">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-check"><span class="num" data-mark="2">2</span>Check, and show the chain</h2>
+          <p>A check is a depth-first search over the relationships. Every yes comes with the shortest chain that grants it, and every no with the exclusion that removed it, if one did.</p>
+          <ul class="st-points">
+            <li>Recursion is read as the least fixed point: teams that contain each other have exactly the members someone actually added. A goal already on the current path counts as false, which is exact because a shortest derivation never passes through itself.</li>
+            <li>A "no" that leaned on such a cut is only remembered once the goal it leaned on has finished.</li>
+            <li>Every user in no relationship has the same access, so one stand-in per type answers for all of them. That makes "everyone" a finite question: <code>user:*</code> grants show up for the stand-in.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-check" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three questions about the shared drive</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="seg" id="az-q-seg" role="group" aria-label="Question"></div>
+              <p class="az-q" id="az-q"></p>
+              <ol class="az-chain" id="az-chain"></ol>
+              <div class="az-block" id="az-block"></div>
+              <div class="mini-term az-mt" id="az-check-term" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The chains are drawn from <code>check</code>'s own output, shown verbatim below them. <code>user:zoe</code> appears in no relationship: the answer comes from <code>document:status-page#viewer@user:*</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-diff" aria-labelledby="h-diff">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-diff"><span class="num" data-mark="3">3</span>Diff every check, both sides</h2>
+          <p><code>diff</code> runs every check twice, under the old schema and relationships and under the new: every object, times every relation and permission of its type, times every subject, stand-ins included. Each change gets the shortest chain on the side that grants it, and the exclusion that removed it on the other side.</p>
+          <ul class="st-points">
+            <li>A schema change and a data change are both access changes: two schemas, or one schema with <code>--new-relationships</code>.</li>
+            <li>The example has 23 objects with 69 relations and permissions among them, and 14 subjects: 966 checks per side.</li>
+            <li><code>--json</code> prints every change with its chain, for a bot to post on the pull request.</li>
+          </ul>
+          <p class="why">The refactor's description: "Only explicit viewers need the contractor check; folder access is already scoped to staff." It isn't. The company folder is shared with the whole organization, and contractors are members of it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-diff" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">966 checks before, 966 after</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="seg" id="az-d-seg" role="group" aria-label="Change"></div>
+              <p class="az-d-expr" id="az-d-expr"></p>
+              <div class="az-grid-wrap" id="az-grid-wrap">
+                <div class="az-grid-objs" id="az-grid-objs" aria-hidden="true"></div>
+                <div class="az-grid-body">
+                  <ul class="az-grid-subs" id="az-grid-subs" aria-hidden="true"></ul>
+                  <div class="az-grid" id="az-grid" role="img"></div>
+                </div>
+              </div>
+              <div class="legend-row"><span class="key"><i class="az-c" data-v="1"></i>Yes on both sides</span><span class="key"><i class="az-c" data-v="g"></i>Gained</span><span class="key"><i class="az-c" data-v="l"></i>Lost</span><span class="key"><i class="az-c" data-v="0"></i>No</span></div>
+              <div class="mini-term az-mt" id="az-diff-term"></div>
+            </div>
+            <figcaption class="demo-note">Columns are the 69 relations and permissions, grouped by object; rows are the 14 subjects, with "any other" for the stand-ins. Every cell is the engine's real answer, computed with authz-proof's own <code>engine</code> package in the order <code>diff</code> uses; the yes counts, 121 before and 127, 121 or 91 after, match what SpiceDB answered for the same schemas.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-twin" aria-labelledby="h-twin">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-twin"><span class="num" data-mark="4">4</span>Check the engine against a naive twin</h2>
+          <p>A tool that says "no access changes" is only useful if it would have noticed one. <code>ref</code> is a deliberately naive second evaluator: it computes every fact for every subject by repeating rounds until nothing changes, and shares no evaluation code with the engine.</p>
+          <ul class="st-points">
+            <li>The property tests generate random schemas and relationships: cycles, wildcards, nested subject sets, arrows, intersections, exclusions, and operators mixed without parentheses.</li>
+            <li>The engine must agree with the reference on every check, lookup, expansion and diff.</li>
+            <li>It also carries seven known mistakes behind a switch, and the same tests must catch every one. A clean run means nothing unless a broken engine fails.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-twin" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seven planted bugs, 500 seeds each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="az-mut" id="az-mut"></ol>
+              <div class="mini-term az-mt" id="az-hunt-term"></div>
+            </div>
+            <figcaption class="demo-note">Both runs are real and verbatim. The bars are the share of the 500 seeds on which each broken engine failed a property. <code>hunt</code> took 23.6 s in the README's run; here it took 83.3 s on a machine busy with other work, with the same models and the same result.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-spicedb" aria-labelledby="h-spicedb">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-spicedb"><span class="num" data-mark="5">5</span>Ask a real SpiceDB the same questions</h2>
+          <p><code>crosscheck</code> writes the same schema and relationships to SpiceDB v1.56.2 through its HTTP API and asks it every question the engine answers. CI does this on every push, for the four example schemas and 600 random models.</p>
+          <ul class="st-points">
+            <li>Every schema authz-proof refuses is written too, to see if SpiceDB refuses it. It never refused one authz-proof accepted.</li>
+            <li>The random models never lead from an object back to itself, because on cyclic data SpiceDB answers <code>max depth exceeded</code> where authz-proof answers no.</li>
+            <li>SpiceDB runs with its dispatch cache off. With the cache on, its answers depend on the order of the questions.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-spicedb" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Agreement, and the order-dependent answer</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="az-xc" id="az-xc"></div>
+              <p class="az-k">Alice views documents one and two, and edits neither. <code>view_and_edit = viewer &amp; editor</code></p>
+              <div class="az-cache" id="az-cache"></div>
+            </div>
+            <figcaption class="demo-note">Run here against <code>authzed/spicedb:v1.56.2</code> in Docker, in-memory datastore. The counts are <code>crosscheck</code>'s output, identical to the README's. The answers are <code>examples/spicedb-cache/repro.sh</code> on two fresh servers, one with default settings and one with <code>--dispatch-cache-enabled=false</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Expected by name</span>Above this line authz-proof works out every change in access and checks its own engine. Below it, a person lists the changes a pull request is meant to make, and anything else fails it.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-allow" aria-labelledby="h-allow">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-allow"><span class="num" data-mark="6">6</span>A person names the expected change</h2>
+          <p>The allowlist says which changes a pull request is meant to make, one pattern and reason per line. Each part of a pattern can use globs and one <code>{a,b}</code> group. A gain the allowlist covers is still printed, marked <code>allowed</code>, with the line and reason that allowed it.</p>
+          <ul class="st-points">
+            <li><code>--fail-on-gain</code> and <code>--fail-on-loss</code> fail on any change the allowlist doesn't cover.</li>
+            <li>The diff covers the relationships you give it: a fixture like the example, or a snapshot from staging or production. Objects in no relationship aren't covered.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-allow" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">PR #213, and the same PR with one word wrong</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <pre class="az-allow" id="az-allow"></pre>
+              <div class="seg" id="az-a-seg" role="group" aria-label="Pull request"></div>
+              <p class="az-a-line" id="az-a-line"></p>
+              <ul class="az-gains" id="az-gains"></ul>
+              <div class="legend-row"><span class="key"><i class="az-sub" data-a="y">user</i>Allowed by a line of the allowlist</span><span class="key"><i class="az-sub" data-a="n">user</i>No line expects it</span></div>
+              <div class="az-a-out"><span class="az-exit" id="az-exit"><span>exit</span><b>0</b></span><div class="mini-term az-mt" id="az-allow-term"></div></div>
+            </div>
+            <figcaption class="demo-note">All repository files: <code>allow-pr213.txt</code>, and the two relationship files that add one line each to the 30. Both diffs are real; the grants are their GAINED lines, verbatim. The slip also exposes something the schema always allowed: only <code>view</code> excludes contractors, so a contractor who can edit the company folder can edit payroll without being able to read it.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ci" aria-labelledby="h-ci">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ci"><span class="num" data-mark="7">7</span>Fail the pull request</h2>
+          <p>In a workflow, take the base branch's schema with <code>git show</code>, diff it against the pull request's, and let the exit code decide. <code>diff</code> exits 1 when a gate trips, <code>check</code> exits 0 for yes and 1 for no, and every command exits 2 on bad input.</p>
+          <ul class="st-points">
+            <li>The relationships are a file in SpiceDB's text form, such as <code>document:readme#viewer@user:alice</code>.</li>
+            <li>The repository's own CI runs the tests, the 20,000-seed hunt, the mutant table, the SpiceDB crosscheck, and the cache reproducer against two servers, on every push.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ci" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The workflow step, and CI on the repository</p>
+              {{REPLAY}}
+            </div>
+            <pre class="az-yaml"><span class="c"># a step in .github/workflows/*.yml</span>
+- run: git show origin/main:authz/schema.zed > /tmp/schema-main.zed
+- run: >
+    authz-proof diff /tmp/schema-main.zed authz/schema.zed authz/relationships.txt
+    --allow authz/allow.txt --fail-on-gain --fail-on-loss</pre>
+            <div class="mini-term az-mt az-ci-term" id="az-ci-term"></div>
+            <div class="az-ci">
+              <p class="az-ci-head"><span>CI run 38658145655 on <code>1e6e95e</code></span><b>5 jobs, all passed</b></p>
+              <ol class="az-jobs" id="az-jobs"></ol>
+            </div>
+            <figcaption class="demo-note">The workflow step is the README's. The terminal is the end of the refactor's real diff with <code>--fail-on-gain</code>. Job names, results and durations come from GitHub's API for that run, rounded to whole seconds.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The SpiceDB comparison re-run here, with the cache on and off, and what a diff costs. One Linux machine, shared with other work while these ran.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>SpiceDB agrees, cache off</h3>
+            <p>600 random models, every question asked of both, after the four examples' 3,864:</p>
+            <div class="tally"><span>59,110 checks</span><span>0 disagreements</span><span>18.9 s in all</span></div>
+            <p>83 random schemas refused by both, none by SpiceDB alone. 111 refused by authz-proof alone: 110 that depend on themselves through an exclusion, and 1 wildcard reached through a subject set.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Cache on, answers drift</h3>
+            <p>The same crosscheck against a fresh SpiceDB with default settings, twice:</p>
+            <div class="tally"><span>Run 1: 26 disagreements</span><span>Run 2: 26</span></div>
+            <p>Out of 59,110 checks, in 11 of the 600 models each time, on partly different seeds. The README's run found 14 in 7. The four examples agreed every time.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>A diff in milliseconds</h3>
+            <p>Wall time for the whole process, 966 checks per side, median of 50 runs:</p>
+            <div class="tally"><span>Refactor: 5.8 ms</span><span>Slip: 5.7 ms</span></div>
+            <p>Each answer is cached per subject. Cost grows as objects times names times subjects; the README says plainly it hasn't been measured on a production snapshot, and neither has this page.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">27 tests, two of them against SpiceDB</h2>
+          <p>Counted with <code>go test -count=1 -json ./...</code>: 25 pass and 2 skip without a server. With SpiceDB v1.56.2 running and <code>SPICEDB_ENDPOINT</code> set, as CI's <code>spicedb</code> job runs them, the other 2 pass too. Go 1.27.2; vet and gofmt clean; <code>go test -race -short ./...</code> passes.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Few tests, wide ones</h3>
+            <ul>
+              <li><strong>Engine against the reference:</strong> one test runs the property checks on 2,000 seeds (200 with <code>-short</code>), and another requires every mutant to be caught within 300.</li>
+              <li><strong>Schema:</strong> SpiceDB's precedence, the mixed-operator warning, what SpiceDB accepts, the refusals, and the evaluation order that puts dependencies first.</li>
+              <li><strong>Engine and diff on the example:</strong> the drive's checks, cycles, lookups, expand agreeing with check, the shortest chain, the exclusion behind a no, the refactor, the reordering and the dropped parentheses.</li>
+              <li><strong>Allowlist, relationships, generator, CLI:</strong> patterns and parsing, refusals, rendering, a deterministic generator whose acyclic mode has no cycles, bad input, and the CLI end to end.</li>
+              <li><strong>SpiceDB:</strong> the examples and random models agree with a live server.</li>
+            </ul>
+            <p>CI runs vet, gofmt and the tests with <code>-race -short</code> and without, on Go 1.22 and stable, and the hunt, mutants and SpiceDB jobs alongside.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A server</dt><dd>It loads a schema and a relationship file into memory and answers questions. No API, no storage, no consistency tokens, no watch.</dd></div>
+              <div><dt>Data that doesn't exist yet</dt><dd>"No access changes" means none for the objects and subjects in the file. Subjects in no relationship are covered by the stand-in; objects in no relationship aren't.</dd></div>
+              <div><dt>Caveats</dt><dd>Caveats and <code>with</code>, <code>nil</code>, and the <code>.any()</code> and <code>.all()</code> arrows are refused with a message.</dd></div>
+              <div><dt>Every SpiceDB</dt><dd>One version, one in-memory datastore, small acyclic random models. The findings are observations on that version, not claims about others.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/authz-proof
+cd authz-proof
+go build -o authz-proof ./cmd/authz-proof
+go test ./...           <span class="c"># seconds</span>
+
+cd examples/drive
+../../authz-proof diff schema.zed schema-refactor.zed \
+  relationships.txt --fail-on-gain
+../../authz-proof check schema.zed relationships.txt \
+  document:payroll#view@user:bob
+cd ../..
+make check              <span class="c"># also the hunt and the mutants</span>
+make spicedb            <span class="c"># the crosscheck, SpiceDB in Docker</span></pre>
+            <p>Go 1.22 or newer, no dependencies. Without Go, the README builds it in <code>golang:1.25</code> with Docker.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

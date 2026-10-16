@@ -1,0 +1,368 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">migrate-safe</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Find out what a PostgreSQL migration will do to a live database before it ships. It runs the migration on a copy while application traffic keeps going, and records the locks it held, whether it rewrote or scanned a table, and how long reads and writes were locked out.</p>
+            <p>Most migration outages come from statements that look harmless. <code>CREATE INDEX</code> is one line. A default of <code>gen_random_uuid()</code> looks like a default of <code>0</code>, but one rewrites the table under its strongest lock and the other only touches the catalog. A linter predicts the same facts in milliseconds without a database, and CI checks every prediction against a real server.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/migrate-safe">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/migrate-safe#six-migrations-measured">Six migrations, measured</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.24 or newer, one dependency: pgx</dd>
+              <dt>Tests</dt><dd>40 passing against PostgreSQL 16 and 17 (28 tests plus 12 subtests)</dd>
+              <dt>Commands</dt><dd><code>lint</code>, <code>measure</code>, <code>seed</code> and <code>examples</code></dd>
+              <dt>Checked</dt><dd>67 statements whose predicted locks, rewrites and scans must match the server exactly</dd>
+              <dt>Examples</dt><dd>6 migrations, as usually written and rewritten not to block</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="lint">Lint</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="idx">Measure</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="queue">Lock queue</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="examples">All six</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">migrate-safe lint examples/migrations/03-set-not-null/unsafe.sql</span>
+<span class="out">examples/migrations/03-set-not-null/unsafe.sql (PostgreSQL 17)</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of migrate-safe at <code>88abaec</code>, output verbatim, against PostgreSQL 17.11 in Docker with 5 million orders. <code>$DSN</code> stands for that server's URL. The measure runs print their progress first and their report after.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a migration moves through migrate-safe">
+          <div class="sign-group">
+            <p>Before the line: predict, copy, measure, compare</p>
+            <ol>
+              <li><a class="sign-link" href="#s-lint"><b>1</b> Lint</a></li>
+              <li><a class="sign-link" href="#s-locks"><b>2</b> Locks</a></li>
+              <li><a class="sign-link" href="#s-copy"><b>3</b> Copy</a></li>
+              <li><a class="sign-link" href="#s-measure"><b>4</b> Measure</a></li>
+              <li><a class="sign-link" href="#s-queue"><b>5</b> Queue</a></li>
+              <li><a class="sign-link" href="#s-agree"><b>6</b> Agree</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person ships the rewrite</p>
+            <ol>
+              <li><a class="sign-link" href="#s-ship"><b>7</b> Ship</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-lint" aria-labelledby="h-lint">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-lint"><span class="num" data-mark="1">1</span>Predict every statement, without a database</h2>
+          <p><code>migrate-safe lint</code> reads a migration and tracks the schema and the session's <code>lock_timeout</code> as the migration changes them. For every statement it predicts the lock on each table, and whether the statement rewrites or scans the table while holding it.</p>
+          <ul class="st-points">
+            <li><strong>DANGER:</strong> it holds a lock that blocks reads or writes while doing work that grows with the table: a rewrite, a scan, or row locks on every row.</li>
+            <li><strong>RISK:</strong> it asks for a lock that blocks reads or writes with no <code>lock_timeout</code>, so a long transaction can make it wait while traffic queues behind it.</li>
+            <li>Inside <code>BEGIN ... COMMIT</code> locks accumulate: an ACCESS EXCLUSIVE taken by a cheap statement is still held by the slow one after it.</li>
+            <li>It is not a SQL parser, and it says so. A statement it doesn't understand is reported as not analysed, never as safe. Exit code 1 on any DANGER or RISK.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-lint" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Statements that look alike, with and without a schema <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-lt-tabs"><div class="seg" id="ms-lt-seg" role="group" aria-label="Schema"></div></div>
+              <ol class="ms-lt" id="ms-lt"></ol>
+              <p class="ms-lt-sum" id="ms-lt-sum"></p>
+            </div>
+            <figcaption class="demo-note">The migration was written for this page, against the repository's demo schema. Each block is real <code>migrate-safe lint -v</code> output for that statement, verbatim; the summary line is the run's last line. Without <code>--schema</code> the linter doesn't know <code>note</code> is <code>varchar(100)</code>, so it assumes the type change rewrites.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-locks" aria-labelledby="h-locks">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-locks"><span class="num" data-mark="2">2</span>Know which lock blocks what</h2>
+          <p>PostgreSQL has eight table lock modes. A plain <code>SELECT</code> takes ACCESS SHARE and an <code>INSERT</code>, <code>UPDATE</code> or <code>DELETE</code> takes ROW EXCLUSIVE, so the question for any migration is which of its locks conflicts with those two.</p>
+          <ul class="st-points">
+            <li>Only ACCESS EXCLUSIVE blocks reads. Most <code>ALTER TABLE</code> forms take it.</li>
+            <li>Four modes block writes. <code>CREATE INDEX</code> and <code>ADD FOREIGN KEY</code> are among them, which is easy to miss in a test environment where nothing is writing.</li>
+            <li>The linter's conflict table is the one in the PostgreSQL manual. All but one of the modes below were reported by the server in this page's runs.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-locks" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Eight modes, against a reader and a writer</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-lk-head" aria-hidden="true"><span>Lock mode</span><span>Taken by</span><span>Reads</span><span>Writes</span></div>
+              <ol class="ms-lk" id="ms-lk"></ol>
+            </div>
+            <figcaption class="demo-note">Modes and conflicts are from <code>internal/lint/modes.go</code>. The migration statements listed are ones <code>pg_locks</code> reported in this page's 5 million row run; <code>SELECT</code>, <code>UPDATE</code> and <code>INSERT</code> are the workload's own queries. None of the examples takes EXCLUSIVE.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-copy" aria-labelledby="h-copy">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-copy"><span class="num" data-mark="3">3</span>Copy the database, then replay its traffic</h2>
+          <p><code>migrate-safe measure</code> never runs on the database you point it at. It copies it with <code>CREATE DATABASE ... TEMPLATE</code>, starts a workload against the copy, waits two seconds for a baseline, then runs the migration one statement at a time.</p>
+          <ul class="st-points">
+            <li>Point it at a restored copy of production, or a staging database with production-sized tables. <code>--in-place</code> runs on the database itself, for one you can throw away.</li>
+            <li>The workload is a file of query shapes with random keys: a class per kind of query, each with its own workers, and a pause between one worker's queries.</li>
+            <li>Every workload query's start and end is recorded, so the report can say how long each kind of query was stuck during each statement.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-copy" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The repository's workload, and a run starting</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-cp">
+                <div class="ms-cp-file"><p class="ms-k">examples/workload.sql</p><pre id="ms-wl"></pre></div>
+                <div class="ms-cp-run">
+                  <p class="ms-k">Workers on the copy</p>
+                  <div class="ms-wk" id="ms-wk"></div>
+                  <div class="ms-mt" id="ms-cp-term"></div>
+                </div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The workload file is the repository's, without its opening comment. The terminal is the start of the measure run in the hero: its progress lines, then the first lines of its report, where the baseline p99 for each class was taken before the migration began.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-measure" aria-labelledby="h-measure">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-measure"><span class="num" data-mark="4">4</span>Measure what the server actually did</h2>
+          <p>Each statement runs inside a transaction, and <code>pg_locks</code> is read for the migration's backend before <code>COMMIT</code>, so every lock it held is still there. A lone statement holds its locks until it commits either way.</p>
+          <ul class="st-points">
+            <li><strong>Rewrite:</strong> the table's <code>relfilenode</code> before and after. A rewrite writes the table to a new file.</li>
+            <li><strong>Scan:</strong> <code>seq_scan</code> in the transaction's own counters, before and after.</li>
+            <li><strong>Locked out:</strong> every 20 ms another session tries to take each table's read lock and write lock with <code>NOWAIT</code>, and rolls back. It counts only time lost to table locks.</li>
+            <li>Statements that refuse to run in a transaction, such as <code>CONCURRENTLY</code>, are sampled from another session every 5 ms instead.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-measure" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>CREATE INDEX</code> on 5 million orders, as written and <code>CONCURRENTLY</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-tl" id="ms-mx"></div>
+              <dl class="ms-facts" id="ms-mx-facts"></dl>
+            </div>
+            <figcaption class="demo-note">Both runs are the hero's <code>measure</code> runs on PostgreSQL 17.11 with 5,000,060 orders and the workload above; the tracks are drawn from each report's "took" and "locked out" figures. The concurrent build took longer and never stopped a write.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-queue" aria-labelledby="h-queue">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-queue"><span class="num" data-mark="5">5</span>Catch the statement that waits in line</h2>
+          <p>Adding a column with a constant default touches no rows on PostgreSQL 11 and later. It still needs ACCESS EXCLUSIVE for a moment. If a report has the table open, the <code>ALTER</code> waits for it, and every query that arrives after the <code>ALTER</code> queues behind it.</p>
+          <ul class="st-points">
+            <li>A directive, <code>-- migrate-safe: long-reader orders 8s</code>, opens a transaction that holds ACCESS SHARE on <code>orders</code> for 8 s, starting 1 s before the statement.</li>
+            <li>A <code>NOWAIT</code> probe fails when a conflicting lock is held and also when one is queued ahead of it, so the probes see the pile-up, not just the lock.</li>
+            <li>With <code>lock_timeout = '200ms'</code> the <code>ALTER</code> gives up with SQLSTATE 55P03 instead, and <code>expect-error 55P03</code> lets the run continue. Retrying it later is the deploy tool's job.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-queue" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A metadata-only <code>ALTER</code> behind an 8 s report</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-tl" id="ms-qx"></div>
+              <div class="ms-mt" id="ms-q-term"></div>
+            </div>
+            <figcaption class="demo-note">The hero's two lock-queue runs, 5 million orders, PostgreSQL 17.11. The tracks are drawn from the reports' wait, took and locked-out figures; the terminal is the rewritten run's statement block, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-agree" aria-labelledby="h-agree">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-agree"><span class="num" data-mark="6">6</span>Hold the linter to the server</h2>
+          <p>Every measurement is compared with the linter's prediction for the same statement: the strongest lock on each table, which tables were rewritten, which were scanned, whether DML touched every row, and, behind a long transaction, whether the statement waited.</p>
+          <ul class="st-points">
+            <li>CI runs a corpus of 67 statements of every kind the linter knows, one after another on PostgreSQL 16 and 17. Each prediction must match <code>pg_locks</code>, <code>relfilenode</code> and <code>seq_scan</code> exactly.</li>
+            <li>It also runs every example as written and rewritten under traffic, and checks the measurement itself: a transaction holding ACCESS EXCLUSIVE for one second must show about one second locked out.</li>
+            <li>The corpus caught two of the linter's own mistakes while it was being written, one of them that <code>DROP TABLE</code> on a table with a foreign key also locks the table it references.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-agree" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The rewritten column-type change, statement by statement</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ms-ag-wrap"><table class="ms-ag" id="ms-ag"></table></div>
+              <p class="ms-ag-sum" id="ms-ag-sum"></p>
+            </div>
+            <figcaption class="demo-note">Predictions are <code>migrate-safe lint --json</code> for <code>05-change-column-type/safe.sql</code>; measurements are the same file in this page's 5 million row <code>examples</code> run. The statements inside <code>BEGIN ... COMMIT</code> show the lock held by then. The 1.07 s wait is autovacuum, below.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Shipped</span>Above this line everything runs on a copy or on paper, and nothing reaches production. Below it, a person ships the rewritten migration, and CI keeps the unsafe version out.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-ship" aria-labelledby="h-ship">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ship"><span class="num" data-mark="7">7</span>Ship the rewrite, and let CI hold the line</h2>
+          <p>Each example is a change as it is usually written and the same change rewritten so it doesn't block traffic. The linter's verdict for every rewritten version is "nothing found", and the measurements show why.</p>
+          <ul class="st-points">
+            <li>A rewrite holds ACCESS EXCLUSIVE for as long as it takes to copy the table. The rewritten versions add the column empty, fill it in batches of 20,000 rows that each commit, and swap columns in one short transaction.</li>
+            <li>The safe versions often take longer in all. What they don't do is stop traffic for long.</li>
+            <li><code>lint</code> exits 1 on DANGER or RISK, so it can fail a pull request. <code>--fail-on danger</code> lets a RISK through when a team has decided to accept it.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ship" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Longest lock-out on a table, as written and rewritten</p>
+              {{REPLAY}}
+            </div>
+            <ol class="ms-sh" id="ms-sh"></ol>
+            <div class="legend-row ms-sh-legend"><span class="key"><i class="ms-key ms-key-bad"></i>As usually written</span><span class="key"><i class="ms-key ms-key-ok"></i>Rewritten</span><span class="ms-sh-scale">Log scale, 10 ms to 1 min</span></div>
+            <div class="ms-mt ms-sh-term" id="ms-sh-term"></div>
+            <figcaption class="demo-note">From this page's <code>migrate-safe examples --rows 5000000 --check</code> run: the larger of reads and writes locked out, and the whole run's duration. The terminal is a real run of <code>--fail-on danger</code> on the lock-queue example, whose only finding is a RISK.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The README's 5 million row run, repeated on the same model of CPU, an i5-12400F, while other jobs shared the machine. PostgreSQL 17.11 in Docker, ten workers the whole time.</p>
+        </div>
+        <div class="measured ms-measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>The same locks, different seconds</h3>
+            <p>Locked out, as written, in the README's run and in this one.</p>
+            <div class="ms-cmp" id="ms-cmp"></div>
+            <p>Every verdict and every lock, rewrite and scan came out the same, and the linter agreed with all of it both times. The durations did not: they scale with hardware and load, as the README says. Treat them as orders of magnitude.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Autovacuum holds locks too</h3>
+            <p>After the column-type backfill wrote 5 million rows, autovacuum started on <code>orders</code>. The next statement, a metadata-only <code>ADD CONSTRAINT ... NOT VALID</code>, waited for its lock:</p>
+            <div class="tally"><span>README: 1.00 s</span><span>Here: 1.07 s</span></div>
+            <p>That is <code>deadlock_timeout</code>, 1 s on this server, after which PostgreSQL cancelled the autovacuum. Its log said so:</p>
+            <pre class="ms-log">ERROR:  canceling autovacuum task
+CONTEXT:  while vacuuming index "orders_pkey" of relation "public.orders"</pre>
+          </article>
+          <article class="panel m-card">
+            <h3>What it costs</h3>
+            <p>Wall time for <code>examples</code>, all twelve runs with <code>--check</code>, on a loaded machine.</p>
+            <div class="bars">
+              <div class="bar-row"><span>200,000 rows</span><span class="bar"><i style="--w:13.6%"></i></span><span>93 s</span></div>
+              <div class="bar-row"><span>1 million</span><span class="bar"><i style="--w:20.6%"></i></span><span>141 s</span></div>
+              <div class="bar-row"><span>5 million</span><span class="bar"><i style="--w:100%"></i></span><span>685 s</span></div>
+            </div>
+            <p>The README estimates about 3 minutes at 1 million rows and 15 at 5 million. At 5 million rows the slow parts are the two batched backfills, 251 batches each.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">40 tests, most of them against a real server</h2>
+          <p>Counted with <code>go test -race -count=1 -json ./...</code> and <code>MIGRATE_SAFE_TEST_DSN</code> pointing at PostgreSQL 17.11, then again at 16.15: 28 tests plus 12 subtests, all passing on both. The subtests are the examples, one per file. Without a database, <code>go test -short ./...</code> runs 25 and skips 3, in about 3 seconds.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward agreement with the server</h3>
+            <ul>
+              <li><strong>Corpus:</strong> 67 statements on a real database, each prediction matched against <code>pg_locks</code>, <code>relfilenode</code> and <code>seq_scan</code>. Both servers reported "67 statements agree".</li>
+              <li><strong>Examples:</strong> all twelve files under traffic, one subtest each, including the lock-queue wait and its pile-up.</li>
+              <li><strong>The measurement itself:</strong> a one-second ACCESS EXCLUSIVE must show about one second locked out, in the probes and in the workload.</li>
+              <li><strong>Linter:</strong> statement effects, version rules for PostgreSQL 10, 11 and 12, severities, locks accumulating in a transaction, <code>lock_timeout</code> tracking, what is not analysed.</li>
+              <li><strong>Parsing and CLI:</strong> quotes, dollar quoting, comments and directives; exit codes, flags after files, JSON output.</li>
+            </ul>
+            <p>CI runs gofmt, vet and the race-enabled tests against PostgreSQL 16 and 17 services, then <code>examples --check</code> at 200,000 rows, plus a job on the newest Go without a database. The run on <code>88abaec</code> passed. Two earlier runs failed on PostgreSQL 17 only, one on a commit that changed nothing but the README; the last commit tightened the lock sampler.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Production's behaviour</dt><dd>A restored copy has production's data, not its cache, hardware or traffic. The locks, rewrites and scans carry over; the durations don't.</dd></div>
+              <div><dt>Captured traffic</dt><dd>The workload is query shapes with random keys that you describe, not a recording.</dd></div>
+              <div><dt>Row locks in the probes</dt><dd>A row lock held by a batch shows up in workload latency, not in "locked out".</dd></div>
+              <div><dt>Retries</dt><dd>After a 55P03 the right move is to retry later. That is the deploy tool's job.</dd></div>
+              <div><dt>Everything SQL</dt><dd>Partitions, <code>ALTER TYPE</code>, materialized views, <code>GRANT</code> and <code>DO</code> blocks are reported as not analysed. WAL volume, replication lag and disk space aren't measured. Servers older than 16 weren't run.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/migrate-safe
+cd migrate-safe
+make build
+
+<span class="c"># No database needed:</span>
+./bin/migrate-safe lint examples/migrations/*/unsafe.sql
+
+<span class="c"># A throwaway PostgreSQL 17 on port 55432:</span>
+make pg
+./bin/migrate-safe examples --rows 1000000 \
+  --dsn postgres://postgres:pg@localhost:55432/postgres
+make pg-stop</pre>
+            <p>Needs Docker for the database. Go 1.24 or newer is used if it is installed; otherwise the Makefile builds in the <code>golang:1.25</code> image.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

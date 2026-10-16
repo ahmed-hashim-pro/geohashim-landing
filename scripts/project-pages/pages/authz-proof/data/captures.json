@@ -1,0 +1,528 @@
+{
+ "refactor": {
+  "cmd": "authz-proof diff schema.zed schema-refactor.zed relationships.txt --fail-on-gain",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "6 grants gained, 0 lost",
+   "",
+   "GAINED  document:budget#view         user:bob, user:carol",
+   "GAINED  document:offer-letters#view  user:bob, user:carol",
+   "GAINED  document:payroll#view        user:bob, user:carol",
+   "",
+   "GAINED document:budget#view @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:finance#view               via parent",
+   "      → document:budget#view              via parent",
+   "  before: removed on document:budget by `restricted->contractor`, because",
+   "    user:bob → team:contractors#member → organization:acme#contractor",
+   "",
+   "GAINED document:offer-letters#view @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:hr#view                    via parent",
+   "      → document:offer-letters#view       via parent",
+   "  before: removed on document:offer-letters by `restricted->contractor`, because",
+   "    user:bob → team:contractors#member → organization:acme#contractor",
+   "",
+   "GAINED document:payroll#view @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:hr#view                    via parent",
+   "      → document:payroll#view             via parent",
+   "  before: removed on document:payroll by `restricted->contractor`, because",
+   "    user:bob → team:contractors#member → organization:acme#contractor",
+   "",
+   "FAIL: 6 gained that no allowlist entry expects"
+  ],
+  "exit": 1
+ },
+ "reordered": {
+  "cmd": "authz-proof diff schema.zed schema-reordered.zed relationships.txt",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "no access changes"
+  ],
+  "exit": 0
+ },
+ "noparens": {
+  "cmd": "authz-proof diff schema.zed schema-no-parens.zed relationships.txt",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "0 grants gained, 30 lost",
+   "",
+   "LOST    document:budget#view         user:alice, user:dana, user:erin, user:frank",
+   "LOST    document:design-review#view  user:alice, user:bob, user:carol, user:dana, user:erin, user:frank",
+   "LOST    document:handbook#view       user:alice, user:bob, user:carol, user:dana, user:erin, user:frank",
+   "LOST    document:offer-letters#view  user:alice, user:dana, user:erin, user:frank",
+   "LOST    document:payroll#view        user:alice, user:dana, user:erin, user:frank",
+   "LOST    document:roadmap#view        user:alice, user:bob, user:carol, user:dana, user:erin, user:frank",
+   "",
+   "LOST document:budget#view @ user:alice   (3 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → team:staff#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:finance#view               via parent",
+   "      → document:budget#view              via parent, and not in restricted->contractor",
+   "  now: no chain of relationships led there",
+   "",
+   "LOST document:design-review#view @ user:alice   (5 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → team:staff#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:eng#view                   via parent",
+   "      → document:design-review#view       via parent, and not in restricted->contractor",
+   "  now: no chain of relationships led there",
+   "",
+   "LOST document:handbook#view @ user:alice   (5 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → team:staff#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → document:handbook#view            via parent, and not in restricted->contractor",
+   "  now: no chain of relationships led there",
+   "",
+   "LOST document:offer-letters#view @ user:alice   (3 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → folder:hr#editor → #edit",
+   "      → document:offer-letters#edit → #view   via parent, and not in restricted->contractor",
+   "  now: removed on document:offer-letters by `restricted->contractor + parent->view`, because",
+   "    user:alice → team:hr#member → folder:hr#editor → folder:hr#edit → folder:hr#view",
+   "",
+   "LOST document:payroll#view @ user:alice   (3 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → folder:hr#editor → #edit",
+   "      → document:payroll#edit → #view   via parent, and not in restricted->contractor",
+   "  now: removed on document:payroll by `restricted->contractor + parent->view`, because",
+   "    user:alice → team:hr#member → folder:hr#editor → folder:hr#edit → folder:hr#view",
+   "",
+   "LOST document:roadmap#view @ user:alice   (5 more subjects; --all-paths shows each)",
+   "  before:",
+   "    user:alice",
+   "      → team:hr#member",
+   "      → team:staff#member",
+   "      → organization:acme#member",
+   "      → folder:company#viewer → #view",
+   "      → folder:eng#view                   via parent",
+   "      → document:roadmap#view             via parent, and not in restricted->contractor",
+   "  now: no chain of relationships led there"
+  ],
+  "exit": 0
+ },
+ "validateNoParens": {
+  "cmd": "authz-proof validate schema-no-parens.zed",
+  "out": [
+   "schema-no-parens.zed: 5 definitions, 10 relations, 4 permissions",
+   "warning: line 31: document#view mixes operators without parentheses: `viewer + edit - restricted->contractor + parent->view` means `(viewer + edit) - (restricted->contractor + parent->view)` (SpiceDB binds + before & before -)"
+  ],
+  "exit": 0
+ },
+ "validate": {
+  "cmd": "authz-proof validate schema.zed relationships.txt",
+  "out": [
+   "schema.zed: 5 definitions, 10 relations, 4 permissions",
+   "relationships.txt: 30 relationships, all valid"
+  ],
+  "exit": 0
+ },
+ "checkBob": {
+  "cmd": "authz-proof check schema.zed relationships.txt document:payroll#view@user:bob",
+  "out": [
+   "no: user:bob does not have view on document:payroll",
+   "  removed on document:payroll by `restricted->contractor`, because",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → organization:acme#contractor"
+  ],
+  "exit": 1
+ },
+ "checkAlice": {
+  "cmd": "authz-proof check schema.zed relationships.txt document:payroll#view@user:alice",
+  "out": [
+   "yes: user:alice has view on document:payroll",
+   "  user:alice",
+   "    → team:hr#member",
+   "    → folder:hr#editor → #edit",
+   "    → document:payroll#edit → #view   via parent, and not in restricted->contractor"
+  ],
+  "exit": 0
+ },
+ "checkZoe": {
+  "cmd": "authz-proof check schema.zed relationships.txt document:status-page#view@user:zoe",
+  "out": [
+   "yes: user:zoe has view on document:status-page",
+   "  user:zoe",
+   "    → document:status-page#viewer → #view   as user:*, and not in restricted->contractor"
+  ],
+  "exit": 0
+ },
+ "lookupPayroll": {
+  "cmd": "authz-proof lookup-subjects schema.zed relationships.txt document:payroll#view user",
+  "out": [
+   "user:alice",
+   "user:dana",
+   "user:erin",
+   "user:frank"
+  ],
+  "exit": 0
+ },
+ "lookupStatus": {
+  "cmd": "authz-proof lookup-subjects schema.zed relationships.txt document:status-page#view user",
+  "out": [
+   "user:*"
+  ],
+  "exit": 0
+ },
+ "lookupBob": {
+  "cmd": "authz-proof lookup-resources schema.zed relationships.txt document#view@user:bob",
+  "out": [
+   "document:design-review",
+   "document:handbook",
+   "document:roadmap",
+   "document:status-page"
+  ],
+  "exit": 0
+ },
+ "pr213": {
+  "cmd": "authz-proof diff schema.zed schema.zed relationships.txt --new-relationships relationships-pr213.txt --allow allow-pr213.txt --fail-on-gain",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "8 grants gained, 0 lost",
+   "",
+   "GAINED  document:design-review#edit  user:bob (allowed), user:carol (allowed)",
+   "GAINED  document:roadmap#edit        user:bob (allowed), user:carol (allowed)",
+   "GAINED  folder:eng#editor            user:bob (allowed), user:carol (allowed)",
+   "GAINED  folder:eng#edit              user:bob (allowed), user:carol (allowed)",
+   "",
+   "GAINED document:design-review#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "      → document:design-review#edit   via parent",
+   "  before: no chain of relationships led there",
+   "  allowed by line 4: SEC-142: contractors edit engineering",
+   "",
+   "GAINED document:roadmap#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "      → document:roadmap#edit         via parent",
+   "  before: no chain of relationships led there",
+   "  allowed by line 4: SEC-142: contractors edit engineering",
+   "",
+   "GAINED folder:eng#editor @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor",
+   "  before: no chain of relationships led there",
+   "  allowed by line 3: SEC-142: contractors edit engineering",
+   "",
+   "GAINED folder:eng#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "  before: no chain of relationships led there",
+   "  allowed by line 3: SEC-142: contractors edit engineering",
+   "",
+   "OK: every change is one the allowlist expects"
+  ],
+  "exit": 0
+ },
+ "pr213NoAllow": {
+  "cmd": "authz-proof diff schema.zed schema.zed relationships.txt --new-relationships relationships-pr213.txt --fail-on-gain",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "8 grants gained, 0 lost",
+   "",
+   "GAINED  document:design-review#edit  user:bob, user:carol",
+   "GAINED  document:roadmap#edit        user:bob, user:carol",
+   "GAINED  folder:eng#editor            user:bob, user:carol",
+   "GAINED  folder:eng#edit              user:bob, user:carol",
+   "",
+   "GAINED document:design-review#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "      → document:design-review#edit   via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED document:roadmap#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "      → document:roadmap#edit         via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED folder:eng#editor @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED folder:eng#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:eng#editor → #edit",
+   "  before: no chain of relationships led there",
+   "",
+   "FAIL: 8 gained that no allowlist entry expects"
+  ],
+  "exit": 1
+ },
+ "slip": {
+  "cmd": "authz-proof diff schema.zed schema.zed relationships.txt --new-relationships relationships-pr213-slip.txt --allow allow-pr213.txt --fail-on-gain",
+  "out": [
+   "compared 966 checks per side: every relation and permission of 23 objects, for 14 subjects",
+   "22 grants gained, 0 lost",
+   "",
+   "GAINED  document:budget#edit         user:bob, user:carol",
+   "GAINED  document:design-review#edit  user:bob (allowed), user:carol (allowed)",
+   "GAINED  document:handbook#edit       user:bob, user:carol",
+   "GAINED  document:offer-letters#edit  user:bob, user:carol",
+   "GAINED  document:payroll#edit        user:bob, user:carol",
+   "GAINED  document:roadmap#edit        user:bob (allowed), user:carol (allowed)",
+   "GAINED  folder:company#editor        user:bob, user:carol",
+   "GAINED  folder:company#edit          user:bob, user:carol",
+   "GAINED  folder:eng#edit              user:bob (allowed), user:carol (allowed)",
+   "GAINED  folder:finance#edit          user:bob, user:carol",
+   "GAINED  folder:hr#edit               user:bob, user:carol",
+   "",
+   "GAINED document:budget#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:finance#edit               via parent",
+   "      → document:budget#edit              via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED document:design-review#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:eng#edit                   via parent",
+   "      → document:design-review#edit       via parent",
+   "  before: no chain of relationships led there",
+   "  allowed by line 4: SEC-142: contractors edit engineering",
+   "",
+   "GAINED document:handbook#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → document:handbook#edit            via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED document:offer-letters#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:hr#edit                    via parent",
+   "      → document:offer-letters#edit       via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED document:payroll#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:hr#edit                    via parent",
+   "      → document:payroll#edit             via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED document:roadmap#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:eng#edit                   via parent",
+   "      → document:roadmap#edit             via parent",
+   "  before: no chain of relationships led there",
+   "  allowed by line 4: SEC-142: contractors edit engineering",
+   "",
+   "GAINED folder:company#editor @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED folder:company#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED folder:eng#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:eng#edit                   via parent",
+   "  before: no chain of relationships led there",
+   "  allowed by line 3: SEC-142: contractors edit engineering",
+   "",
+   "GAINED folder:finance#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:finance#edit               via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "GAINED folder:hr#edit @ user:bob   (1 more subject; --all-paths shows each)",
+   "  now:",
+   "    user:bob",
+   "      → team:contractors#member",
+   "      → folder:company#editor → #edit",
+   "      → folder:hr#edit                    via parent",
+   "  before: no chain of relationships led there",
+   "",
+   "FAIL: 16 gained that no allowlist entry expects"
+  ],
+  "exit": 1
+ },
+ "errSelf": {
+  "cmd": "authz-proof validate self-exclusion.zed",
+  "out": [
+   "authz-proof validate: self-exclusion.zed: document#view subtracts document#view, which depends on document#view again (cycle through document#view); a permission cannot depend on itself through an exclusion"
+  ],
+  "exit": 2
+ },
+ "errCaveat": {
+  "cmd": "authz-proof validate caveat.zed",
+  "out": [
+   "authz-proof validate: caveat.zed: line 4: caveats are not supported"
+  ],
+  "exit": 2
+ },
+ "errNil": {
+  "cmd": "authz-proof validate nil.zed",
+  "out": [
+   "authz-proof validate: nil.zed: line 5: nil is not supported"
+  ],
+  "exit": 2
+ },
+ "errTypo": {
+  "cmd": "authz-proof validate typo.zed",
+  "out": [
+   "authz-proof validate: typo.zed: line 5: document#view uses viewr, which document does not have"
+  ],
+  "exit": 2
+ },
+ "errWrongType": {
+  "cmd": "authz-proof validate schema.zed wrongtype.txt",
+  "out": [
+   "schema.zed: 5 definitions, 10 relations, 4 permissions",
+   "authz-proof validate: wrongtype.txt: line 1: document:payroll#viewer@organization:acme: document#viewer allows user | user:* | team#member, not organization"
+  ],
+  "exit": 2
+ },
+ "errNoRel": {
+  "cmd": "authz-proof validate schema.zed norel.txt",
+  "out": [
+   "schema.zed: 5 definitions, 10 relations, 4 permissions",
+   "authz-proof validate: norel.txt: line 1: document:payroll#reader@user:alice: document has no relation reader"
+  ],
+  "exit": 2
+ },
+ "errPerm": {
+  "cmd": "authz-proof validate schema.zed perm.txt",
+  "out": [
+   "schema.zed: 5 definitions, 10 relations, 4 permissions",
+   "authz-proof validate: perm.txt: line 1: document:payroll#view@user:alice: document#view is a permission; relationships can only be written to relations"
+  ],
+  "exit": 2
+ },
+ "hunt": {
+  "cmd": "authz-proof hunt --seeds 20000",
+  "out": [
+   "20000 seeds, engine agrees with the reference on every check, lookup, expansion and diff (83.3s)",
+   "models: 40000, with cyclic relationships 64%, wildcard relationships 24%, exclusions 33%, intersections 47%, arrows 23%"
+  ],
+  "exit": 0
+ },
+ "mutants": {
+  "cmd": "authz-proof mutants --seeds 500",
+  "out": [
+   "variant                    result   first seed  seeds failed  caught by",
+   "correct                    clean    -           0 of 500      every property held",
+   "intersection-as-union      caught   4           38%           diff, check",
+   "wildcard-any-type          caught   10          9%            check, diff",
+   "arrow-first-only           caught   7           3%            check, diff",
+   "subject-set-one-level      caught   8           16%           check, diff",
+   "memo-false-in-cycle        caught   8           4%            check, diff",
+   "visited-not-path           caught   6           22%           check, diff",
+   "diff-known-subjects-only   caught   27          9%            diff",
+   "",
+   "6.3s"
+  ],
+  "exit": 0
+ },
+ "crosscheck": {
+  "cmd": "authz-proof crosscheck --endpoint http://127.0.0.1:8443 --key testkey --random 300 examples/drive/schema.zed examples/drive/relationships.txt ...",
+  "out": [
+   "examples/drive/schema.zed + examples/drive/relationships.txt: 966 checks (121 yes), 0 disagreements",
+   "examples/drive/schema-refactor.zed + examples/drive/relationships.txt: 966 checks (127 yes), 0 disagreements",
+   "examples/drive/schema-reordered.zed + examples/drive/relationships.txt: 966 checks (121 yes), 0 disagreements",
+   "examples/drive/schema-no-parens.zed + examples/drive/relationships.txt: 966 checks (91 yes), 0 disagreements",
+   "600 random models: 59110 checks (6110 yes), 0 disagreements",
+   "  schemas refused by both: 83, by SpiceDB only: 0",
+   "  refused by authz-proof only (depends on itself through an exclusion): 110",
+   "  refused by authz-proof only (wildcard through a subject set): 1"
+  ],
+  "exit": 0
+ },
+ "reproOn": {
+  "cmd": "examples/spicedb-cache/repro.sh",
+  "out": [
+   "alice is a viewer of documents one and two, and an editor of neither.",
+   "document:one#view_and_edit, asked first:          NO_PERMISSION",
+   "document:two#view_only:                           HAS_PERMISSION",
+   "document:two#view_and_edit, asked after view_only: HAS_PERMISSION"
+  ],
+  "exit": 0
+ },
+ "reproOff": {
+  "cmd": "examples/spicedb-cache/repro.sh",
+  "out": [
+   "alice is a viewer of documents one and two, and an editor of neither.",
+   "document:one#view_and_edit, asked first:          NO_PERMISSION",
+   "document:two#view_only:                           HAS_PERMISSION",
+   "document:two#view_and_edit, asked after view_only: NO_PERMISSION"
+  ],
+  "exit": 0
+ }
+}

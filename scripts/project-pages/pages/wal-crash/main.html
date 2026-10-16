@@ -1,0 +1,335 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">wal-crash</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A crash-consistency tester for storage code. It records every file-system operation a program makes, builds every state a power failure could leave the directory in, runs the program's own recovery on each one, and says which promise broke and which lost operation broke it.</p>
+            <p>Killing the process proves very little: the operating system survives a <code>kill -9</code>, and so does every write in its page cache. A power failure is different. Whatever no <code>fsync</code> covered may be lost, kept or half-written, in any combination. A missing directory fsync, an acknowledgement sent one line too early, a checksum recovery never checks: they pass every test that doesn't model the disk.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/wal-crash">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/wal-crash#what-it-found">What it found</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.23 or newer</dd>
+              <dt>Tests</dt><dd>35 passing with <code>go test -race</code>, end to end under real strace</dd>
+              <dt>Dependencies</dt><dd>None: the Go standard library, and <code>strace</code> to record</dd>
+              <dt>Models</dt><dd><code>process</code>, <code>ordered</code> and <code>posix</code></dd>
+              <dt>Runs on</dt><dd>Linux with strace; the Makefile can run everything in Docker</dd>
+              <dt>Exit codes</dt><dd>0 if every state passed, 1 if any failed, 2 if it couldn't do the job</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="bug">Early ACK</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="ok">Correct store</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="full">SQLite FULL</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="extra">SQLite EXTRA</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">wal-crash run --model all --checker "$kv -engine log -bug ack-before-fsync -dir . check" -- $kv -engine log -bug ack-before-fsync -dir {dir} load 5</span>
+<span class="out">22 operations recorded, 5 acknowledged</span>
+<span class="out"></span>
+<span class="out">process  23 states (17 distinct) checked   PASS</span>
+<span class="out">ordered  38 states (32 distinct) checked   PASS</span>
+<span class="err">posix    64 states (52 distinct) checked   FAIL  20 of them break the checker</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of wal-crash at commit 436cd30 in its own Docker image (Go 1.25, strace 6.13, SQLite 3.46.1), output verbatim. <code>$kv</code> is the repository's small key-value store, which can switch on six planted durability bugs. The SQLite tabs run six transactions in rollback-journal mode at <code>synchronous=FULL</code> and <code>EXTRA</code>.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a workload moves through wal-crash">
+          <div class="sign-group">
+            <p>Before the line: record, model, build the states</p>
+            <ol>
+              <li><a class="sign-link" href="#s-record"><b>1</b> Record</a></li>
+              <li><a class="sign-link" href="#s-force"><b>2</b> Synced</a></li>
+              <li><a class="sign-link" href="#s-states"><b>3</b> States</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: your recovery is judged</p>
+            <ol>
+              <li><a class="sign-link" href="#s-checker"><b>4</b> Checker</a></li>
+              <li><a class="sign-link" href="#s-simplest"><b>5</b> Simplest</a></li>
+              <li><a class="sign-link" href="#s-state"><b>6</b> Look</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-record" aria-labelledby="h-record">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-record"><span class="num" data-mark="1">1</span>Record every file-system call</h2>
+          <p><code>wal-crash record</code> runs the workload under <code>strace -f -y -xx -s 64M</code>, which logs every system call with the full bytes written and the path behind every file descriptor. A parser replays that log against a model of the directory and turns it into operations.</p>
+          <ul class="st-points">
+            <li>Descriptors are shared the way the kernel shares them: <code>dup</code> and <code>fork</code> share the position, threads share the table, <code>O_APPEND</code> writes go to the end. That is how a plain <code>write()</code> gets its offset.</li>
+            <li>A call strace split in two, <code>&lt;unfinished ...&gt;</code> and <code>resumed</code>, is joined back together. Lines printed on standard output become operations too, so each acknowledgement sits at its exact place.</li>
+            <li>What it can't model is refused, not ignored: hard and symbolic links, <code>RENAME_EXCHANGE</code>, <code>O_TMPFILE</code>, <code>copy_file_range</code>, <code>sendfile</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-record" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One put, 26 strace lines, 7 operations</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="wc-rec">
+                <ol class="wc-strace" id="wc-strace"></ol>
+                <ol class="wc-ops" id="wc-rec-ops"></ol>
+              </div>
+              <div class="mini-term" id="wc-refuse"></div>
+            </div>
+            <figcaption class="demo-note">The strace lines are 53 to 78 of the repository's golden log, <code>internal/strace/testdata/kvstore-snapshot.strace</code>: the snapshot store putting <code>k1</code>. strace's <code>\x</code> escapes are decoded here for reading, and long lines are cut. The operations are the first seven of the golden <code>.ops</code> file, which CI checks the parser against. The refusals are real runs on two one-line shell workloads made for this page <span class="tag-ill">Illustrative input</span>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-force" aria-labelledby="h-force">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-force"><span class="num" data-mark="2">2</span>Work out what each fsync promised</h2>
+          <p>The file system is a set of inodes, and every operation names the inode it changes. An operation is <em>forced</em> once a sync that covers it has completed. Everything else is <em>pending</em>: it may or may not have reached the disk, independently of the others.</p>
+          <ul class="st-points">
+            <li><code>fsync</code> of a file covers that file's earlier writes and truncates.</li>
+            <li><code>fsync</code> of a directory covers earlier entry changes in it: create, rename, unlink. A rename between two directories needs both synced.</li>
+            <li><code>sync</code> covers everything.</li>
+          </ul>
+          <p class="why">Because operations name inodes, a lost operation doesn't break the ones after it. A write to a file whose creation never reached the disk lands on an inode nothing points to, which is what a real disk would hold.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-force" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The snapshot store, and the same store without its directory fsync</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="wc-cols" id="wc-force"></div>
+              <div class="legend-row"><span class="key"><i class="wc-key wc-key-p"></i>Never synced: may be lost</span><span class="key"><i class="wc-key wc-key-s"></i>A sync</span><span class="key"><i class="wc-key wc-key-a"></i>A promise to the caller</span></div>
+            </div>
+            <figcaption class="demo-note">Both columns are the first two puts of <code>wal-crash ops</code> on a real recording, five puts each. <code>ops</code> marks every operation no later sync covers as <code>(never synced)</code>; on the correct store there are none.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-states" aria-labelledby="h-states">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-states"><span class="num" data-mark="3">3</span>Build every state a crash could leave</h2>
+          <p>A crash happens after some operation. What survives depends on the persistence model, and wal-crash checks all three.</p>
+          <ul class="st-points">
+            <li><code>process</code>: the program dies and the OS doesn't. Everything before the crash is kept, in order.</li>
+            <li><code>ordered</code>: power fails on a disk that wrote in order. As <code>process</code>, but the last write may be torn.</li>
+            <li><code>posix</code>: only what fsync promised survives. Per crash point it tries everything pending kept, nothing kept, each one lost alone, each one kept alone, and each pending write torn three ways: half, short or zeros.</li>
+            <li>All subsets would be 2<sup>k</sup> states per crash point, so like ALICE and CrashMonkey this is a bounded search. States with the same files and the same output are checked once.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-states" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The log store, five puts, every state explored</p>
+              {{REPLAY}}
+            </div>
+            <div class="wc-st-tabs">
+              <div class="seg" id="wc-st-work" role="group" aria-label="Workload"></div>
+              <div class="seg" id="wc-st-model" role="group" aria-label="Model"></div>
+            </div>
+            <div class="demo-body">
+              <dl class="wc-tally" id="wc-st-tally"></dl>
+              <div class="wc-grid" id="wc-grid" role="img" aria-label="Crash states by crash point and kind"></div>
+              <div class="legend-row"><span class="key"><i class="wc-cell is-ok"></i>Checked, passed</span><span class="key"><i class="wc-cell is-bad"></i>Checked, failed</span><span class="key"><i class="wc-cell is-ok is-dup"></i>Same files and output as another state</span><span class="key"><b class="wc-ack">A</b>An acknowledgement</span></div>
+            </div>
+            <figcaption class="demo-note">Columns are crash points: after 0 to 22 of the 22 operations. Rows are the kinds of state, as wal-crash names them (<code>c5.synced</code> is "crash after op 5, only what was synced"). The states and the verdicts were listed by a scratch program added to a copy of the repository, which calls wal-crash's own explorer and runs the store's checker on every state; its counts match the <code>wal-crash run</code> output in the hero.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Recovered</span>Above this line wal-crash records the run and builds the disk states a crash could leave. Below it, the program's own recovery runs on each one, and the checker decides whether the promise held.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-checker" aria-labelledby="h-checker">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-checker"><span class="num" data-mark="4">4</span>Let the program's own recovery be judged</h2>
+          <p>wal-crash doesn't decide what correct means. A checker does: a shell command run inside each state's directory, in parallel, one temporary directory each. It opens the data the way the program does after a restart, so the recovery code runs, and exits non-zero, saying why, if something is wrong.</p>
+          <ul class="st-points">
+            <li>The workload makes a promise by printing a line that starts with <code>ACK </code>. The checker gets the promises made before the crash, and everything printed, to know what was attempted.</li>
+            <li>The usual invariant: recovery succeeds, every acknowledged write is there, and nothing is there that was never written.</li>
+            <li>The first state is checked alone, so a checker that can't run fails fast instead of thousands of times. A hung recovery counts as a failure after <code>--timeout</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-checker" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What the checker sees in state <code>c5.synced</code></p>
+              {{REPLAY}}
+            </div>
+            <dl class="wc-env" id="wc-env"></dl>
+            <div class="mini-term wc-pad" id="wc-chk"></div>
+            <figcaption class="demo-note">The variables are the README's contract. The terminal is real: the early-ACK log store's state <code>c5.synced</code> written out with <code>wal-crash state</code>, its file and its acknowledgements listed, then a run with a checker that doesn't exist, which stops after the first state with exit code 2.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-simplest" aria-labelledby="h-simplest">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-simplest"><span class="num" data-mark="5">5</span>Report the simplest failure, and the lost operation</h2>
+          <p>Of every failing state, the one reported is the simplest: the fewest operations lost or torn, then the earliest crash, then a lost operation before a torn one. Usually it is one missing operation just before an acknowledgement, which reads directly as the bug.</p>
+          <ul class="st-points">
+            <li>The lost operation is marked, with why it could be lost: no fsync of the file, or of the directory, after it.</li>
+            <li>The other failing states are grouped by their message, with the numbers taken out, so the report says how many kinds of failure there are.</li>
+            <li>With <code>-o trace.json</code>, a <code>reproduce:</code> line names the state to write out.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-simplest" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three stores, three simplest failures</p>
+              {{REPLAY}}
+            </div>
+            <div class="wc-st-tabs"><div class="seg" id="wc-sm-seg" role="group" aria-label="Workload"></div></div>
+            <p class="wc-sm-what" id="wc-sm-what"></p>
+            <div class="mini-term wc-pad wc-sm" id="wc-sm" aria-live="polite"></div>
+            <figcaption class="demo-note">Real <code>wal-crash run</code> output under the default <code>posix</code> model. The SQLite run is rollback-journal mode at <code>synchronous=NORMAL</code>; its checker opens the database with the <code>sqlite3</code> CLI, so SQLite's own hot-journal rollback runs, then requires <code>PRAGMA integrity_check</code> to say <code>ok</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-state" aria-labelledby="h-state">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-state"><span class="num" data-mark="6">6</span>Write the state out, and look at it</h2>
+          <p><code>wal-crash state</code> writes one crash state to a directory: the files as the disk would hold them, the acknowledgements and the output. Run the checker there, or open the files, and the failure happens again, outside the tool.</p>
+          <ul class="st-points">
+            <li>The skip-dir-fsync store renamed its new file into place and never synced the directory. In the state below, the rename is lost: <code>data.tmp</code> is there, <code>data</code> isn't, and k1 was acknowledged.</li>
+            <li>The SQLite <code>NORMAL</code> state shows why a corrupt database is possible: the journal's header reached the disk and one of its pages didn't.</li>
+          </ul>
+          <p class="why">SQLite's journal checksum samples one byte in 200, and on that page those bytes were zero anyway, so a page of zeros passes. Rollback restores it over a btree page. With <code>FULL</code>, the pages are synced before the header is written, so this can't happen: every <code>FULL</code> failure is a lost commit, never a corrupt database.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-state" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two states, written out</p>
+              {{REPLAY}}
+            </div>
+            <div class="mini-term wc-pad" id="wc-look"></div>
+            <div class="wc-jr" id="wc-jr"></div>
+            <figcaption class="demo-note">The first terminal is real, in the dev image. The journal records below it are state <code>c24.drop16</code> of the SQLite <code>NORMAL</code> run, written out with <code>wal-crash state</code> on this machine and decoded with a short script written for this page, which reads SQLite's documented journal format and recomputes each record's checksum. It reproduces the README's table exactly.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>SQLite 3.46.1, six transactions each acknowledged when <code>COMMIT</code> returns, under every journal mode and sync level the repository tests. Run here in the dev image; <code>make matrix</code> reproduced the committed <code>docs/matrix.txt</code> byte for byte.</p>
+        </div>
+        <div class="wc-mx panel" id="wc-mx" data-reveal></div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Agrees with SQLite's documentation</h3>
+            <p>Every row agrees with SQLite's documentation for <code>PRAGMA synchronous</code>, and every <code>off</code> row passes <code>process</code> and fails <code>posix</code>: it survives a killed program, not a power cut.</p>
+            <p><code>delete, full</code> loses the last commit because the journal's unlink, which is the commit, is never made durable by a directory fsync. That is the case SQLite gives as the reason <code>EXTRA</code> exists.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Killing the process finds one bug in six</h3>
+            <p>The key-value store's six planted bugs, each under the three models:</p>
+            <div class="tally" id="wc-kv-tally"></div>
+            <p>Only <code>write-in-place</code> fails under <code>process</code>. <code>no-crc</code> needs a torn write, and the other four need a model of what fsync promised.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What it costs</h3>
+            <p>The states grow with operations times pending ones, so it is meant for small, focused workloads.</p>
+            <div class="tally" id="wc-cost"></div>
+            <p id="wc-cost-note"></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">35 tests, against real kernel output</h2>
+          <p>Counted with <code>go test -race -json ./...</code> in the dev image, as CI's <code>make test</code> runs them: 33 test functions and the 2 subtests of the golden-trace test, all passing. The repository's README says 34 test functions; the 34th <code>func Test</code> is <code>TestMain</code>, which builds the binaries for the end-to-end tests.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the parser and the models</h3>
+            <ul>
+              <li><strong>Lexer and parser:</strong> strace's quoting, interrupted calls joined back together, positions through <code>dup</code>, <code>fork</code> and threads, <code>O_APPEND</code>, <code>writev</code>, renames between directories, and refusals.</li>
+              <li><strong>Golden traces:</strong> real strace logs from the Go store and from SQLite in WAL mode, and the operations each must produce.</li>
+              <li><strong>Model:</strong> the three torn-write shapes, renames and unlinks that tolerate lost dependencies, hashes that ignore unreachable inodes, a materialize and diff round trip.</li>
+              <li><strong>Models and enumeration:</strong> what each sync forces, a rename between two directories, and that <code>posix</code> finds a lost rename <code>process</code> and <code>ordered</code> can't.</li>
+              <li><strong>Runner and end to end:</strong> the simplest violation, deduplication, a broken checker failing fast, timeouts as failures; the real binary under strace finds the planted bug, and its <code>reproduce:</code> line writes a state that fails the same way.</li>
+            </ul>
+            <p>CI runs gofmt, vet and the tests in the dev image and on an Ubuntu host with Go 1.23 and stable, then reruns both tables and fails if a verdict or a byte of <code>docs/matrix.txt</code> changes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Exhaustiveness</dt><dd>The search is bounded. A bug that needs two particular operations lost and a third kept can be missed.</dd></div>
+              <div><dt>A real file system</dt><dd><code>posix</code> is weaker than ext4, XFS or btrfs as configured by default. A failure under it violates POSIX, but may not happen on your file system today.</dd></div>
+              <div><dt>mmap and io_uring</dt><dd>strace sees system calls, and a store through a shared mapping isn't one. Such writes are treated as never reaching the disk, with a warning.</dd></div>
+              <div><dt>Judging correctness</dt><dd>The checker does that. A weak checker, one that only opens the database, passes states a strong one would fail.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/wal-crash.git
+cd wal-crash
+make build    <span class="c"># bin/wal-crash, kvstore, sqlite-workload</span>
+make test     <span class="c"># gofmt, vet, 35 tests</span>
+make matrix   <span class="c"># both tables</span>
+
+docker run --rm -it -u $(id -u):$(id -g) -e HOME=/tmp \
+  -v $PWD:/w -w /w wal-crash-dev bash
+export PATH=$PWD/bin:$PATH kv=$PWD/bin/kvstore
+wal-crash run --model all \
+  --checker "$kv -engine log -dir . check" \
+  -- $kv -engine log -dir {dir} load 5</pre>
+            <p>The Makefile runs everything in a Docker image with Go, strace and SQLite, so Docker alone is enough. On Linux with Go 1.23 or newer and strace, <code>make build test matrix LOCAL=1</code> skips Docker.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

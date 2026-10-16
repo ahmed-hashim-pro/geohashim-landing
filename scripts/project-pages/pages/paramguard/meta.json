@@ -1,0 +1,9 @@
+{
+  "title": "paramguard · Ahmed Hashim",
+  "description": "A CI check for PX4 and ArduPilot parameter files that compares what the vehicle will actually run, checks it against the firmware's own metadata and rules with reasons, and blocks the pull request until a named person accepts the change. How it works end to end, with real runs and a SITL flight.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the flight"
+  }
+}

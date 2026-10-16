@@ -1,0 +1,381 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">terrain-follow</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A checker and planner for drone missions over hills. For every leg it proves a lower bound on the clearance above the terrain, counting the error in the elevation data, in the vehicle's altitude and in how far off the line it may fly. A leg it can't prove is refused, and <code>plan</code> raises the mission until every leg is proven.</p>
+            <p>Ground stations give mission altitudes relative to home by default, so "60 m" means 60 m above the take-off point. Where the ground rises along the way, that is a line drawn into the hillside, and a multicopter without a rangefinder flies it there. Checking the terrain under the waypoints, or every so many metres along the line, can miss the high point between samples, the ridge beside the line, and the few metres the elevation data itself is wrong by.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/terrain-follow">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/terrain-follow#how-the-bound-works">How the bound works</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11 or newer, no dependencies</dd>
+              <dt>Tests</dt><dd>237 passing with <code>pytest</code>, on Python 3.11, 3.12 and 3.13</dd>
+              <dt>Bound</dt><dd>The exact maximum of the elevation surface over each 5 m piece's corridor</dd>
+              <dt>Budget</dt><dd>30 m clearance after 4 m DEM, 5 m altitude and 10 m cross-track error, by default</dd>
+              <dt>Missions</dt><dd>QGroundControl <code>.plan</code> files, or CSV</dd>
+              <dt>Flown</dt><dd>PX4 v1.15.4 software-in-the-loop with Gazebo Classic, over the same terrain</dd>
+              <dt>License</dt><dd>MIT; the elevation clip is Copernicus data</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="check">Refused</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="plan">Plan</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="mutants">Mutants</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="bad">Bad input</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">terrain-follow check examples/delivery.plan --dem data/zurich-cop30.asc</span>
+<span class="out">DEM     data/zurich-cop30.asc: 180 x 288 posts about 31 x 21 m apart, elevation 399-729 m</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of terrain-follow 0.1.0, output verbatim. <code>delivery.plan</code> is the repo's example: a 3.7 km delivery from PX4's default simulator home in Zurich, at 60 m above home. The elevation data is the repo's clip of the Copernicus GLO-30 DEM. <code>terrain-frame.plan</code> in the last tab is <span class="tag-ill">Illustrative input</span>: the same mission with one waypoint switched to QGroundControl's terrain frame.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a mission is checked">
+          <div class="sign-group">
+            <p>On the ground: read, bound, test</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-max"><b>2</b> Terrain</a></li>
+              <li><a class="sign-link" href="#s-bound"><b>3</b> Bound</a></li>
+              <li><a class="sign-link" href="#s-test"><b>4</b> Test</a></li>
+              <li><a class="sign-link" href="#s-refuse"><b>5</b> Refuse</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a mission proven clear</p>
+            <ol>
+              <li><a class="sign-link" href="#s-raise"><b>6</b> Raise</a></li>
+              <li><a class="sign-link" href="#s-fly"><b>7</b> Fly</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read the mission the way PX4 flies it</h2>
+          <p>A mission file is a list of items, and the checker needs the path the vehicle actually flies through them. terrain-follow reads QGroundControl <code>.plan</code> files and a small CSV, and models what each item means to a PX4 multicopter.</p>
+          <ul class="st-points">
+            <li>Takeoff climbs straight up, a waypoint is a straight line in three dimensions, and a landing descends straight down. RTL climbs to 60 m above home if it is lower, then flies home level.</li>
+            <li>Relative altitudes become AMSL with the plan's home altitude, <code>--home-alt</code>, or the DEM at home. Items that don't move the vehicle, like a speed change, pass through.</li>
+            <li>Terrain-relative frames are refused, because their real altitude depends on the terrain data the ground station had. So are survey items, and a landing that isn't straight below the last waypoint.</li>
+          </ul>
+          <p class="why">A leg it can't model is a leg it can't prove. It names the item and the reason instead of guessing.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six missions, read as legs or refused</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tf-chips" id="tf-chips" role="group" aria-label="Mission file"></div>
+              <ol class="tf-items" id="tf-items" aria-label="The mission's items"></ol>
+              <div class="cli"><pre class="tf-tab" id="tf-read-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note"><code>delivery.plan</code> is the repo's example. The other five are <span class="tag-ill">Illustrative input</span>, written for this page as small edits of it. The item list is a summary of each file; the output is what <code>terrain-follow check</code> printed, with its three header lines left out where there is a table.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-max" aria-labelledby="h-max">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-max"><span class="num" data-mark="2">2</span>Take the exact maximum, not samples</h2>
+          <p>Between elevation posts, the terrain is the bilinear interpolation of the four posts around it. A bilinear patch is linear along each axis, so over a rectangle inside one cell its maximum is at one of the rectangle's corners. Clip the corridor's box to every cell it touches, evaluate the corners, and the largest is the exact maximum of the surface over the box.</p>
+          <ul class="st-points">
+            <li>No samples, so nothing between samples to miss: not a peak between posts, and not a ridge just beside the line.</li>
+            <li>The corridor is everywhere within <code>--horizontal-error</code> (10 m) of the piece. Metres become degrees with the WGS84 radii at that latitude, rounded up by 0.1% so a corridor never shrinks.</li>
+            <li>The real ground may be up to <code>--dem-error</code> above the surface: 4 m is the Copernicus GLO-30 specification at LE90.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-max" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One 5 m piece of the refused leg</p>
+              <div class="seg" role="group" aria-label="Terrain under the piece">
+                <button type="button" data-max="exact" aria-pressed="true">Exact maximum</button>
+                <button type="button" data-max="post" aria-pressed="false">Nearest post</button>
+                <button type="button" data-max="line" aria-pressed="false">Centre line</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="tf-grid-wrap"><svg id="tf-max-svg" role="img" aria-label="Four by four elevation posts, a 5 m piece of the flight line, the 10 m corridor box around it, and the corners where the surface is evaluated"></svg></div>
+            <p class="tf-readout tf-pad" id="tf-max-read" aria-live="polite"></p>
+            <figcaption class="demo-note">Real posts from <code>data/zurich-cop30.asc</code>, 21 m apart east to west and 31 m north to south, around piece 461 of 487 on leg 3 to 4, 2.3 km into the leg. The box, the corners and their values come from the repo's own <code>DEM</code> class, run in a scratch script. The box holds no post at all, so the nearest-post mutant falls back to the closest one.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-bound" aria-labelledby="h-bound">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-bound"><span class="num" data-mark="3">3</span>Count every error, then take the smallest</h2>
+          <p>Each leg is cut into pieces no longer than 5 m. On a piece the planned altitude is at least the lower of its two ends, the vehicle may be 5 m below that, and the ground may be 4 m above the surface's maximum over the corridor. The leg's proven clearance is the smallest of these over its pieces.</p>
+          <pre class="tf-formula">clearance &gt;= min(altitude at the ends) - max(DEM over the box) - dem_error - alt_error</pre>
+          <ul class="st-points">
+            <li>On the refused leg the bound is 9.5 m below the plain centre-line clearance: 9 m of errors, and half a metre of higher ground within 10 m of the line.</li>
+            <li>Below the required 30 m, the leg is refused. The checker also says where the line itself enters the terrain: 842 m into leg 3 to 4, which is 2.15 km along the path.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-bound" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The delivery as planned, 60 m above home</p>
+              <div class="seg" role="group" aria-label="Show">
+                <button type="button" data-lay="0" aria-pressed="false">Centre line</button>
+                <button type="button" data-lay="1" aria-pressed="false">+ corridor</button>
+                <button type="button" data-lay="2" aria-pressed="false">+ errors</button>
+                <button type="button" data-lay="3" aria-pressed="true">+ 30 m required</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="tf-plot"><svg id="tf-bound-svg" role="img" aria-label="Side view: the flat flight line at 548.5 m runs into rising ground about 2.1 km along; the terrain line, the corridor maximum and the lowest provable altitude are drawn above the ground"></svg></div>
+            <div class="legend-row tf-pad" id="tf-bound-key"></div>
+            <div class="tf-legs tf-pad" id="tf-bound-legs" aria-live="polite"></div>
+            <figcaption class="demo-note">Every point is from <code>check(keep_profile=True)</code> on <code>delivery.plan</code>, the profile the CLI draws with <code>terrain-follow profile</code>, taken every 10 m. Proven and centre-line figures are the CLI's.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-test" aria-labelledby="h-test">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-test"><span class="num" data-mark="4">4</span>Try to break the bound</h2>
+          <p>A sound bound is never above the true minimum clearance. <code>terrain-follow mutants</code> makes random cases, a small rough DEM with hills and noise, a leg over it and a random budget, and compares the bound with a brute-force search that samples the corridor every metre along and on a grid across. Sampling can only miss low points, so a correct checker is never above it.</p>
+          <ul class="st-points">
+            <li>Six plausible ways of computing "the clearance" each overstate it somewhere, and are caught, five of them on the first seed.</li>
+            <li>The bound sits 1.5 m below dense sampling on average. That is the price of being sound, and a test keeps it under 5 m so the bound can't go vacuous.</li>
+            <li><code>pytest</code> runs the property on 150 fixed seeds, and under Hypothesis with any piece length from 0.5 to 20 m. CI also runs 1,000 seeds on every push.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-test" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Cases where each variant claims more clearance than there is</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tf-mut" id="tf-mut"></div>
+            </div>
+            <figcaption class="demo-note"><code>terrain-follow mutants --seeds 1000</code>, the command CI runs, output read straight off the table: overstated cases out of 1,000, and the first seed that caught each one.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-refuse" aria-labelledby="h-refuse">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-refuse"><span class="num" data-mark="5">5</span>Refuse what it can't prove</h2>
+          <p>This is the line. A mission goes on only if every leg is proven to clear the terrain by the required margin. Anything short of that exits 1 and names the leg. The budget is a set of flags, so whoever flies the mission states it.</p>
+          <ul class="st-points">
+            <li>Exit 0 is proven, 1 refused, 2 bad input. A leg whose corridor leaves the DEM is refused as "cannot be checked".</li>
+            <li>A tighter budget can only lower the bound, so the same mission can go from proven to refused.</li>
+            <li>The defaults are a stated budget, not a measurement of anyone's aircraft. At LE90, one post in ten may be off by more than 4 m.</li>
+          </ul>
+          <p class="why">The bound holds for the DEM plus the errors you state. A mast, a crane or trees that grew since 2015 aren't in the DEM, and no margin fixes that.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-refuse" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The planned mission under four budgets</p>
+              <div class="seg" role="group" aria-label="Budget">
+                <button type="button" data-bud="0" aria-pressed="true">Default</button>
+                <button type="button" data-bud="1" aria-pressed="false">--clearance 40</button>
+                <button type="button" data-bud="2" aria-pressed="false">--dem-error 10</button>
+                <button type="button" data-bud="3" aria-pressed="false">--horizontal-error 30</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="cli"><pre class="tf-tab" id="tf-ref-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">Real runs of <code>terrain-follow check examples/delivery-planned.plan --dem data/zurich-cop30.asc</code> with each flag, header lines left out; the exit code is the shell's. The first is the default budget.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line terrain-follow reads the mission and proves each leg against the terrain. Below it, only a mission whose every leg is proven goes on, and it is flown.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-raise" aria-labelledby="h-raise">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-raise"><span class="num" data-mark="6">6</span>Raise the mission until every leg is proven</h2>
+          <p><code>terrain-follow plan</code> keeps the horizontal path exactly as planned. Only altitudes change, and only upwards. The result is written with AMSL altitudes and checked again, leg by leg, by the same checker.</p>
+          <ul class="st-points">
+            <li>Each 5 m piece gets a floor: the exact maximum over its corridor widened by one more piece length, plus the errors and the 30 m.</li>
+            <li>Climbs move earlier and descents later until none is steeper than 0.15 m per metre flown. At 12 m/s that is a 1.8 m/s climb, inside PX4's default 3 m/s.</li>
+            <li>From each kept point it takes the farthest point a straight line can reach while staying on or above the profile, if that costs at most <code>--slack</code> of extra altitude. A landing gets a waypoint straight above it.</li>
+          </ul>
+          <p class="why">The extra piece length is what makes the final check pass by construction: any piece the checker cuts lies inside the widened box of every planner piece it touches. The check still runs.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-raise" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Planned, at three settings of <code>--slack</code></p>
+              <div class="seg" role="group" aria-label="--slack">
+                <button type="button" data-slack="0" aria-pressed="false">0 m</button>
+                <button type="button" data-slack="1" aria-pressed="true">15 m, the default</button>
+                <button type="button" data-slack="2" aria-pressed="false">50 m</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="tf-plot"><svg id="tf-raise-svg" role="img" aria-label="Side view: the original flat line, the lowest provable altitude, and the planned line that climbs from 1.3 km and stays above it to the drop point"></svg></div>
+            <div class="legend-row tf-pad" id="tf-raise-key"></div>
+            <p class="tf-readout tf-pad" id="tf-raise-read" aria-live="polite"></p>
+            <figcaption class="demo-note">Waypoints are from the <code>.plan</code> files <code>terrain-follow plan</code> wrote with each setting; 15 m gives the repo's <code>examples/delivery-planned.plan</code> byte for byte. The dashed line is the corridor maximum plus 39 m, as the CLI's profile draws it.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-fly" aria-labelledby="h-fly">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-fly"><span class="num" data-mark="7">7</span>Fly both in PX4 SITL</h2>
+          <p>Both missions are flown in PX4 v1.15.4 software-in-the-loop with Gazebo Classic, over a world built from the same DEM. Every post is a vertex of the ground mesh, placed with the projection Gazebo's GPS simulator uses, so the vehicle's GPS reports a post's own coordinates over it. PX4 flies each <code>.plan</code> as uploaded.</p>
+          <ul class="st-points">
+            <li>Everything is measured from the vehicle's own position estimate against the DEM, by <code>sitl/analyze.py</code>.</li>
+            <li>CI flies both missions on every push and fails if any of the README's claims stops holding: the original hits the hillside, the planned one lands at the drop point with at least 30 m measured clearance, within the 10 m and 5 m budgets.</li>
+          </ul>
+          <p class="why" id="tf-fly-why"></p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-fly" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two flights, measured from telemetry</p>
+              <div class="seg" role="group" aria-label="Flight">
+                <button type="button" data-fly="original" aria-pressed="false">As planned</button>
+                <button type="button" data-fly="planned" aria-pressed="true">After plan</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="tf-plot"><svg id="tf-fly-svg" role="img" aria-label="Side view of a SITL flight over the terrain"></svg></div>
+            <div class="legend-row tf-pad" id="tf-fly-key"></div>
+            <div class="tf-pad"><dl class="tf-stats" id="tf-fly-stats" aria-live="polite"></dl></div>
+            <figcaption class="demo-note" id="tf-fly-note"></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>What the checker predicted, set against both missions flown in PX4 SITL on this machine, and what the checks cost. The README's own run, from the same commit, gave the same contact point and the same lowest clearance.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Where the line meets the hill</h3>
+            <p>The checker said the original line enters the terrain 842 m into its second leg, 2.15 km along the path. In SITL the vehicle made contact at 2.14 km.</p>
+            <div class="tally"><span>Predicted 2.15 km</span><span>Contact 2.14 km</span></div>
+          </article>
+          <article class="panel m-card">
+            <h3>Proven, then flown</h3>
+            <p>The planned mission was proven to keep at least 30.1 m. Flown, its lowest clearance over the DEM was higher, because SITL spends little of the 9 m error budget.</p>
+            <div class="bars" id="tf-m-bars">
+              <div class="bar-row"><span>Proven</span><span class="bar"><i style="--w:75.8%"></i></span><span>30.1 m</span></div>
+              <div class="bar-row"><span>Measured</span><span class="bar"><i style="--w:100%"></i></span><span>39.7 m</span></div>
+            </div>
+            <p>The simulated ground is the DEM, so the DEM error is zero, and PX4 stayed within 2.21 m of the line sideways and 0.36 m below it.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Fast enough for every push</h3>
+            <p>On this machine with Python 3.12, while other jobs kept it busy:</p>
+            <div class="tally"><span>237 tests 6.2 s</span><span>1,000 seeds 11.5 s</span></div>
+            <p>The README says about 10 s and 11.8 s. Each seed checks the bound and six mutants against a brute-force search of the corridor.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">237 tests, most of them the property</h2>
+          <p>Counted with <code>pytest -q</code>: 237 passed on Python 3.11, 3.12 and 3.13. 190 of them are two properties run over many inputs: soundness on 150 seeds, and the exact box maximum on 40 random grids.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the claim</h3>
+            <ul>
+              <li><strong>Soundness:</strong> never above the brute-force minimum on 150 seeds, and on 60 Hypothesis examples with any piece length from 0.5 to 20 m; every mutant caught in 120 cases; the bound within 5 m of sampling on average.</li>
+              <li><strong>The surface:</strong> the box maximum is never below a 61 by 61 sample of the box on 40 random grids, a peak beside the line counts, and no-data posts and boxes leaving the grid are refused.</li>
+              <li><strong>The planner:</strong> the example raised until proven, altitudes only ever raised, nine combinations of gradient and clearance, and fewer waypoints with more slack.</li>
+              <li><strong>Missions:</strong> terrain frames and survey items refused, RTL climbing to its altitude, a landing away from the last waypoint left unproven, CSV and <code>.plan</code> round trips.</li>
+              <li><strong>The CLI:</strong> exit codes, and a tighter budget flipping the planned mission to refused.</li>
+            </ul>
+            <p>CI also runs ruff, mypy, 1,000 mutant seeds, a check that the planned example and the README profile match what the code makes, and the SITL flights. Run 38665143703 on cd490b4 passed every job; the SITL job took 13 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Obstacles the DEM doesn't have</dt><dd>Copernicus data is from 2011 to 2015. Masts, cranes, power lines and grown trees aren't in it, and a DEM that misses a mast can't be corrected by a margin.</dd></div>
+              <div><dt>Terrain-relative altitudes</dt><dd>QGroundControl's terrain frames depend on the terrain data the ground station had. Those items are refused.</dd></div>
+              <div><dt>Takeoff and landing</dt><dd>The climb leaves the ground and the final descent ends on it, on purpose. Neither is a leg to prove.</dd></div>
+              <div><dt>Fixed-wing flight</dt><dd>No turn radius, loiter circles or fixed-wing climb limits; corners are covered only by the cross-track budget.</dd></div>
+              <div><dt>A geoid</dt><dd>Altitudes are compared as given. A receiver on another geoid model can differ by a metre or so, which belongs in <code>--alt-error</code>.</dd></div>
+              <div><dt>Real hardware</dt><dd>The flights are SITL only, over a mesh made from the same DEM.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/terrain-follow &amp;&amp; cd terrain-follow
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+
+terrain-follow check examples/delivery.plan --dem data/zurich-cop30.asc
+terrain-follow plan  examples/delivery.plan --dem data/zurich-cop30.asc -o safe.plan
+terrain-follow check safe.plan --dem data/zurich-cop30.asc
+terrain-follow mutants --seeds 300
+
+<span class="c"># The suite, then the SITL flights (Docker, about 5 GB).</span>
+pytest -q
+make sitl</pre>
+            <p>Python 3.11 or newer and nothing else at run time. Any DEM in geographic coordinates that GDAL can read works, clipped to an ESRI ASCII grid.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

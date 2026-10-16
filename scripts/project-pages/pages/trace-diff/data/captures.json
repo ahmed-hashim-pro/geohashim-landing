@@ -1,0 +1,1069 @@
+{
+ "report": {
+  "cmd": "trace-diff check examples/shop/before.jsonl.gz examples/shop/after.jsonl.gz",
+  "out": [
+   "before: examples/shop/before.jsonl.gz, 300 traces, 2128 spans",
+   "after:  examples/shop/after.jsonl.gz, 300 traces, 4203 spans",
+   "",
+   "endpoint                   requests     median ms        p95 ms",
+   "frontend GET /orders/{id}  300 → 300    9.69 → 9.52      73.4 → 50.3",
+   "",
+   "FAIL  n-plus-one  frontend GET /orders/{id}",
+   "      repeated per request: orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "      new: in 100% of requests, up to 50 calls each (median 5, p95 9), one after another",
+   "      replaces SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id (1 call per request before, gone after)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.13 ms median, 0.37 ms p95",
+   "      trace after  08f7b4dbb263f116221d9c87ef3ef9b2  50 calls",
+   "      trace after  d322190dec4fa55e9a8508da05719035  typical, 5 calls",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, no such call",
+   "",
+   "FAIL  retry-storm  frontend GET /orders/{id}",
+   "      retries: frontend · client · GET pricing:8080 /quote/{n} → pricing GET /quote/{order}",
+   "      requests with a retry: 0% before, 10% after",
+   "      attempts per request where called: mean 1.00 before, 1.11 after (max 3)",
+   "      called from frontend · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 9.00 ms median, 49.7 ms p95",
+   "      trace after  29974935e470596f305343263f6851dc  3 attempts, 2 retries",
+   "      trace after  ab6f33fa44c095debb23d0f5fb7b26d7  typical, 2 attempts",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, 1 call",
+   "",
+   "FAIL  new-sync-call  frontend GET /orders/{id}",
+   "      new call: orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "      in 100% of requests, 1 call each (median)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.05 ms median, 0.09 ms p95",
+   "      trace after  01111bbeeb8e4a4554dd2f2855accad2  1 call",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, no such call",
+   "",
+   "3 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "rerun": {
+  "cmd": "trace-diff check examples/shop/before.jsonl.gz examples/shop/rerun.jsonl.gz",
+  "out": [
+   "before: examples/shop/before.jsonl.gz, 300 traces, 2128 spans",
+   "after:  examples/shop/rerun.jsonl.gz, 300 traces, 2126 spans",
+   "",
+   "endpoint                   requests     median ms        p95 ms",
+   "frontend GET /orders/{id}  300 → 300    9.69 → 9.79      73.4 → 68.5",
+   "",
+   "no structural changes found",
+   "0 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 0
+ },
+ "diffAfter": {
+  "cmd": "trace-diff diff examples/shop/before.jsonl.gz examples/shop/after.jsonl.gz",
+  "out": [
+   "before: examples/shop/before.jsonl.gz, 300 traces, 2128 spans",
+   "after:  examples/shop/after.jsonl.gz, 300 traces, 4203 spans",
+   "",
+   "endpoint                   requests     median ms        p95 ms",
+   "frontend GET /orders/{id}  300 → 300    9.69 → 9.52      73.4 → 50.3",
+   "",
+   "FAIL  n-plus-one  frontend GET /orders/{id}",
+   "      repeated per request: orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "      new: in 100% of requests, up to 50 calls each (median 5, p95 9), one after another",
+   "      replaces SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id (1 call per request before, gone after)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.13 ms median, 0.37 ms p95",
+   "      trace after  08f7b4dbb263f116221d9c87ef3ef9b2  50 calls",
+   "      trace after  d322190dec4fa55e9a8508da05719035  typical, 5 calls",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, no such call",
+   "",
+   "FAIL  retry-storm  frontend GET /orders/{id}",
+   "      retries: frontend · client · GET pricing:8080 /quote/{n} → pricing GET /quote/{order}",
+   "      requests with a retry: 0% before, 10% after",
+   "      attempts per request where called: mean 1.00 before, 1.11 after (max 3)",
+   "      called from frontend · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 9.00 ms median, 49.7 ms p95",
+   "      trace after  29974935e470596f305343263f6851dc  3 attempts, 2 retries",
+   "      trace after  ab6f33fa44c095debb23d0f5fb7b26d7  typical, 2 attempts",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, 1 call",
+   "",
+   "FAIL  new-sync-call  frontend GET /orders/{id}",
+   "      new call: orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "      in 100% of requests, 1 call each (median)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.05 ms median, 0.09 ms p95",
+   "      trace after  01111bbeeb8e4a4554dd2f2855accad2  1 call",
+   "      trace before 223fb023e8f229999614a3f2e1d7706c  median request, no such call",
+   "",
+   "3 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 0
+ },
+ "summaryAfter": {
+  "cmd": "trace-diff summary examples/shop/after.jsonl.gz",
+  "out": [
+   "examples/shop/after.jsonl.gz: 300 traces, 4203 spans",
+   "",
+   "frontend GET /orders/{id}  300 requests, median 9.52 ms, p95 50.29 ms",
+   "  requests  median max    calls per request",
+   "  100%      1      1      frontend · client · GET orders:8080 /orders/{n}",
+   "  100%      1      3      frontend · client · GET pricing:8080 /quote/{n}",
+   "  100%      1      1      frontend · server · GET /orders/{id}",
+   "  100%      1      1      orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "  100%      1      1      orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "  100%      5      50     orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "  100%      1      1      orders · server · GET /orders/{id}",
+   "  10%       0      2      pricing · internal · fetch rates",
+   "  100%      1      3      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "summaryBefore": {
+  "cmd": "trace-diff summary examples/shop/before.jsonl.gz",
+  "out": [
+   "examples/shop/before.jsonl.gz: 300 traces, 2128 spans",
+   "",
+   "frontend GET /orders/{id}  300 requests, median 9.69 ms, p95 73.38 ms",
+   "  requests  median max    calls per request",
+   "  100%      1      1      frontend · client · GET orders:8080 /orders/{n}",
+   "  100%      1      1      frontend · client · GET pricing:8080 /quote/{n}",
+   "  100%      1      1      frontend · server · GET /orders/{id}",
+   "  100%      1      1      orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "  100%      1      1      orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "  100%      1      1      orders · server · GET /orders/{id}",
+   "  9%        0      1      pricing · internal · fetch rates",
+   "  100%      1      1      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "showN1": {
+  "cmd": "trace-diff show examples/shop/after.jsonl.gz 08f7b4dbb263",
+  "out": [
+   "trace 08f7b4dbb263f116221d9c87ef3ef9b2  frontend GET /orders/{id}  12.3 ms, 57 spans",
+   "    0.00     12.3  frontend · server · GET /orders/{id}",
+   "    0.01     1.73    frontend · client · GET orders:8080 /orders/{n}",
+   "    0.07     1.63      orders · server · GET /orders/{id}",
+   "    0.07     0.12        orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "    0.19     0.07        orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "    0.27     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.31     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.33     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.35     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.36     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.38     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.40     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.42     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.45     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.47     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.49     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.51     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.53     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.55     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.57     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.59     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.61     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.63     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.65     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.67     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.69     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.71     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.89     0.10        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.00     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.03     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.07     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.09     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.12     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.15     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.18     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.20     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.22     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.24     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.26     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.28     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.30     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.32     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.33     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.35     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.37     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.40     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.42     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.45     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.48     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.50     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.52     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.54     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.56     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.58     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.61     0.06        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    1.79     10.4    frontend · client · GET pricing:8080 /quote/{n}",
+   "    1.84     10.3      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "showRetry": {
+  "cmd": "trace-diff show examples/shop/after.jsonl.gz 29974935",
+  "out": [
+   "trace 29974935e470596f305343263f6851dc  frontend GET /orders/{id}  87.1 ms, 15 spans",
+   "    0.00     87.1  frontend · server · GET /orders/{id}",
+   "    0.01     0.24    frontend · client · GET orders:8080 /orders/{n}",
+   "    0.06     0.15      orders · server · GET /orders/{id}",
+   "    0.07     0.06        orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "    0.13     0.04        orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "    0.17     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.19     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.26     40.2    frontend · client · GET pricing:8080 /quote/{n}  ERROR",
+   "    0.31     66.7      pricing · server · GET /quote/{order}",
+   "    0.31     59.0        pricing · internal · fetch rates",
+   "    40.5     40.2    frontend · client · GET pricing:8080 /quote/{n}  ERROR",
+   "    40.5     77.7      pricing · server · GET /quote/{order}",
+   "    40.5     62.5        pricing · internal · fetch rates",
+   "    80.6     6.42    frontend · client · GET pricing:8080 /quote/{n}",
+   "    81.0     5.92      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "showTypical": {
+  "cmd": "trace-diff show examples/shop/after.jsonl.gz d322190d",
+  "out": [
+   "trace d322190dec4fa55e9a8508da05719035  frontend GET /orders/{id}  10.1 ms, 12 spans",
+   "    0.00     10.1  frontend · server · GET /orders/{id}",
+   "    0.01     0.39    frontend · client · GET orders:8080 /orders/{n}",
+   "    0.06     0.31      orders · server · GET /orders/{id}",
+   "    0.07     0.09        orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "    0.17     0.05        orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "    0.22     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.26     0.03        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.29     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.31     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.34     0.02        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "    0.42     9.70    frontend · client · GET pricing:8080 /quote/{n}",
+   "    0.46     9.60      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "showBefore": {
+  "cmd": "trace-diff show examples/shop/before.jsonl.gz 223fb023",
+  "out": [
+   "trace 223fb023e8f229999614a3f2e1d7706c  frontend GET /orders/{id}  9.68 ms, 7 spans",
+   "    0.00     9.68  frontend · server · GET /orders/{id}",
+   "    0.01     0.25    frontend · client · GET orders:8080 /orders/{n}",
+   "    0.08     0.15      orders · server · GET /orders/{id}",
+   "    0.08     0.08        orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "    0.16     0.05        orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "    0.28     9.37    frontend · client · GET pricing:8080 /quote/{n}",
+   "    0.34     9.21      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "errArgs": {
+  "cmd": "trace-diff check examples/shop/before.jsonl.gz",
+  "out": [
+   "trace-diff: need two files: BEFORE AFTER"
+  ],
+  "exit": 2
+ },
+ "errFile": {
+  "cmd": "trace-diff check examples/shop/before.jsonl.gz README.md",
+  "out": [
+   "trace-diff: README.md: object 1: invalid character '#' looking for beginning of value"
+  ],
+  "exit": 2
+ },
+ "errFail": {
+  "cmd": "trace-diff check examples/shop/before.jsonl.gz examples/shop/after.jsonl.gz --fail-on maybe",
+  "out": [
+   "trace-diff: --fail-on must be fail or warn, not \"maybe\""
+  ],
+  "exit": 2
+ },
+ "version": {
+  "cmd": "trace-diff version",
+  "out": [
+   "trace-diff 0.1.0"
+  ],
+  "exit": 0
+ },
+ "synthList": {
+  "cmd": "trace-diff synth",
+  "out": [
+   "scenarios:",
+   "  none           no change: two runs of the same code",
+   "  n-plus-one     orders loads each item with its own query",
+   "  new-sync-call  orders checks stock with the inventory service before answering",
+   "  new-hop        the users lookup moves from the gateway to the orders service",
+   "  retry-storm    the gateway retries pricing with a timeout that 25% of calls exceed",
+   "  fan-out        pricing asks 8 rate shards in parallel instead of 2",
+   "  latency        the orders lookup loses its index: the query takes 4x as long",
+   "  drift          small real shifts that should not be reported: the pricing cache hits 64% instead of 70%, user lookups take 8% longer, payments are retried on 4% of checkouts instead of 3%"
+  ],
+  "exit": 0
+ },
+ "sc-n-plus-one": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/n-plus-one/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/n-plus-one/after.jsonl, 300 traces, 4981 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 17      0.11 → 0.11      0.22 → 0.16",
+   "gateway GET /orders       112 → 38     15.4 → 12.9      36.4 → 31.6",
+   "gateway GET /orders/{id}  120 → 170    13.2 → 15.0      17.9 → 33.1",
+   "gateway POST /checkout    47 → 75      37.9 → 35.9      53.6 → 55.7",
+   "",
+   "FAIL  n-plus-one  gateway GET /orders/{id}",
+   "      repeated per request: orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "      new: in 100% of requests, up to 50 calls each (median 3, p95 14), one after another",
+   "      replaces SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? (1 call per request before, gone after)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 1.61 ms median, 8.81 ms p95",
+   "      trace after  551b1d54c0d95d934c5750d6f00c285c  50 calls",
+   "      trace after  19b05cda15be42ff87d15facc1166756  typical, 3 calls",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request, no such call",
+   "",
+   "FAIL  new-sync-call  gateway GET /orders/{id}",
+   "      new call: orders · db · SELECT id FROM order_items WHERE order_id = ?",
+   "      in 100% of requests, 1 call each (median)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.75 ms median, 1.33 ms p95",
+   "      trace after  024d7631248f940c66d6c96ec1465eab  1 call",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request, no such call",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 17 after, need 20 each",
+   "",
+   "2 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "sc-fan-out": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/fan-out/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/fan-out/after.jsonl, 300 traces, 6213 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 14      0.11 → 0.11      0.22 → 0.15",
+   "gateway GET /orders       112 → 56     15.4 → 16.3      36.4 → 40.7",
+   "gateway GET /orders/{id}  120 → 151    13.2 → 14.2      17.9 → 18.1",
+   "gateway POST /checkout    47 → 79      37.9 → 38.4      53.6 → 55.3",
+   "",
+   "FAIL  fan-out  gateway GET /orders/{id}",
+   "      repeated per request: pricing · client · GET rates /shards/{n}/rates → rates GET /shards/{shard}/rates",
+   "      calls per request: median 2 → 8, p95 2 → 8, max 2 → 8, in parallel, 8 at once (median)",
+   "      called from pricing · server · GET /quote/{order}",
+   "      the request waits on it in 100% of those requests: 3.81 ms median, 4.96 ms p95",
+   "      with rates · server · GET /shards/{shard}/rates (more-calls)",
+   "      trace after  0188dcc2a1e3a3a610f270d3eece11aa  8 calls",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request, 2 calls",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 14 after, need 20 each",
+   "",
+   "1 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "sc-retry-storm": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/retry-storm/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/retry-storm/after.jsonl, 300 traces, 4345 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 12      0.11 → 0.10      0.22 → 0.18",
+   "gateway GET /orders       112 → 25     15.4 → 21.8      36.4 → 43.1",
+   "gateway GET /orders/{id}  120 → 194    13.2 → 14.3      17.9 → 63.1",
+   "gateway POST /checkout    47 → 69      37.9 → 34.7      53.6 → 64.0",
+   "",
+   "FAIL  retry-storm  gateway GET /orders/{id}",
+   "      retries: gateway · client · GET pricing /quote/{n} → pricing GET /quote/{order}",
+   "      requests with a retry: 0% before, 24% after",
+   "      attempts per request where called: mean 1.00 before, 1.30 after (max 3)",
+   "      called from gateway · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 5.54 ms median, 55.1 ms p95",
+   "      trace after  35717c4fa84b13d32c199fb2ae243d2d  3 attempts, 2 retries",
+   "      trace after  d052a3021782903ab721faa6fa132300  typical, 2 attempts",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request, 1 call",
+   "",
+   "FAIL  latency  gateway GET /orders/{id}",
+   "      request latency",
+   "      median 13.2 → 14.3 ms (+8%), p95 17.9 → 63.1 ms (+252%); 29% of requests now slower than the old p95",
+   "      +9.62 ms mean on the critical path: gateway · client · GET pricing /quote/{n}",
+   "      trace before 6bc4edd4ceedfd1372e572fc39f34d7e  p95 request",
+   "      trace after  926028ed2f6a09d9f3a1df89d1c450aa  p95 request",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 12 after, need 20 each",
+   "",
+   "2 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "sc-latency": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/latency/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/latency/after.jsonl, 300 traces, 4290 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 6       0.11 → 0.12      0.22 → 0.20",
+   "gateway GET /orders       112 → 42     15.4 → 15.8      36.4 → 30.8",
+   "gateway GET /orders/{id}  120 → 170    13.2 → 20.0      17.9 → 27.2",
+   "gateway POST /checkout    47 → 82      37.9 → 35.7      53.6 → 58.8",
+   "",
+   "FAIL  latency  gateway GET /orders/{id}",
+   "      request latency",
+   "      median 13.2 → 20.0 ms (+51%), p95 17.9 → 27.2 ms (+52%); 76% of requests now slower than the old p95",
+   "      +6.67 ms mean on the critical path: orders · db · SELECT id, user_id, status FROM orders WHERE id = ?",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request",
+   "      trace after  1522bc28f72fe282217f46ac90ad12fe  median request",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 6 after, need 20 each",
+   "",
+   "1 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "sc-new-hop": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/new-hop/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/new-hop/after.jsonl, 300 traces, 4183 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 18      0.11 → 0.12      0.22 → 0.21",
+   "gateway GET /orders       112 → 44     15.4 → 14.7      36.4 → 36.6",
+   "gateway GET /orders/{id}  120 → 164    13.2 → 13.6      17.9 → 16.9",
+   "gateway POST /checkout    47 → 74      37.9 → 35.8      53.6 → 60.9",
+   "",
+   "FAIL  new-sync-call  gateway GET /orders/{id}",
+   "      new call: orders · client · GET users /users/{n} → users GET /users/{id}",
+   "      in 100% of requests, 1 call each (median)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 2.49 ms median, 3.46 ms p95",
+   "      trace after  00162de1cca02f98a6c5c0f6e982ae5a  1 call",
+   "      trace before 065e8d91fe98cfde256ab1f898abe3fe  median request, no such call",
+   "",
+   "INFO  removed-call  gateway GET /orders/{id}",
+   "      called less: gateway · client · GET users /users/{n} → users GET /users/{id}",
+   "      in 100% of requests before, 0% after",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 18 after, need 20 each",
+   "",
+   "1 failing, 0 to look at, 1 for context"
+  ],
+  "exit": 1
+ },
+ "sc-drift": {
+  "cmd": "trace-diff check before.jsonl after.jsonl",
+  "out": [
+   "before: .cap/drift/before.jsonl, 3000 traces, 44285 spans",
+   "after:  .cap/drift/after.jsonl, 3000 traces, 41831 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       313 → 160    0.10 → 0.10      0.18 → 0.19",
+   "gateway GET /orders       1059 → 409   14.8 → 15.5      36.5 → 36.1",
+   "gateway GET /orders/{id}  1181 → 1679  13.5 → 13.9      17.5 → 17.9",
+   "gateway POST /checkout    447 → 752    35.6 → 36.3      57.0 → 65.7",
+   "",
+   "WARN  more-frequent  gateway GET /orders/{id}",
+   "      called in more requests: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "      in 28% of requests before, 38% after",
+   "      called from pricing · server · GET /quote/{order}",
+   "      the request waits on it in 100% of those requests: 2.48 ms median, 4.37 ms p95",
+   "      trace after  0005d12e808e49503e08ca78677f28a8  1 call",
+   "      trace before 5b9f84682fcdb0acf2c51850776ee436  median request, no such call",
+   "",
+   "0 failing, 1 to look at, 0 for context"
+  ],
+  "exit": 0
+ },
+ "driftNoFloors": {
+  "cmd": "trace-diff check before.jsonl after.jsonl --mutant no-floors",
+  "out": [
+   "before: .cap/drift/before.jsonl, 3000 traces, 44285 spans",
+   "after:  .cap/drift/after.jsonl, 3000 traces, 41831 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       313 → 160    0.10 → 0.10      0.18 → 0.19",
+   "gateway GET /orders       1059 → 409   14.8 → 15.5      36.5 → 36.1",
+   "gateway GET /orders/{id}  1181 → 1679  13.5 → 13.9      17.5 → 17.9",
+   "gateway POST /checkout    447 → 752    35.6 → 36.3      57.0 → 65.7",
+   "",
+   "FAIL  latency  gateway GET /orders/{id}",
+   "      request latency",
+   "      median 13.5 → 13.9 ms (+3%), p95 17.5 → 17.9 ms (+2%); 7% of requests now slower than the old p95",
+   "      +0.26 ms mean on the critical path: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "      +0.11 ms mean on the critical path: users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "      trace before 5b9f84682fcdb0acf2c51850776ee436  median request",
+   "      trace after  ebee8d212667f888a0318ca382243a87  median request",
+   "",
+   "WARN  more-frequent  gateway GET /orders/{id}",
+   "      called in more requests: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "      in 28% of requests before, 38% after",
+   "      called from pricing · server · GET /quote/{order}",
+   "      the request waits on it in 100% of those requests: 2.48 ms median, 4.37 ms p95",
+   "      trace after  0005d12e808e49503e08ca78677f28a8  1 call",
+   "      trace before 5b9f84682fcdb0acf2c51850776ee436  median request, no such call",
+   "",
+   "1 failing, 1 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "driftWarn": {
+  "cmd": "trace-diff check before.jsonl after.jsonl --fail-on warn",
+  "out": [
+   "before: .cap/drift/before.jsonl, 3000 traces, 44285 spans",
+   "after:  .cap/drift/after.jsonl, 3000 traces, 41831 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       313 → 160    0.10 → 0.10      0.18 → 0.19",
+   "gateway GET /orders       1059 → 409   14.8 → 15.5      36.5 → 36.1",
+   "gateway GET /orders/{id}  1181 → 1679  13.5 → 13.9      17.5 → 17.9",
+   "gateway POST /checkout    447 → 752    35.6 → 36.3      57.0 → 65.7",
+   "",
+   "WARN  more-frequent  gateway GET /orders/{id}",
+   "      called in more requests: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "      in 28% of requests before, 38% after",
+   "      called from pricing · server · GET /quote/{order}",
+   "      the request waits on it in 100% of those requests: 2.48 ms median, 4.37 ms p95",
+   "      trace after  0005d12e808e49503e08ca78677f28a8  1 call",
+   "      trace before 5b9f84682fcdb0acf2c51850776ee436  median request, no such call",
+   "",
+   "0 failing, 1 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "retryKeepLiterals": {
+  "cmd": "trace-diff check before.jsonl after.jsonl --mutant keep-literals",
+  "out": [
+   "before: .cap/retry-storm/before.jsonl, 300 traces, 4646 spans",
+   "after:  .cap/retry-storm/after.jsonl, 300 traces, 4345 spans",
+   "",
+   "endpoint                  requests     median ms        p95 ms",
+   "gateway GET /health       21 → 12      0.11 → 0.10      0.22 → 0.18",
+   "gateway GET /orders       112 → 25     15.4 → 21.8      36.4 → 43.1",
+   "gateway GET /orders/{id}  120 → 194    13.2 → 14.3      17.9 → 63.1",
+   "gateway POST /checkout    47 → 69      37.9 → 34.7      53.6 → 64.0",
+   "",
+   "FAIL  latency  gateway GET /orders/{id}",
+   "      request latency",
+   "      median 13.2 → 14.3 ms (+8%), p95 17.9 → 63.1 ms (+252%); 29% of requests now slower than the old p95",
+   "      trace before 6bc4edd4ceedfd1372e572fc39f34d7e  p95 request",
+   "      trace after  926028ed2f6a09d9f3a1df89d1c450aa  p95 request",
+   "",
+   "note: endpoint gateway GET /health skipped: 21 requests before, 12 after, need 20 each",
+   "",
+   "1 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "collect": {
+  "cmd": "trace-diff collect --listen 127.0.0.1:43180 --out got.jsonl",
+  "out": [
+   "trace-diff: receiving OTLP/HTTP on http://127.0.0.1:43180/v1/traces, writing got.jsonl",
+   "trace-diff: wrote 1944 spans to got.jsonl"
+  ],
+  "exit": 0,
+  "posts": [
+   200,
+   200,
+   200,
+   200,
+   200
+  ]
+ },
+ "collectSummary": {
+  "cmd": "trace-diff summary got.jsonl",
+  "out": [
+   "got.jsonl: 276 traces, 1944 spans",
+   "",
+   "frontend GET /orders/{id}  271 requests, median 9.67 ms, p95 70.82 ms",
+   "  requests  median max    calls per request",
+   "  100%      1      1      frontend · client · GET orders:8080 /orders/{n}",
+   "  100%      1      1      frontend · client · GET pricing:8080 /quote/{n}",
+   "  100%      1      1      frontend · server · GET /orders/{id}",
+   "  100%      1      1      orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "  100%      1      1      orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "  100%      1      1      orders · server · GET /orders/{id}",
+   "  10%       0      1      pricing · internal · fetch rates",
+   "  100%      1      1      pricing · server · GET /quote/{order}",
+   "",
+   "frontend GET orders:8080 /orders/{n}  1 requests, median 0.20 ms, p95 0.20 ms",
+   "  requests  median max    calls per request",
+   "  100%      1      1      frontend · client · GET orders:8080 /orders/{n}",
+   "  100%      1      1      orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "  100%      1      1      orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "  100%      1      1      orders · server · GET /orders/{id}",
+   "  100%      1      1      pricing · internal · fetch rates",
+   "",
+   "pricing GET /quote/{order}  4 requests, median 10.62 ms, p95 11.31 ms",
+   "  requests  median max    calls per request",
+   "  75%       1      1      frontend · client · GET orders:8080 /orders/{n}",
+   "  75%       1      1      orders · db · SELECT id, customer, status FROM orders WHERE id = ?",
+   "  75%       1      1      orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "  75%       1      1      orders · server · GET /orders/{id}",
+   "  100%      1      1      pricing · server · GET /quote/{order}"
+  ],
+  "exit": 0
+ },
+ "tests-shop": [
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "frontend · client · GET pricing:8080 /quote/{n}",
+   "What": "count-up",
+   "P": 5.604507852306663e-09,
+   "Adj": 7.472677136408885e-09
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "frontend · client · GET pricing:8080 /quote/{n}",
+   "What": "retry-up",
+   "P": 2.0572961959295257e-10,
+   "Adj": 3.52679347873633e-10
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "What": "pres-up",
+   "P": 7.401489395996222e-180,
+   "Adj": 2.9605957583984892e-179
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "What": "count-up",
+   "P": 1.3905050100889705e-132,
+   "Adj": 3.3372120242135295e-132
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "What": "pres-up",
+   "P": 7.401489395996222e-180,
+   "Adj": 2.9605957583984892e-179
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "What": "count-up",
+   "P": 3.729921135980322e-114,
+   "Adj": 7.459842271960644e-114
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "What": "pres-down",
+   "P": 7.401489395996222e-180,
+   "Adj": 2.9605957583984892e-179
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id",
+   "What": "count-down",
+   "P": 1.3905050100889705e-132,
+   "Adj": 3.3372120242135295e-132
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "pricing · internal · fetch rates",
+   "What": "pres-up",
+   "P": 0.39207760431026056,
+   "Adj": 0.39207760431026056
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "pricing · internal · fetch rates",
+   "What": "count-up",
+   "P": 0.3268044339295851,
+   "Adj": 0.35651392792318376
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "pricing · server · GET /quote/{order}",
+   "What": "count-up",
+   "P": 5.604507852306663e-09,
+   "Adj": 7.472677136408885e-09
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": " ·  · ",
+   "What": "faster",
+   "P": 0.1006916304809102,
+   "Adj": 0.12082995657709224
+  }
+ ],
+ "tests-rerun": [
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "pricing · internal · fetch rates",
+   "What": "pres-down",
+   "P": 0.4433546733810193,
+   "Adj": 0.44335467338101936
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": "pricing · internal · fetch rates",
+   "What": "count-down",
+   "P": 0.3879775947777106,
+   "Adj": 0.44335467338101936
+  },
+  {
+   "Ep": "frontend GET /orders/{id}",
+   "Op": " ·  · ",
+   "What": "slower",
+   "P": 0.38973233185808875,
+   "Adj": 0.44335467338101936
+  }
+ ],
+ "tests-drift": [
+  {
+   "Ep": "gateway GET /health",
+   "Op": " ·  · ",
+   "What": "tail",
+   "P": 0.2792218357484532,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /health",
+   "Op": " ·  · ",
+   "What": "faster",
+   "P": 0.8173885820156086,
+   "Adj": 0.8173885820156086
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "catalog · db · SELECT id, title, image FROM products WHERE id = ?",
+   "What": "count-up",
+   "P": 0.2994745184047293,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "catalog · server · GET /products/{id}",
+   "What": "count-up",
+   "P": 0.2994745184047293,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "gateway · client · GET catalog /products/{n}",
+   "What": "count-up",
+   "P": 0.2994745184047293,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "pres-down",
+   "P": 0.2939446313156692,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "count-down",
+   "P": 0.19533533844440581,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "users · server · GET /users/{id}",
+   "What": "pres-down",
+   "P": 0.2939446313156692,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": "users · server · GET /users/{id}",
+   "What": "count-down",
+   "P": 0.19533533844440581,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders",
+   "Op": " ·  · ",
+   "What": "slower",
+   "P": 0.14584279934106548,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "What": "pres-up",
+   "P": 3.1042527222389984e-09,
+   "Adj": 4.035528538910698e-08
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+   "What": "count-up",
+   "P": 3.0000126911509904e-09,
+   "Adj": 4.035528538910698e-08
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "pres-down",
+   "P": 0.5985947854680593,
+   "Adj": 0.6225385768867817
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "count-down",
+   "P": 0.49614135156459255,
+   "Adj": 0.5608554408991047
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "users · server · GET /users/{id}",
+   "What": "pres-down",
+   "P": 0.5985947854680593,
+   "Adj": 0.6225385768867817
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": "users · server · GET /users/{id}",
+   "What": "count-down",
+   "P": 0.49614135156459255,
+   "Adj": 0.5608554408991047
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": " ·  · ",
+   "What": "tail",
+   "P": 0.015379155699085153,
+   "Adj": 0.07997160963524279
+  },
+  {
+   "Ep": "gateway GET /orders/{id}",
+   "Op": " ·  · ",
+   "What": "slower",
+   "P": 6.444010816616668e-09,
+   "Adj": 5.584809374401112e-08
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "gateway · client · POST payments /charge",
+   "What": "count-up",
+   "P": 0.05612596291323589,
+   "Adj": 0.24321250595735552
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "gateway · client · POST payments /charge",
+   "What": "retry-up",
+   "P": 0.07292408378966171,
+   "Adj": 0.27086088264731495
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "pres-down",
+   "P": 0.4800615977286785,
+   "Adj": 0.5608554408991047
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "users · db · SELECT id, name, tier FROM users WHERE id = ?",
+   "What": "count-down",
+   "P": 0.31664857725695716,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "users · server · GET /users/{id}",
+   "What": "pres-down",
+   "P": 0.4800615977286785,
+   "Adj": 0.5608554408991047
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": "users · server · GET /users/{id}",
+   "What": "count-down",
+   "P": 0.31664857725695716,
+   "Adj": 0.4333085794042572
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": " ·  · ",
+   "What": "tail",
+   "P": 0.002216522332290898,
+   "Adj": 0.014407395159890838
+  },
+  {
+   "Ep": "gateway POST /checkout",
+   "Op": " ·  · ",
+   "What": "slower",
+   "P": 0.20727467301217928,
+   "Adj": 0.4333085794042572
+  }
+ ],
+ "shopLoad": [
+  "== before (CHANGE=before)",
+  "300 requests, 0 errors, 0 without a quote; latency p50 11.1 ms, p95 65.7 ms, p99 87.4 ms",
+  "   6 batches, 2125 spans in out/before.jsonl",
+  "== rerun (CHANGE=before)",
+  "300 requests, 0 errors, 0 without a quote; latency p50 11.0 ms, p95 70.5 ms, p99 86.8 ms",
+  "   7 batches, 2126 spans in out/rerun.jsonl",
+  "== after (CHANGE=after)",
+  "300 requests, 0 errors, 1 without a quote; latency p50 12.1 ms, p95 54.9 ms, p99 92.9 ms",
+  "   8 batches, 4243 spans in out/after.jsonl"
+ ],
+ "shopRerun": {
+  "cmd": "trace-diff check demo/out/before.jsonl demo/out/rerun.jsonl",
+  "out": [
+   "before: demo/out/before.jsonl, 300 traces, 2125 spans",
+   "after:  demo/out/rerun.jsonl, 300 traces, 2126 spans",
+   "",
+   "endpoint                   requests     median ms        p95 ms",
+   "frontend GET /orders/{id}  300 → 300    10.7 → 10.6      65.3 → 70.1",
+   "",
+   "no structural changes found",
+   "0 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 0
+ },
+ "shopAfter": {
+  "cmd": "trace-diff check demo/out/before.jsonl demo/out/after.jsonl",
+  "out": [
+   "before: demo/out/before.jsonl, 300 traces, 2125 spans",
+   "after:  demo/out/after.jsonl, 300 traces, 4243 spans",
+   "",
+   "endpoint                   requests     median ms        p95 ms",
+   "frontend GET /orders/{id}  300 → 300    10.7 → 11.6      65.3 → 54.7",
+   "",
+   "FAIL  n-plus-one  frontend GET /orders/{id}",
+   "      repeated per request: orders · db · SELECT id, sku, qty, price_cents FROM order_items WHERE id = ?",
+   "      new: in 100% of requests, up to 50 calls each (median 5, p95 9), one after another",
+   "      replaces SELECT id, sku, qty, price_cents FROM order_items WHERE order_id = ? ORDER BY id (1 call per request before, gone after)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.34 ms median, 2.00 ms p95",
+   "      trace after  06b7425374c4a7799109e96d664d4e6d  50 calls",
+   "      trace after  c4166388d308c0b964787d87163ae4e4  typical, 5 calls",
+   "      trace before 43a6041870cf70d655f12dc5d9ee5f03  median request, no such call",
+   "",
+   "FAIL  retry-storm  frontend GET /orders/{id}",
+   "      retries: frontend · client · GET pricing:8080 /quote/{n} → pricing GET /quote/{order}",
+   "      requests with a retry: 0% before, 14% after",
+   "      attempts per request where called: mean 1.00 before, 1.16 after (max 3)",
+   "      called from frontend · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 9.78 ms median, 52.4 ms p95",
+   "      trace after  4d17e0f5a6e3cd4dd0488c43f9372084  3 attempts, 2 retries",
+   "      trace after  8aa235ce5f8af8a5e01cc1a0b120356c  typical, 2 attempts",
+   "      trace before 43a6041870cf70d655f12dc5d9ee5f03  median request, 1 call",
+   "",
+   "FAIL  new-sync-call  frontend GET /orders/{id}",
+   "      new call: orders · db · SELECT id FROM order_items WHERE order_id = ? ORDER BY id",
+   "      in 100% of requests, 1 call each (median)",
+   "      called from orders · server · GET /orders/{id}",
+   "      the request waits on it in 100% of those requests: 0.13 ms median, 1.10 ms p95",
+   "      trace after  015715ef1e421b8eaef4597caa8a312e  1 call",
+   "      trace before 43a6041870cf70d655f12dc5d9ee5f03  median request, no such call",
+   "",
+   "3 failing, 0 to look at, 0 for context"
+  ],
+  "exit": 1
+ },
+ "benchRaw": [
+  "200 seeds per scenario, 300 requests per side (drift: 3000)",
+  "",
+  "scenario        found     unexpected   failing   first unexpected finding",
+  "none            -         0/200        0/200",
+  "n-plus-one      200/200   0/200        0/200",
+  "new-sync-call   200/200   1/200        0/200     seed 9: INFO removed-call gateway GET /orders/{id}: called less: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+  "new-hop         200/200   0/200        0/200",
+  "retry-storm     200/200   0/200        0/200",
+  "fan-out         200/200   0/200        0/200",
+  "latency         200/200   0/200        0/200",
+  "drift           -         5/200        0/200     seed 101: WARN more-frequent gateway GET /orders/{id}: called in more requests: pricing · db · SELECT sku, price_cents FROM prices WHERE sku IN (?)",
+  "",
+  "mutant               result   what changed",
+  "keep-literals        caught   new-hop found 0/200, retry-storm found 0/200, fan-out found 0/200, and 1 more",
+  "pooled               caught   none unexpected on 137/200, n-plus-one found 150/200, n-plus-one unexpected on 117/200, and 11 more",
+  "no-correction        caught   n-plus-one unexpected on 1/200, new-sync-call unexpected on 2/200, new-hop unexpected on 1/200, and 2 more",
+  "no-floors            caught   latency unexpected on 1/200, drift unexpected on 76/200",
+  "any-repeat-is-retry  caught   n-plus-one found 0/200, n-plus-one unexpected on 200/200",
+  ""
+ ],
+ "bench": {
+  "rows": [
+   {
+    "name": "none",
+    "found": "-",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "n-plus-one",
+    "found": "200/200",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "new-sync-call",
+    "found": "200/200",
+    "unexpected": "1/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "new-hop",
+    "found": "200/200",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "retry-storm",
+    "found": "200/200",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "fan-out",
+    "found": "200/200",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "latency",
+    "found": "200/200",
+    "unexpected": "0/200",
+    "failing": "0/200"
+   },
+   {
+    "name": "drift",
+    "found": "-",
+    "unexpected": "5/200",
+    "failing": "0/200"
+   }
+  ],
+  "mutants": [
+   {
+    "name": "keep-literals",
+    "result": "caught",
+    "changed": "new-hop found 0/200, retry-storm found 0/200, fan-out found 0/200, and 1 more",
+    "what": "match spans with their literal values left in"
+   },
+   {
+    "name": "pooled",
+    "result": "caught",
+    "changed": "none unexpected on 137/200, n-plus-one found 150/200, n-plus-one unexpected on 117/200, and 11 more",
+    "what": "compare all requests together instead of per endpoint"
+   },
+   {
+    "name": "no-correction",
+    "result": "caught",
+    "changed": "n-plus-one unexpected on 1/200, new-sync-call unexpected on 2/200, new-hop unexpected on 1/200, and 2 more",
+    "what": "no correction for running many tests"
+   },
+   {
+    "name": "no-floors",
+    "result": "caught",
+    "changed": "latency unexpected on 1/200, drift unexpected on 76/200",
+    "what": "report any significant change, however small"
+   },
+   {
+    "name": "any-repeat-is-retry",
+    "result": "caught",
+    "changed": "n-plus-one found 0/200, n-plus-one unexpected on 200/200",
+    "what": "count every repeated call as a retry, failed or not"
+   }
+  ],
+  "wall": "29:20.64",
+  "cpuMin": 85
+ }
+}

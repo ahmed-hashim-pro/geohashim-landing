@@ -1,0 +1,102 @@
+[
+ {
+  "label": "README",
+  "rows": [
+   [
+    "Fixed window, peak",
+    "1.98x",
+    "admitted 568 / 568"
+   ],
+   [
+    "Sliding log, skew",
+    "+4.8%",
+    "admitted 629 / 629"
+   ],
+   [
+    "Sliding counter, skew",
+    "+0.7%",
+    "admitted 599 / 599"
+   ],
+   [
+    "Non-atomic, over",
+    "+23.5%",
+    "admitted 741 / 741"
+   ]
+  ]
+ },
+ {
+  "label": "Run 1",
+  "rows": [
+   [
+    "Fixed window, peak",
+    "1.86x",
+    "admitted 494 / 494"
+   ],
+   [
+    "Sliding log, skew",
+    "+3.5%",
+    "admitted 621 / 621"
+   ],
+   [
+    "Sliding counter, skew",
+    "+0.7%",
+    "admitted 599 / 599"
+   ],
+   [
+    "Non-atomic, over",
+    "+24.5% / +24.7%",
+    "admitted 747 / 748"
+   ]
+  ]
+ },
+ {
+  "label": "Run 2",
+  "rows": [
+   [
+    "Fixed window, peak",
+    "1.78x",
+    "admitted 508 / 508"
+   ],
+   [
+    "Sliding log, skew",
+    "+4.7%",
+    "admitted 628 / 628"
+   ],
+   [
+    "Sliding counter, skew",
+    "+0.7%",
+    "admitted 599 / 599"
+   ],
+   [
+    "Non-atomic, over",
+    "+15.7%",
+    "admitted 694 / 694"
+   ]
+  ]
+ },
+ {
+  "label": "Run 3",
+  "rows": [
+   [
+    "Fixed window, peak",
+    "1.96x",
+    "admitted 512 / 512"
+   ],
+   [
+    "Sliding log, skew",
+    "+4.5%",
+    "admitted 627 / 627"
+   ],
+   [
+    "Sliding counter, skew",
+    "+0.7%",
+    "admitted 599 / 599"
+   ],
+   [
+    "Non-atomic, over",
+    "+19.7%",
+    "admitted 718 / 718"
+   ]
+  ]
+ }
+]

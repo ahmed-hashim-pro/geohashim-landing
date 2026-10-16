@@ -1,0 +1,9 @@
+{
+  "title": "flaky-hunt · Ahmed Hashim",
+  "description": "Finds flaky pytest tests and the one factor that makes each fail: test order, the clock, the time zone, random seeds, thread timing, the environment or the network. It confirms each cause with a significance test and hands back a plain pytest command that reproduces it. How it works end to end, with real runs.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the real-project results"
+  }
+}

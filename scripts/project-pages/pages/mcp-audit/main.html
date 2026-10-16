@@ -1,0 +1,397 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">mcp-audit</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An auditor for MCP servers. It connects as a real MCP client and checks two things: what the server tells the model, and what its tools actually do when they are called inside a sandbox.</p>
+            <p>A person reads an MCP server's README before installing it. The model reads its tool descriptions on every turn, and does what they say. That second reading is where the attacks are. Annotations such as <code>readOnlyHint</code> are only claims, so mcp-audit calls every tool in a container with no network, traces every file and network syscall, and compares what happened with what the tool claimed.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/mcp-audit">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/mcp-audit#what-it-checks">What it checks</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11 or newer, <code>mypy --strict</code></dd>
+              <dt>Tests</dt><dd>65 passing with pytest; 4 of them need Docker</dd>
+              <dt>Dependencies</dt><dd>One: the official <code>mcp</code> SDK</dd>
+              <dt>Sandbox</dt><dd>Docker with <code>--network none</code>, and <code>strace</code></dd>
+              <dt>Transports</dt><dd>stdio, in the sandbox or on the host, and streamable HTTP</dd>
+              <dt>Runs as</dt><dd>A CLI, and a composite GitHub Action</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="poisoned">Poisoned text</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="exfil">Sandbox</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="git">Real server</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="pin">Pin</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">mcp-audit scan -- python examples/corpus/poisoned_add.py</span>
+<span class="dim">mcp-audit: starting the server on this machine (no --sandbox): its code runs here</span>
+<span class="out">server   calculator</span>
+<span class="out">target   python examples/corpus/poisoned_add.py</span>
+<span class="out">surface  1 tool, 0 prompts, 0 resources</span>
+<span class="out"></span>
+<span class="err">HIGH   injection.conceal  tool add, description</span>
+<span class="err">HIGH   injection.secret-path  tool add, description</span>
+<span class="err">HIGH   injection.exfil-param  tool add, description</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of mcp-audit 0.1.0 at commit <code>c753d0b</code>, output verbatim. The first two tabs scan servers from the repository's corpus, which were written to be caught and touch nothing real. The third is the official <code>mcp-server-git</code> 2026.10.10 in the sandbox. The last pins a small example server and checks its next version.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a server moves through mcp-audit">
+          <div class="sign-group">
+            <p>Before the line: read, relist, call, trace, judge</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-relist"><b>2</b> Relist</a></li>
+              <li><a class="sign-link" href="#s-call"><b>3</b> Call</a></li>
+              <li><a class="sign-link" href="#s-trace"><b>4</b> Trace</a></li>
+              <li><a class="sign-link" href="#s-judge"><b>5</b> Judge</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person accepts it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-pin"><b>6</b> Pin</a></li>
+              <li><a class="sign-link" href="#s-ci"><b>7</b> Every PR</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read everything the model reads</h2>
+          <p>mcp-audit connects with the official MCP SDK's client, as Claude Desktop would, and takes a snapshot: the server's instructions, and every tool, prompt and resource. Then it scans every piece of text in it, not just the descriptions.</p>
+          <ul class="st-points">
+            <li>Titles, descriptions, and every string inside input and output schemas: property descriptions, defaults, enums, <code>$defs</code>.</li>
+            <li>The rules look for writing aimed at the model: orders to ignore earlier instructions, to keep something from the user, to read a credential file, to put private data in a parameter, or to change how another server's tools are used.</li>
+            <li>Unicode tag characters render as nothing at all. They are decoded and scanned like any other text. Bidirectional overrides and zero-width characters are reported too.</li>
+            <li>Without <code>--sandbox</code>, the server runs on your machine to be listed, and no tool is called.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four poisoned servers from the corpus</p>
+              {{REPLAY}}
+            </div>
+            <div class="ma-read-tabs">
+              <div class="seg" id="ma-read-seg" role="group" aria-label="Server"></div>
+            </div>
+            <div class="demo-body">
+              <p class="ma-k" id="ma-read-where"></p>
+              <div class="ma-text" id="ma-read-text"></div>
+              <ol class="ma-finds" id="ma-read-finds"></ol>
+              <p class="ma-sum" id="ma-read-sum"></p>
+            </div>
+            <figcaption class="demo-note">The texts are the corpus servers' own, from <code>examples/corpus/</code>; the highlights mark the sentence each finding quotes. Findings and severities are real <code>mcp-audit scan</code> output, without <code>--sandbox</code>. The corpus also has five honest servers; the calculator's twin, <code>clean_calc.py</code>, scans <code>0 high, 0 medium, 0 info</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-relist" aria-labelledby="h-relist">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-relist"><span class="num" data-mark="2">2</span>List the tools again, and compare</h2>
+          <p>A tool can be harmless when a person approves it and change later. mcp-audit lists the tools a second time straight away, and, when it calls them, once more afterwards. It compares each tool's description, schemas and annotations with the first listing.</p>
+          <ul class="st-points">
+            <li>A changed tool is <code>rug-pull.changed</code>, high. The finding says whether the server announced it with <code>tools/list_changed</code>.</li>
+            <li>The new text is scanned like the old, so what the change says is reported too.</li>
+            <li>A tool that appears later is <code>rug-pull.added</code>, medium; one that goes away is info.</li>
+          </ul>
+          <p class="why">A rug pull that waits for the first call can't be seen from the listing alone. Scanned without a sandbox, the corpus's <code>rug_pull.py</code> comes back with <code>0 high, 0 medium, 0 info</code>.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-relist" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two rug pulls, listing by listing</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="ma-lists" id="ma-lists"></ol>
+              <div class="mini-term ma-mt" id="ma-relist-term"></div>
+            </div>
+            <figcaption class="demo-note">Both servers are in the repository's corpus. <code>flip_on_relist.py</code> changes its description on the second <code>tools/list</code>, with no notice; <code>rug_pull.py</code> rewrites its own after its first call and announces it. The terminal lines are the start of each real report: the first scan ran without a sandbox, the second in it.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-call" aria-labelledby="h-call">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-call"><span class="num" data-mark="3">3</span>Call every tool, in a box with no network</h2>
+          <p>With <code>--sandbox</code>, the server runs in a throwaway Docker container and the MCP session runs over its stdin and stdout, as a desktop client would run a local server. Every tool is called once.</p>
+          <ul class="st-points">
+            <li>Arguments are made from each tool's input schema, steered by property names: paths point into a seeded <code>/workspace</code> with a few files and a small git repository. <code>--calls</code> supplies your own.</li>
+            <li>The image plants credential files, <code>~/.ssh/id_rsa</code>, <code>~/.aws/credentials</code>, <code>~/.netrc</code> and others, each holding a canary string. No argument ever points at them.</li>
+            <li>Calling tools on the host is refused unless you pass <code>--unsafe-host-calls</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-call" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The git reference server, called tool by tool</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <pre class="ma-docker" id="ma-docker"></pre>
+              <div class="ma-calls-head" aria-hidden="true"><span>Tool</span><span>Arguments mcp-audit made</span><span>Result</span></div>
+              <ol class="ma-calls" id="ma-calls"></ol>
+              <p class="ma-sum" id="ma-calls-sum"></p>
+              <div class="mini-term ma-mt" id="ma-host-term"></div>
+            </div>
+            <figcaption class="demo-note">The <code>docker run</code> line is the one <code>sandbox.py</code> builds; the container name is random per run. The calls are from a real scan of <code>mcp-server-git</code> 2026.10.10 in the repository's <code>mcp-audit-reference</code> image. Four calls returned errors, such as a branch type the server doesn't know; an error is still a call, and its syscalls are still traced.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-trace" aria-labelledby="h-trace">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-trace"><span class="num" data-mark="4">4</span>Trace every syscall, and pin it to a call</h2>
+          <p>The container's entry point starts the server under <code>strace -f -ttt -y</code>, logging opens, writes, renames, deletes, connects, sends and execs to a directory mounted from the host. Each line carries a timestamp, and mcp-audit records when each call started.</p>
+          <ul class="st-points">
+            <li>Each call owns the time from its start to the next call's start, which catches work a tool does after replying.</li>
+            <li>Writes are opens with write flags, <code>mkdir</code>, <code>rename</code> and the like. A <code>mkdir</code> that fails with <code>EEXIST</code> changes nothing and isn't one.</li>
+            <li>Deleting a file the run itself created is cleanup, not destruction.</li>
+            <li>Network is any connect or send to a non-loopback address, plus DNS. It fails with no network, but the attempt is recorded. <code>docker diff</code> at the end catches what the trace missed.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-trace" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">From hundreds of syscalls to a few events</p>
+              {{REPLAY}}
+            </div>
+            <div class="ma-read-tabs">
+              <div class="seg" id="ma-trace-seg" role="group" aria-label="Server"></div>
+            </div>
+            <div class="demo-body">
+              <div class="ma-funnel" id="ma-funnel"></div>
+              <ol class="ma-strace" id="ma-strace"></ol>
+              <div class="ma-tl" id="ma-tl" aria-hidden="true"></div>
+              <ul class="ma-tl-list" id="ma-tl-list"></ul>
+            </div>
+            <figcaption class="demo-note">Real traces kept with <code>--keep-trace</code> from two corpus servers, and the events and call times mcp-audit read from them. The excerpt shows the lines that became events with a neighbour on each side; the rest of each log is library loading and the event loop waking itself, which aren't events. Times are seconds from the first call's start.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-judge" aria-labelledby="h-judge">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-judge"><span class="num" data-mark="5">5</span>Judge behaviour only against the claim</h2>
+          <p>Per the MCP spec, a tool with no annotations may write, destroy and reach the network. So writing a file is not a finding in itself. It is one when the tool said <code>readOnlyHint: true</code>.</p>
+          <ul class="st-points">
+            <li>High: a planted credential opened that the arguments never named, canary data in a result or on a socket, a read-only tool changing a file outside <code>/tmp</code>, or a closed-world tool trying to connect.</li>
+            <li>Medium: a non-destructive tool deleting a file that existed before the run, or a result with text aimed at the model.</li>
+            <li>Behaviour the annotations allow is info: <code>dynamic.write</code>, <code>dynamic.network</code>, <code>dynamic.exec</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-judge" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What each tool claimed, did, and got</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="ma-j-head" aria-hidden="true"><span>Tool</span><span>Claimed</span><span>Did</span><span>Finding</span></div>
+              <ol class="ma-judge" id="ma-judge"></ol>
+            </div>
+            <figcaption class="demo-note">Every row is a real sandbox scan. The first seven tools are from the corpus, four meant to be caught and three honest ones; <code>git_status</code> is from the official git server. Its finding is true: plain <code>git status</code> refreshes <code>.git/index</code> unless run with <code>--no-optional-locks</code>, which the corpus's honest git twin does.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Accepted</span>Above this line mcp-audit reads, lists, calls and traces, and a finding at <code>--fail-on</code> fails the scan. Below it, a person accepts a server's definitions by pinning them, and any later change fails until they do it again.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-pin" aria-labelledby="h-pin">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-pin"><span class="num" data-mark="6">6</span>Pin what a person reviewed</h2>
+          <p><code>mcp-audit pin</code> writes a lockfile with a hash of each tool and prompt over what the model and the client act on: name, title, description, schemas and annotations. <code>mcp-audit verify</code> fails when any of it differs.</p>
+          <ul class="st-points">
+            <li>The lockfile keeps each description, so a failure shows the diff, not just that something changed.</li>
+            <li>A changed annotation alone changes the hash.</li>
+            <li>Only a person runs <code>pin</code> again to accept a change. <code>verify</code> never updates the lockfile.</li>
+          </ul>
+          <p class="why">The text rules don't flag this change: a scan of version 2 prints <code>0 high, 0 medium, 0 info</code>. The pin catches it because it doesn't need to understand the new sentence, only to see that there is one.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-pin" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The weather example, pinned and then updated</p>
+              {{REPLAY}}
+            </div>
+            <div class="ma-pin">
+              <div class="ma-pin-file">
+                <p class="ma-k"><code>mcp-audit.lock.json</code></p>
+                <pre class="ma-json" id="ma-lock"></pre>
+              </div>
+              <div class="ma-pin-steps" id="ma-pin-steps"></div>
+            </div>
+            <figcaption class="demo-note"><code>examples/pin/weather.py</code> is the repository's; given <code>v2</code> it reports version 2.0.0 with one more sentence in its description. The runs are real, in a scratch directory. The lockfile <code>pin</code> wrote there is byte for byte the one committed in <code>examples/pin/</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ci" aria-labelledby="h-ci">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ci"><span class="num" data-mark="7">7</span>Run it on every pull request</h2>
+          <p>The repository is also a GitHub Action. It installs mcp-audit, scans the server command, and with a <code>lock</code> input also verifies it against the lockfile. <code>scan</code> exits 1 when a finding reaches <code>--fail-on</code>, high by default.</p>
+          <ul class="st-points">
+            <li>The repository's own CI runs the action three ways: an honest pinned server must pass, and the poisoned calculator and the pinned server's v2 must both fail.</li>
+            <li>A <code>sandbox</code> job builds the images, runs the Docker tests and checks the corpus results still match <code>docs/corpus.txt</code>.</li>
+            <li><code>--json FILE</code> writes the full report, including the snapshot of everything the server exposed.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ci" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The workflow step, and CI on the repository</p>
+              {{REPLAY}}
+            </div>
+            <pre class="ma-yaml">- uses: ahmed-hashim-pro/mcp-audit@main
+  with:
+    command: npx -y @modelcontextprotocol/server-everything
+    args: --fail-on high
+    lock: mcp-audit.lock.json   <span class="c"># optional</span></pre>
+            <div class="ma-ci">
+              <p class="ma-ci-head"><span>CI run 38662588295 on <code>c753d0b</code></span><b>5 jobs, all passed</b></p>
+              <ol class="ma-jobs" id="ma-jobs"></ol>
+            </div>
+            <figcaption class="demo-note">The step is the README's. Job names, results and durations come from GitHub's API for that run, in whole seconds. The action job's three checks took 5 s, 4 s and 5 s.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>A corpus written to be caught, and fifteen real servers whose every medium or high finding was read and given a verdict by hand. The rules were written against the corpus, so its perfect score proves little; the held-out servers are the test that counts.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Half the attacks need a call</h3>
+            <p>10 attacks in the corpus, and 5 honest servers that write, delete, connect or run <code>git</code> as annotated. Reading the listing alone catches 5; with the sandbox, all 10.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Listing only</span><span class="bar"><i style="--w:50%"></i></span><span>5/10</span></div>
+              <div class="bar-row"><span>With calls</span><span class="bar"><i style="--w:100%"></i></span><span>10/10</span></div>
+            </div>
+            <div class="tally"><span>5 honest servers</span><span>0 false alarms</span></div>
+            <p>The five only a call catches: a rug pull after the first call, a read-only tool that writes, a formatter that reads <code>~/.ssh/id_rsa</code> and connects out, a credential in a result, and an injection in a result. Re-run here, the table matched <code>docs/corpus.txt</code> exactly.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The held-out servers humbled it</h3>
+            <p>8 popular third-party servers the rules were not tuned on, such as playwright, notion and kubernetes. The first run's medium and high findings:</p>
+            <div class="bars">
+              <div class="bar-row"><span>First run</span><span class="bar"><i style="--w:100%"></i></span><span>29</span></div>
+              <div class="bar-row"><span>True</span><span class="bar"><i style="--w:13.8%"></i></span><span>4</span></div>
+              <div class="bar-row"><span>After fixes</span><span class="bar"><i style="--w:13.8%"></i></span><span>4 of 4</span></div>
+            </div>
+            <p>The 25 false alarms came from three bugs: an <code>EEXIST</code> <code>mkdir</code> counted as a write (20), <code>.aws</code> matched inside <code>docs.aws.amazon.com</code> (3), and "Do not include API keys" read as a request for them (2). All three are fixed with regression tests, so the last row is no longer held out.</p>
+          </article>
+          <article class="panel m-card" id="m-real">
+            <h3>Real findings, run again here</h3>
+            <p>All 15 servers, 7 reference and 8 held-out, scanned again on this machine with the repository's pinned images: 181 tools called, in 2 min 57 s.</p>
+            <div class="tally"><span>7 high findings</span><span>6 match the verdicts</span><span>1 new</span></div>
+            <p>The six are the README's: the git server's read-only <code>git_status</code> rewrites <code>.git/index</code>, and markitdown opens <code>~/.netrc</code> on every fetch, because Python's <code>requests</code> does. The new one is chrome-devtools' background npm check writing a log in <code>~/.npm/_logs</code> while a read-only tool was in flight. It came up in 3 of 4 runs of that server here and has no verdict yet, so <code>realworld.py --check</code> failed on this machine.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">65 tests, four of them in Docker</h2>
+          <p>Counted with <code>pytest -q -rs</code> after <code>make images</code>: 65 passed. Without the images, as in CI's test jobs on Python 3.11, 3.12 and 3.13, 61 pass and the 4 sandbox tests skip; CI's <code>sandbox</code> job runs those 4.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Real servers, real clients, real containers</h3>
+            <ul>
+              <li><strong>Static rules:</strong> each rule on its own, every place text can hide in a snapshot, ordinary descriptions and scripts that use joiners and direction marks staying quiet, and a property test that any ASCII hidden in tag characters is recovered exactly.</li>
+              <li><strong>Regressions from the held-out run:</strong> <code>.aws</code> inside a host name, an instruction not to include secrets, and a <code>mkdir</code> of a folder that already exists.</li>
+              <li><strong>Judging:</strong> events pinned to the call in flight, late events, cleanup versus destruction, network only against a closed-world claim, startup activity, and changes only <code>docker diff</code> saw.</li>
+              <li><strong>Live:</strong> real stdio servers from the corpus, consent for host calls, <code>--calls</code>, a server that won't start, and streamable HTTP.</li>
+              <li><strong>Sandbox:</strong> the strace parser, a check that the launcher traces exactly the syscalls the parser reads, and, in Docker, the corpus's read-only writer and exfiltrator caught, the honest servers clean and no container left behind.</li>
+            </ul>
+            <p>CI also runs ruff and <code>mypy --strict</code>, and fails if the corpus scores differently from <code>docs/corpus.txt</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Attacks one call doesn't trigger</dt><dd>Each tool is called once with made-up arguments. A tool that misbehaves only for certain inputs, on the tenth call or on a date will pass. On the real servers most calls returned errors, so their dynamic coverage is thin.</dd></div>
+              <div><dt>Understanding</dt><dd>The text rules are patterns. A paraphrase that avoids every one, in English or another language, gets through, as the pin example's v2 does.</dd></div>
+              <div><dt>Your machine</dt><dd>The sandbox runs as root, in a fixed layout, with no network. A server that behaves differently online, or when it sees a container, may hide what it would do for you.</dd></div>
+              <div><dt>Remote servers</dt><dd><code>--url</code> gets the listing checks and the relisting only. Its process isn't traced.</dd></div>
+              <div><dt>A code review</dt><dd>It reports what a server showed and did during the run, not whether its code is safe.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/mcp-audit
+cd mcp-audit
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+
+<span class="c"># What a server tells the model (runs it here):</span>
+mcp-audit scan -- python examples/corpus/poisoned_add.py
+
+<span class="c"># What its tools do, in the sandbox:</span>
+make images
+mcp-audit scan --sandbox mcp-audit-corpus \
+  -- python /corpus/exfil_network.py
+
+pytest -q           <span class="c"># 65 tests with the images</span></pre>
+            <p>Python 3.11 or newer, and Docker for the sandbox. For your own server, build an image <code>FROM mcp-audit-sandbox</code> with it installed, and pass that image to <code>--sandbox</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

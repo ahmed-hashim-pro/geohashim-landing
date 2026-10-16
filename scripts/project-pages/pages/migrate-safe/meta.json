@@ -1,0 +1,9 @@
+{
+  "title": "migrate-safe · Ahmed Hashim",
+  "description": "Shows what a PostgreSQL migration will do to a live database before it ships: the locks it takes, whether it rewrites or scans a table, and how long traffic is locked out, measured on a copy under live traffic and predicted by a linter that CI checks against the server. How it works end to end, with real runs.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the 5 million row run"
+  }
+}

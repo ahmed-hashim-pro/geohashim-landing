@@ -1,0 +1,9 @@
+{
+  "title": "trace-diff · Ahmed Hashim",
+  "description": "A command-line tool that compares OpenTelemetry traces from before and after a change and reports the structural regressions tests and latency dashboards miss, such as N+1 queries and retry storms. How it works end to end, with real runs.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the 200-seed benchmark"
+  }
+}

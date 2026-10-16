@@ -1,0 +1,377 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">tsz</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A Rust library and command-line tool that compresses time series of <code>(i64, f64)</code> points without losing a single bit. For each block of 4,096 points it measures Gorilla, Chimp, Chimp128 and a decimal codec, and writes whichever is smallest.</p>
+            <p>Gorilla, the usual starting point, XORs each value with the one before and stores the bits that changed. That works when neighbouring floats share most of their bits. Most metrics reach a database as text, though: a tide gauge prints <code>1.327</code>, and parsed to a double that is a repeating binary fraction. On five of the six real series here, Gorilla comes out bigger than gzip of the CSV. tsz checks, bit for bit, whether a block's values were printed decimals, and if so stores the integers.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/tsz">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/tsz#against-other-crates">Against other crates</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Rust 1.74+, no dependencies</dd>
+              <dt>Tests</dt><dd>21 passing with <code>cargo test</code>, plus a million-series soak</dd>
+              <dt>Codecs</dt><dd>Gorilla, Chimp, Chimp128, decimal, and <code>auto</code> per block</dd>
+              <dt>Lossless</dt><dd>Every i64 timestamp and every f64 bit pattern, NaN payloads included</dd>
+              <dt>Data</dt><dd>Six real series, 1.3 million points, from NOAA, UCI and Wikimedia</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="compare">Compare</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="encode">Encode</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="bits">Exact bits</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="bad">Bad input</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">tsz compare *.csv</span>
+<span class="out">file                          points     gorilla     chimp  chimp128      auto   bits/point; auto's value codecs</span>
+<span class="out">noaa-sf-air-temp.csv          87,637       34.10     32.85     14.29      4.36   decimal 22</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of the release binary, output verbatim. The CSV files are the repository's six datasets, unzipped from <code>data/</code>. The values in the last two tabs were written for this page <span class="tag-ill">Illustrative input</span>.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a series becomes bytes and back">
+          <div class="sign-group">
+            <p>Before the line: measure every way to store a block</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-gorilla"><b>2</b> Gorilla</a></li>
+              <li><a class="sign-link" href="#s-chimp"><b>3</b> Chimp</a></li>
+              <li><a class="sign-link" href="#s-decimal"><b>4</b> Decimal</a></li>
+              <li><a class="sign-link" href="#s-auto"><b>5</b> Auto</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the same bits back</p>
+            <ol>
+              <li><a class="sign-link" href="#s-decode"><b>6</b> Decode</a></li>
+              <li><a class="sign-link" href="#s-verify"><b>7</b> Verify</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read the text, keep the exact bits</h2>
+          <p><code>tsz encode</code> reads one <code>timestamp,value</code> per line, from a file or stdin. Timestamps are integers in any unit. A value is anything Rust's f64 parser accepts, or <code>0x</code> and 16 hex digits for an exact bit pattern.</p>
+          <ul class="st-points">
+            <li>From here on a value is its 64 bits, not a number. <code>-0</code> keeps its sign, and a NaN keeps its payload.</li>
+            <li><code>tsz decode --bits</code> prints the <code>0x</code> form back, so even a NaN payload survives a trip through text.</li>
+            <li>Bad input names the file and the line, and exits 2. Nothing is guessed or skipped, apart from one header line.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six values in, six bit patterns out <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tz-bits-head" aria-hidden="true"><span>In the CSV</span><span><code>decode --bits</code></span><span><code>decode</code></span></div>
+              <ol class="tz-bits" id="tz-bits"></ol>
+              <div class="tz-mt" id="tz-read-err"></div>
+            </div>
+            <figcaption class="demo-note">The six values were written for this page, encoded with <code>tsz encode</code> and decoded both ways; every pattern is the decoder's own output. The bad files are a few lines each, made to trip the parser. The errors and exit codes are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-gorilla" aria-labelledby="h-gorilla">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-gorilla"><span class="num" data-mark="2">2</span>Gorilla: XOR with the value before</h2>
+          <p>Gorilla, from Facebook's in-memory time-series database, XORs each value with the previous one. A repeat costs one bit. Otherwise it stores the run of bits between the leading and trailing zeros, reusing the last window when the new bits fit inside it.</p>
+          <ul class="st-points">
+            <li>Timestamps store the delta of the delta. A steady scrape costs one bit per point.</li>
+            <li>Two changes from the paper, so that every i64 sequence round-trips: a fifth bucket for a full 64-bit jump, and wrapping arithmetic, so <code>i64::MIN</code> can sit next to <code>i64::MAX</code>.</li>
+            <li>The values follow the paper exactly. Within 2% of the existing <code>tsz</code> crate's size on five datasets is some evidence that both do.</li>
+          </ul>
+          <p class="why">A printed decimal is the problem. <code>1.327</code> and <code>1.297</code> differ in a few digits, but as doubles their XOR has bits set almost all the way down.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-gorilla" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The first ten values of a real series, as Gorilla sees them</p>
+              <div class="seg" role="group" aria-label="Series">
+                <button type="button" data-ser="wl" aria-pressed="true">Water level</button>
+                <button type="button" data-ser="at" aria-pressed="false">Air temperature</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="tz-xor-head" aria-hidden="true"><span>Value</span><span>XOR with the value before, 64 bits</span><span>Stored</span></div>
+              <ol class="tz-xor" id="tz-xor"></ol>
+              <div class="legend-row"><span class="key"><i class="tz-key tz-key-1"></i>Bit set, stored</span><span class="key"><i class="tz-key tz-key-w"></i>Zero, but inside the stored window</span><span class="key"><i class="tz-key tz-key-0"></i>Zero, not stored</span></div>
+              <p class="tz-sum" id="tz-gor-sum" aria-live="polite"></p>
+            </div>
+            <figcaption class="demo-note">Rows are the start of <code>data/noaa-sf-water-level.csv</code> and <code>noaa-sf-air-temp.csv</code>. The bits per value come from a line-by-line port of the crate's Gorilla value coder, checked against the binary: for the first block of 4,096 points both give exactly the byte counts that <code>tsz encode --codec gorilla</code> printed.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-chimp" aria-labelledby="h-chimp">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-chimp"><span class="num" data-mark="3">3</span>Chimp and Chimp128: spend the bits differently</h2>
+          <p>Chimp (VLDB 2022) noticed that XORs of real values rarely have many trailing zeros. It pays for a trailing-zero count only when there are more than six, and rounds the leading-zero count to one of eight values so it fits in three bits.</p>
+          <ul class="st-points">
+            <li>Chimp128 also lets each value pick its reference from the previous 128, through a table keyed on the low 14 bits. An exact repeat costs 9 bits.</li>
+            <li>Sensors revisit the same readings, so on the five sensor series Chimp128 is 45 to 66% smaller than Gorilla.</li>
+            <li>Both follow the paper's flag layout. A test pins the papers' costs: a constant series is exactly 1, 2 and 9 bits per value under Gorilla, Chimp and Chimp128.</li>
+          </ul>
+          <p class="why">On the Wikipedia counts Gorilla beats both. They are integers stored as floats, so their XORs end in long runs of zeros, and Chimp pays 11 bits of header where Gorilla usually reuses its window for 2.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-chimp" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Bits per point on six real series, against gzip of the text</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tz-chimp" id="tz-chimp"></div>
+              <div class="legend-row"><span class="key"><i class="tz-sw tz-c-g"></i>gorilla</span><span class="key"><i class="tz-sw tz-c-c"></i>chimp</span><span class="key"><i class="tz-sw tz-c-c128"></i>chimp128</span><span class="key"><i class="tz-key tz-key-gz"></i>csv.gz, the file itself</span></div>
+            </div>
+            <figcaption class="demo-note">Every bar is from <code>tsz compare data/*.csv</code>, and the csv.gz marks from the bench's size table, which this page re-ran: both match the README to the last digit. Bits per point counts the timestamp and the value together; uncompressed is 128.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-decimal" aria-labelledby="h-decimal">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-decimal"><span class="num" data-mark="4">4</span>Decimal: check that every value was printed</h2>
+          <p>For <code>d</code> from 0 to 15, the encoder tries <code>n = round(v × 10<sup>d</sup>)</code> on every value in the block. It keeps the first <code>d</code> for which <code>n / 10<sup>d</sup></code> is the same 64 bits as <code>v</code>. Division and parsing are both correctly rounded, so <code>1327 / 1000</code> is exactly the double that <code>"1.327"</code> parses to.</p>
+          <ul class="st-points">
+            <li>Comparing bits, not values, is what keeps it lossless. <code>-0.0</code> and NaN never match, and neither does a computed value such as <code>0.1 + 0.2</code>.</li>
+            <li>The integers go to an adaptive code: first or second differences, zigzagged, with two bucket widths fitted to the block from all 2,016 pairs.</li>
+            <li>The same integer code competes for the timestamps, so gaps and irregular clocks get fitted widths too.</li>
+          </ul>
+          <p class="why">One value that doesn't fit sends the whole block to a float codec. There are no per-value exceptions, which pco and ALP have and this doesn't.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-decimal" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same water levels, stored as integers</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tz-dec-head" aria-hidden="true"><span>Printed</span><span>n, d = 3</span><span>Residual</span><span>Decimal</span><span>Gorilla</span></div>
+              <ol class="tz-dec" id="tz-dec"></ol>
+              <dl class="tz-tot" id="tz-dec-tot"></dl>
+              <p class="tz-k">Break one value in a block of power readings <span class="tag-ill">Illustrative input</span></p>
+              <div class="seg tz-brk" id="tz-brk" role="group" aria-label="Value 10 becomes"></div>
+              <div class="tz-mt tz-brk-out" id="tz-brk-out" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The integers and residuals are the decimal coder's, from the same port, which matches the binary's 3,890 bytes for this block. The block is 4,096 points, so 18 bits of header and the first value's 64 are spread over all of them. The broken files are the first 8,192 points of <code>uci-power-active-2007.csv</code> with line 10 changed; the lines are <code>tsz compare</code> output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-auto" aria-labelledby="h-auto">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-auto"><span class="num" data-mark="5">5</span>Auto: measure every codec, write the cheapest</h2>
+          <p>Every encoder is generic over a bit sink. <code>auto</code> runs each candidate into a counter that only adds up lengths, and writes only the cheapest. Blocks are independent, so each one chooses its timestamp codec and its value codec on its own.</p>
+          <ul class="st-points">
+            <li>The counter gives up as soon as it passes the best size so far. Decimal goes first, so the float codecs usually stop early. That took <code>auto</code> from about 17 to about 26 million points a second on encode, by the README's measurement.</li>
+            <li>Ties go to the earlier candidate, so the same input always gives the same bytes. A test hashes the bytes every codec writes for a fixed series.</li>
+            <li>Because <code>auto</code> chooses from a superset of what each fixed codec uses, it is never bigger than any of them. The property tests check that on every random series.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-auto" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One file, three blocks, three choices <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tz-blocks" id="tz-blocks"></div>
+              <div class="tz-mt" id="tz-auto-term"></div>
+            </div>
+            <figcaption class="demo-note">The file was generated for this page: 4,096 printed readings with one decimal place, 4,096 draws from a palette of 20 computed floats, and 4,096 points of a computed sine. Each block's bars are <code>tsz compare</code> on that block alone; the terminal is <code>tsz inspect</code> on the whole file encoded with <code>auto</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Bit for bit</span>Above this line tsz chooses how to store each block. Below it, what comes back must be the same 64 bits that went in, and bytes from anywhere are read as if they were hostile.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-decode" aria-labelledby="h-decode">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-decode"><span class="num" data-mark="6">6</span>Decode untrusted bytes without panicking</h2>
+          <p>The format is a magic number, then blocks of a point count, one codec byte and two length-prefixed bit streams, then a zero. The decoder checks every one of those against what the encoder could have written, and a mismatch is an error, never a panic.</p>
+          <ul class="st-points">
+            <li>A header claiming a block of more than 2<sup>20</sup> points is refused before anything is allocated.</li>
+            <li>Every truncation of a valid stream must be an error. The tests cut 300 streams at every byte, flip bits in 2,000, and append random bytes after the magic 20,000 times.</li>
+            <li>Two cargo-fuzz targets run in CI on every push: arbitrary bytes into the decoder, and arbitrary series through every codec and back.</li>
+          </ul>
+          <p class="why">There are no checksums. A flipped bit that keeps the structure intact decodes to wrong values with no error, so wrap the stream in something with a CRC if that matters.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-decode" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Seven damaged streams</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="tz-dmg" id="tz-dmg"></ol>
+            </div>
+            <figcaption class="demo-note">Six are copies of the first 5,000 points of the water-level series, encoded with <code>auto</code> to 5,373 bytes and then damaged as described; <code>huge.tsz</code> is the header the test suite uses. Messages and exit codes are what <code>tsz decode</code> printed. For the flipped bit, the values were compared bit for bit with the original: every timestamp survived, and 1,925 of the 5,000 values did not.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-verify" aria-labelledby="h-verify">
+      <div class="wrap grid st-grid">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-verify"><span class="num" data-mark="7">7</span>Prove the round trip, every codec</h2>
+          <p><code>tsz verify</code> encodes a file under every codec, decodes it, and compares each value bit for bit. It exits 1 on any mismatch. The test suite does the same on series built to break float handling.</p>
+          <ul class="st-points">
+            <li>Every NaN class with random payloads, both zeros, both infinities, subnormals and the extremes, next to every other.</li>
+            <li>Timestamps that are regular, jittered, backwards, duplicated, random, or <code>i64::MIN</code> and <code>MAX</code>; lengths of 0, 1, 2 and a block plus or minus one.</li>
+            <li><code>cargo test</code> runs 20,000 random series. The soak in CI runs a million, and checks on each that <code>auto</code> is no bigger than the best fixed codec.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-verify" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six datasets, four codecs, 1.3 million points</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="tz-ver" id="tz-ver" role="table" aria-label="tsz verify results"></div>
+              <div class="tz-mt" id="tz-soak"></div>
+            </div>
+            <figcaption class="demo-note"><code>tsz verify data/*.csv</code> on the release binary, then <code>make soak</code>, both verbatim. The soak took 156 s here, on a machine running other jobs, and 97 s in CI.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The repository benchmarks tsz against zstd, the existing <code>tsz</code> crate and pco, and CI fails if the chart drifts from what the code produces. This page re-ran the size table: every figure matched the README, and the chart file came out byte-identical.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>A year of household power</h3>
+            <p>521,669 one-minute readings from <code>uci-power-active-2007</code>, in bits per point.</p>
+            <div class="bars tz-mbars">
+              <div class="bar-row"><span>tsz crate</span><span class="bar"><i style="--s:1"></i></span><span>52.54</span></div>
+              <div class="bar-row"><span>csv.gz</span><span class="bar"><i style="--s:.6355"></i></span><span>33.39</span></div>
+              <div class="bar-row"><span>zstd</span><span class="bar"><i style="--s:.4340"></i></span><span>22.80</span></div>
+              <div class="bar-row"><span>tsz auto</span><span class="bar tz-us"><i style="--s:.1747"></i></span><span>9.18</span></div>
+              <div class="bar-row"><span>pco</span><span class="bar"><i style="--s:.1285"></i></span><span>6.75</span></div>
+            </div>
+            <p>13.9 times smaller than 16 bytes a point, and 2.5 times smaller than zstd on the raw columns.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>pco is smaller, everywhere</h3>
+            <p>tsz <code>auto</code> against pco 1.0.4 at its default level, bits per point:</p>
+            <ol class="tz-pco" id="tz-pco"></ol>
+            <p>pco also notices the decimal step, then entropy-codes over bins fitted to the whole chunk. If data can go over in chunks, the README says to use pco.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The suite, and what CI adds</h3>
+            <p><code>cargo test</code>, warm, twice in a row on this machine:</p>
+            <div class="tally"><span>11.9 s</span><span>13.4 s</span></div>
+            <p>Most of it is the 20,000 random series. CI runs the suite on Rust 1.74 and stable, rustfmt and clippy with warnings as errors, the million-series soak, two minutes of each fuzz target, and the size chart check.</p>
+            <p>A two-minute fuzz run of <code>decode</code> here made 13.1 million attempts and found nothing.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">21 tests, and one long one</h2>
+          <p>Counted with <code>cargo test --locked</code>, as CI runs it: 21 passing across unit tests, three integration files and one doc test. The soak is a 22nd test, ignored by default and run with <code>make soak</code>; it passed here too.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward breaking it</h3>
+            <ul>
+              <li><strong>Round trips:</strong> seeded generators for adversarial series, every codec, bit for bit; every special value next to every other; block boundaries; a streaming encoder that must write the same bytes as <code>encode</code>.</li>
+              <li><strong>The format:</strong> FNV hashes of the exact bytes each codec writes for a fixed series, so a format change can't slip in, and the papers' bit costs for a constant series and a regular clock.</li>
+              <li><strong>Untrusted input:</strong> every truncation, flipped bits, random bytes, and framing errors that name the problem.</li>
+              <li><strong>The CLI as a user runs it:</strong> exact bits through text, stdin and stdout, errors that name the line, and <code>decode | head</code> exiting quietly instead of panicking.</li>
+            </ul>
+            <p>While building it, nine bugs were planted by hand, one at a time, and the README records that eight made the suite fail. The ninth turned out to change no output at all.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Checksums</dt><dd>A flipped bit inside a payload can decode to wrong values without an error, as stage 6 shows. Wrap the stream in something with a CRC if that matters.</dd></div>
+              <div><dt>An index</dt><dd>Blocks are independent, but finding the block for a time range means walking the framing from the start.</dd></div>
+              <div><dt>Exceptions in the decimal codec</dt><dd>One value that isn't <code>n / 10<sup>d</sup></code> sends the whole block to a float codec.</dd></div>
+              <div><dt>Other shapes and lossy modes</dt><dd>One series of <code>(i64, f64)</code>: no integer or string values, no columns or tags. Nothing rounds, quantizes or drops points.</dd></div>
+              <div><dt>crates.io</dt><dd>The package is <code>tsz-codec</code> and lives on GitHub. <code>tsz</code> on crates.io is the older Gorilla crate it is compared with.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/tsz.git &amp;&amp; cd tsz
+cargo build --release
+export PATH=$PWD/target/release:$PATH
+
+gunzip -k data/*.csv.gz
+tsz compare data/*.csv
+tsz encode data/uci-power-active-2007.csv -o power.tsz
+tsz inspect power.tsz
+tsz decode power.tsz | head -3
+tsz verify data/*.csv
+
+<span class="c"># The suite, then the soak and the size check CI adds.</span>
+cargo test
+make soak bench-sizes</pre>
+            <p>Rust 1.74 or newer and nothing else for the crate. The bench in <code>bench/</code> is its own package and pulls zstd, pco and the <code>tsz</code> crate for comparison; fuzzing needs nightly and cargo-fuzz.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

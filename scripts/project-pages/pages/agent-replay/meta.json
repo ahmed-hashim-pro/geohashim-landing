@@ -1,0 +1,9 @@
+{
+  "title": "agent-replay · Ahmed Hashim",
+  "description": "Records an AI agent's tool calls, replays the session against a new model or prompt, and compares what the agent did, not what it said. A destructive call it never made before fails the check. How it works end to end, with real runs.",
+  "tour_seconds": "70",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See what was measured"
+  }
+}

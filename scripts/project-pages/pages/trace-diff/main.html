@@ -1,0 +1,394 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">trace-diff</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A command-line tool that compares OpenTelemetry traces from before and after a change, and reports the structural regressions that tests and latency dashboards miss: a query that now runs once per item, a call that is now retried, a fan-out that grew, a new call the request has to wait for.</p>
+            <p>A change can pass every test and leave the latency graph flat, or even better, while it doubles the work behind each request. In the repository's example the p95 fell from 73.4 to 50.3 ms and the spans nearly doubled, from 2,128 to 4,203. Each finding names the operation, says how often and how much, and points at trace ids you can open.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/trace-diff">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/trace-diff#what-it-reports">What it reports</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the eight stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.24 or newer</dd>
+              <dt>Tests</dt><dd>37 passing, 4 of them in the demo module</dd>
+              <dt>Dependencies</dt><dd>The OTLP protobuf types only; the statistics are written in the repository</dd>
+              <dt>Reads</dt><dd>OTLP JSON from the Collector's file exporter, gzipped or not, or OTLP/HTTP directly</dd>
+              <dt>Reports</dt><dd>11 kinds of finding at three severities</dd>
+              <dt>Exit codes</dt><dd>1 when something should block a merge, 0 otherwise, 2 on bad input</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="report">The change</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="rerun">No change</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="show">One trace</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="summary">Summary</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">trace-diff check examples/shop/before.jsonl.gz examples/shop/after.jsonl.gz</span>
+<span class="out">before: examples/shop/before.jsonl.gz, 300 traces, 2128 spans</span>
+<span class="out">after:  examples/shop/after.jsonl.gz, 300 traces, 4203 spans</span>
+<span class="out"></span>
+<span class="err">FAIL  n-plus-one  frontend GET /orders/{id}</span>
+<span class="err">FAIL  retry-storm  frontend GET /orders/{id}</span>
+<span class="err">FAIL  new-sync-call  frontend GET /orders/{id}</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of trace-diff 0.1.0, output verbatim. The traces are the repository's committed example: a small shop of three Go services instrumented with the OpenTelemetry SDK, 300 requests a run, written by a real OpenTelemetry Collector. The change under review makes orders load items lazily and the frontend retry pricing.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How two runs move through trace-diff">
+          <div class="sign-group">
+            <p>Before the line: read, match, test, name</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-match"><b>2</b> Match</a></li>
+              <li><a class="sign-link" href="#s-request"><b>3</b> Per request</a></li>
+              <li><a class="sign-link" href="#s-stats"><b>4</b> Is it real</a></li>
+              <li><a class="sign-link" href="#s-floor"><b>5</b> Big enough</a></li>
+              <li><a class="sign-link" href="#s-shape"><b>6</b> Shape</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the merge waits</p>
+            <ol>
+              <li><a class="sign-link" href="#s-gate"><b>7</b> Block</a></li>
+              <li><a class="sign-link" href="#s-shop"><b>8</b> Real shop</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read the traces you already collect</h2>
+          <p>trace-diff reads OTLP JSON: what the OpenTelemetry Collector's file exporter writes, or OTLP/HTTP request bodies, one object or many per file, gzipped or not. Nothing has to change in the services.</p>
+          <ul class="st-points">
+            <li>Add a file exporter to the Collector you already run, or point the services straight at <code>trace-diff collect</code>, which speaks OTLP/HTTP in protobuf, the SDKs' default, or JSON.</li>
+            <li>A span delivered twice by a Collector retry is dropped, and a trace whose root was lost takes its earliest server span as the root.</li>
+            <li>Input it can't read is an error that names the file and the object, with exit code 2.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Three runs of the shop, and the receiver</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="td-runs" id="td-runs"></ol>
+              <div class="mini-term" id="td-collect"></div>
+            </div>
+            <figcaption class="demo-note">The three files are <code>examples/shop/</code> in the repository: the code before the change, the same code run again, and the change. Sizes are the gzipped files. The receiver was sent the first five Collector batches of the before run as OTLP/HTTP JSON posts, each answered <code>200</code>, then stopped with an interrupt, as Ctrl-C would.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-match" aria-labelledby="h-match">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-match"><span class="num" data-mark="2">2</span>Name each call by what it did</h2>
+          <p>Span ids differ between runs, and so do the values inside them. So a span is identified by its service, its kind, and a description with the values taken out. That is what makes a call in one run the same call in the other.</p>
+          <ul class="st-points">
+            <li>A database span is its statement with literals and bind parameters replaced: <code>id = 42</code> and <code>id = $1</code> both become <code>id = ?</code>, and <code>IN (1, 2, 3)</code> becomes <code>IN (?)</code>.</li>
+            <li>An HTTP server span is its route. An HTTP client span is the host and the path, with numbers, UUIDs and other ids replaced.</li>
+            <li>Without this step, every request's calls look new. The <code>keep-literals</code> mutant leaves the values in, and the retry storm below disappears.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-match" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Spans as recorded, and the operation trace-diff names</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="td-mt-head" aria-hidden="true"><span>Recorded</span><span>Operation</span></div>
+              <ol class="td-mt" id="td-mt"></ol>
+              <div class="mini-term" id="td-keep"></div>
+            </div>
+            <figcaption class="demo-note">The first four spans are from trace <code>d322190d</code> of the shop's after run. The rest come from trace-diff's own synthetic shop (<code>trace-diff synth --scenario n-plus-one --seed 101</code>), which inlines literal ids the way some drivers do. The operations are what <code>trace-diff summary</code> prints for those runs. The terminal compares the synthetic <code>retry-storm</code> scenario with the deliberately broken <code>keep-literals</code> comparison: only the latency is left.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-request" aria-labelledby="h-request">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-request"><span class="num" data-mark="3">3</span>Compare requests to the same endpoint</h2>
+          <p>Traces are grouped by their root span, such as <code>frontend GET /orders/{id}</code>, and every comparison is between requests to the same endpoint. The traffic mix can differ between the runs without hiding anything.</p>
+          <ul class="st-points">
+            <li>For each request and each operation: how many calls, the most under one parent, how many of those ran at once, and how many followed a failed attempt.</li>
+            <li>The critical path, walked back from the end of the root: the child that finished last, then the same inside it. Time spent waiting inside a call is what "the request waits on it" reports.</li>
+            <li>An endpoint with fewer than 20 requests on either side is listed as a note and not compared.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-request" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Four requests to <code>GET /orders/{id}</code></p>
+              {{REPLAY}}
+            </div>
+            <div class="td-tr-tabs"><div class="seg" id="td-tr-seg" role="group" aria-label="Trace"></div></div>
+            <div class="demo-body">
+              <p class="td-tr-cap" id="td-tr-cap"></p>
+              <div class="td-wf" id="td-wf" role="img" aria-label="Waterfall of the selected trace"></div>
+              <dl class="td-feat" id="td-feat"></dl>
+              <div class="legend-row"><span class="key"><i class="td-key td-key-hl"></i>The operation the finding is about</span><span class="key"><i class="td-key td-key-err"></i>Ended with an error</span><span class="key"><i class="td-key"></i>Other spans</span><span class="key td-key-end"><i class="td-key td-key-line"></i>The response was sent</span></div>
+            </div>
+            <figcaption class="demo-note">Each waterfall is drawn from <code>trace-diff show</code> for that trace id, on its own time scale; the request durations are in the caption above it. The four are the ones the report points at: the median request before the change, a typical request after it, and the worst after it for each of the two findings. The counts below a waterfall are read off the same output.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-stats" aria-labelledby="h-stats">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-stats"><span class="num" data-mark="4">4</span>Ask whether the change is real</h2>
+          <p>Every question is a statistical test, per endpoint and per operation. Fisher's exact test asks whether more requests make a call, or retry it. Mann-Whitney U asks whether requests make more of a call, and whether they got slower. Fisher again asks whether more requests now land past the old p95.</p>
+          <ul class="st-points">
+            <li>A comparison runs many tests at once, so they are corrected together with Benjamini-Hochberg, at a false discovery rate of 0.001.</li>
+            <li>The tests are written in the repository, about 140 lines with no dependencies. Mann-Whitney matches scipy's to five decimal places on the test's sample.</li>
+            <li>Two runs of the same code should give nothing to report. On the shop they don't.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-stats" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every test in one comparison, smallest p first</p>
+              {{REPLAY}}
+            </div>
+            <div class="td-tr-tabs"><div class="seg" id="td-st-seg" role="group" aria-label="Comparison"></div></div>
+            <div class="demo-body">
+              <p class="td-st-sum" id="td-st-sum"></p>
+              <div class="td-st-axis" aria-hidden="true"><span>adjusted p</span><span>1</span><span>0.001</span><span>10<sup>-12</sup> or less</span></div>
+              <ol class="td-st" id="td-st"></ol>
+            </div>
+            <figcaption class="demo-note">trace-diff doesn't print its p-values; these were listed by a scratch test added to a copy of the repository, which calls the same functions <code>check</code> does and prints each test with its raw and adjusted p. Bars are on a log scale and stop at 10<sup>-12</sup>; the exact value is beside each. Drift is the synthetic scenario with small real shifts, seed 101, 3,000 requests a side.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-floor" aria-labelledby="h-floor">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-floor"><span class="num" data-mark="5">5</span>Ask whether it is big enough to matter</h2>
+          <p>With enough traffic, a 2% shift is significant and still not worth blocking a merge. A significant change is reported only if it also clears a floor.</p>
+          <ul class="st-points">
+            <li>Ten points more of the requests making a call.</li>
+            <li>Half a call more per request, and 1.5 times as many.</li>
+            <li>Two points more of the requests retried, and at least three of them.</li>
+            <li>Latency: 20% and 2 ms on the median; or on the p95, with at least a tenth of the requests past the old one.</li>
+          </ul>
+          <p class="why">On the synthetic benchmark, the deliberately broken <code>no-floors</code> comparison reports drift on 76 seeds of 200. With the floors, none of the drift seeds fail the check.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-floor" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Drift, seed 101: with the floors and without</p>
+              {{REPLAY}}
+            </div>
+            <div class="td-tr-tabs"><div class="seg" id="td-fl-seg" role="group" aria-label="Comparison"></div></div>
+            <div class="demo-body">
+              <div class="td-fl" id="td-fl"></div>
+            </div>
+            <figcaption class="demo-note">Both runs are real <code>trace-diff check</code> output on <code>trace-diff synth --scenario drift --seed 101</code>: a pricing cache that hits 64% of the time instead of 70%, user lookups 8% slower, payments retried on 4% of checkouts instead of 3%. Trace id lines are left out here. The cache miss rate cleared the ten-point floor by chance plus the planted shift, so it is reported, as a warning.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-shape" aria-labelledby="h-shape">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-shape"><span class="num" data-mark="6">6</span>Name the change by its shape</h2>
+          <p>A call that went up is named by how it went up, in this order. The name decides the severity, and the severity decides the exit code.</p>
+          <ul class="st-points">
+            <li>A new client call brings its server span and its queries with it, and a retried call repeats everything beneath it. Those are one change, so findings about a subtree are folded into the finding about its top.</li>
+            <li>A removed call and a new one under the same parent are paired, so the report says what the new call replaces.</li>
+            <li>A latency finding lists where the time went: the operations whose time on the critical path grew most.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-shape" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Five planted changes, five names</p>
+              {{REPLAY}}
+            </div>
+            <div class="td-tr-tabs"><div class="seg" id="td-sh-seg" role="group" aria-label="Scenario"></div></div>
+            <div class="demo-body td-sh">
+              <ol class="td-rules" id="td-rules"></ol>
+              <div class="td-sh-out">
+                <p class="td-sh-what" id="td-sh-what"></p>
+                <div class="mini-term td-sh-term" id="td-sh-term" aria-live="polite"></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The rules are the order in <code>classify()</code>; latency is decided separately, from the whole request. Each terminal is the first finding of <code>trace-diff check</code> on that synthetic scenario, seed 101, with the trace id lines left out. The scenario descriptions are <code>trace-diff synth</code>'s own.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Blocked</span>Above this line trace-diff reads, matches, tests and names. Below it, a failing finding stops the merge, and the person who wrote the change opens the traces it points at.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-gate" aria-labelledby="h-gate">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-gate"><span class="num" data-mark="7">7</span>Fail the check, and point at the traces</h2>
+          <p><code>check</code> exits 1 when a finding should block the merge, 0 otherwise, and 2 on bad input. <code>diff</code> prints the same report and always exits 0. In CI, record the base branch and the pull request under the same load and compare them.</p>
+          <ul class="st-points">
+            <li><code>--fail-on warn</code> makes warnings fail too. <code>--json</code> writes the report as JSON, and <code>--svg</code> draws the two traces behind a finding.</li>
+            <li>Each finding ends with trace ids: the worst request after, a typical one, and the median request before. <code>trace-diff show</code> opens any of them as a tree.</li>
+            <li>The comparison is only as good as the load. An endpoint only one run exercised is a note, not a finding.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-gate" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six runs, three exit codes</p>
+              {{REPLAY}}
+            </div>
+            <pre class="td-yaml"><span class="c"># a CI step, as the README gives it</span>
+- run: ./trace-diff check base.jsonl pr.jsonl</pre>
+            <ol class="td-exits" id="td-exits"></ol>
+            <figcaption class="demo-note">Every row is a real run, with <code>examples/shop/</code> left out of the paths, and the line under it is its last line of output. The first three use the shop's committed traces; the drift rows use the synthetic scenario from stage 5.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-shop" aria-labelledby="h-shop">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-shop"><span class="num" data-mark="8">8</span>Catch it in a real shop, not only a synthetic one</h2>
+          <p>The repository's demo is a frontend, an orders service on Postgres and a pricing service, instrumented with the official OpenTelemetry Go SDK and exporting to a real OpenTelemetry Collector. <code>make demo</code> runs it three times in Docker: before the change, the same code again, and after.</p>
+          <ul class="st-points">
+            <li>The change passes the shop's own tests: lazy and eager loading return identical orders, and a slow first quote is recovered by the retry.</li>
+            <li>The p95 improves because the frontend stops waiting for pricing's slow path, not because the slow path went away: pricing still finishes the abandoned request.</li>
+            <li>CI runs the whole demo on every push and requires both the N+1 and the retry storm in the report.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-shop" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title" id="td-shop-title">A fresh run on this machine</p>
+              {{REPLAY}}
+            </div>
+            <div class="td-shop" id="td-shop"></div>
+            <div class="mini-term td-shop-term" id="td-shop-term"></div>
+            <figcaption class="demo-note" id="td-shop-note"></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The repository's own benchmark, rerun here: a synthetic shop with four endpoints, a cache that hits 70% of the time, retries on 3% of payments and a traffic mix that moves by up to 50% between runs. Each scenario plants one change, or none, and is compared over 200 seeds.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Every planted change, every seed</h3>
+            <p>A finding counts only with the right kind about the right operation, 300 requests a side (3,000 for drift).</p>
+            <div class="bars" id="td-bench"></div>
+            <p>No seed produced a finding that would fail <code>check</code> by mistake. One new-sync-call seed and five drift seeds reported something besides the planted change, and none of it would fail the check.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Five broken versions, all caught</h3>
+            <p>Each mutant breaks one decision in the comparison and runs the same 1,600 comparisons. The table must change, and does.</p>
+            <ul class="td-mut" id="td-mut"></ul>
+          </article>
+          <article class="panel m-card">
+            <h3>What it costs</h3>
+            <p>The full benchmark, 1,600 comparisons and the five mutants, on one machine shared with other jobs:</p>
+            <div class="tally" id="td-cost"></div>
+            <p>The README gives 15 to 20 minutes on four cores; GitHub's runner took 15 and 20 minutes on the two pushes. A single <code>check</code> of the shop's committed runs takes 0.1 s, and of drift, 3,000 requests a side, 0.8 s.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">37 tests, counted with their subtests</h2>
+          <p>33 in the main module with <code>go test -race ./...</code>: 21 test functions and the 12 subtests of the benchmark's two tests. 4 in the demo module, where the lazy-loading test needs the demo's Postgres, as CI's demo job provides it. All 37 pass.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>What they hold it to</h3>
+            <ul>
+              <li><strong>Statistics:</strong> Fisher's tea-tasting table to twelve decimals, Mann-Whitney against scipy, Benjamini-Hochberg on a known case, quantiles that don't sort the input in place.</li>
+              <li><strong>Matching and features:</strong> SQL and path normalization, critical path times that add up to the root, concurrency and retries, duplicate spans dropped, and endpoints with too few requests skipped rather than guessed.</li>
+              <li><strong>Input:</strong> the Collector's file format, base64 ids and zero parents, gzip round trips, the receiver in protobuf and JSON, and bad input that says where.</li>
+              <li><strong>The benchmark in miniature:</strong> every scenario on its first five seeds, and every mutant visibly wrong within ten.</li>
+              <li><strong>The CLI and the demo:</strong> exit codes 0, 1 and 2, usage errors, <code>summary</code> and <code>show</code>; the real OpenTelemetry SDK exporting to the receiver; the shop's own tests.</li>
+            </ul>
+            <p>CI also checks that <code>docs/</code> is what the current code makes of the committed runs, reruns the 200-seed benchmark against <code>docs/bench.txt</code>, and runs the real demo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Running your load</dt><dd>It compares what it is given. Two runs under different traffic, data or configuration differ for those reasons, and it will say so.</dd></div>
+              <div><dt>Skewed sampling</dt><dd>Both runs must sample the same way. Tail sampling that keeps slow or failed traces skews both counts and latency.</dd></div>
+              <div><dt>Tiny endpoints</dt><dd>Under 20 requests a side is skipped, and a change that affects one request in a hundred needs many hundreds to be seen.</dd></div>
+              <div><dt>Invisible retries</dt><dd>A retry inside a client library without its own span can't be seen. Neither can OTLP protobuf files or gRPC: files are JSON, the receiver is OTLP/HTTP.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/trace-diff
+cd trace-diff
+go build -o trace-diff ./cmd/trace-diff
+
+S=examples/shop
+./trace-diff check $S/before.jsonl.gz $S/rerun.jsonl.gz  <span class="c"># exit 0</span>
+./trace-diff check $S/before.jsonl.gz $S/after.jsonl.gz  <span class="c"># exit 1</span>
+./trace-diff show $S/after.jsonl.gz 08f7b4dbb263
+
+go test ./...      <span class="c"># a few seconds</span>
+make demo          <span class="c"># the real shop, needs Docker</span></pre>
+            <p>Go 1.24 or newer; the demo module needs 1.25, as the OpenTelemetry SDK does. <code>make bench</code> reruns the 200-seed tables and takes 15 to 20 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

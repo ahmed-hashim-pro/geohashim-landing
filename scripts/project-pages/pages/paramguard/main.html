@@ -1,0 +1,362 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">paramguard</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A CI check for PX4 and ArduPilot parameter files. It reads a parameter change the way the vehicle will, and blocks the pull request when the change turns off a failsafe, misspells a name, leaves the firmware's documented range, or steps a control gain too far.</p>
+            <p>A parameter file decides what a drone does when the radio link drops, the battery runs low or the fence is crossed. Teams review these files as text diffs, but the vehicle runs values. Delete a line and the vehicle falls back to the firmware default, which for PX4's link-loss failsafe is "do nothing". Misspell a name and the line sets nothing at all. Neither looks wrong in review; paramguard says why each one is.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/paramguard">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/paramguard#what-that-change-does-in-flight">The flight test</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Python 3.11 or newer, standard library only</dd>
+              <dt>Tests</dt><dd>66 passing with pytest, 67 with ArduCopter's metadata downloaded</dd>
+              <dt>Metadata</dt><dd>PX4 v1.15.4's own, 1,784 parameters, bundled; ArduPilot's read from its XML or JSON</dd>
+              <dt>Rules</dt><dd>28 built in for PX4, 17 for ArduCopter, each with a reason</dd>
+              <dt>Runs as</dt><dd>A CLI, and a composite GitHub Action</dd>
+              <dt>License</dt><dd>MIT; the bundled PX4 metadata is BSD 3-Clause</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="cleanup">Cleanup</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="tuning">Survey tuning</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="explain">Explain</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="lint">Lint</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">paramguard check vehicle.params cleanup.params</span>
+<span class="out">cleanup.params  (against vehicle.params)</span>
+<span class="out">1 effective change:</span>
+<span class="out">  NAV_DLL_ACT  2 (Return mode) -> 0 (Disabled)  (line removed: firmware default)</span>
+<span class="out"></span>
+<span class="err">BLOCK  gcs-loss-failsafe-off  cleanup.params</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of paramguard 0.1.0 in <code>examples/survey-quad</code>, the repository's example vehicle, output verbatim. The cleanup pull request deletes 17 lines "already at their defaults"; the tuning one changes five values. Both files are part of the repository, not real flight logs.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How a parameter change moves through paramguard">
+          <div class="sign-group">
+            <p>Before the line: read, resolve, check</p>
+            <ol>
+              <li><a class="sign-link" href="#s-read"><b>1</b> Read</a></li>
+              <li><a class="sign-link" href="#s-effective"><b>2</b> Effective values</a></li>
+              <li><a class="sign-link" href="#s-meta"><b>3</b> Metadata</a></li>
+              <li><a class="sign-link" href="#s-rules"><b>4</b> Rules</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a named person accepts it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-allow"><b>5</b> Allow</a></li>
+              <li><a class="sign-link" href="#s-ci"><b>6</b> Every PR</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-read" aria-labelledby="h-read">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-read"><span class="num" data-mark="1">1</span>Read the file the way the vehicle's loader does</h2>
+          <p>A parameter file can be a QGroundControl export, a PX4 startup script, or plain <code>NAME VALUE</code> and <code>NAME,VALUE</code> lines from ArduPilot and Mission Planner. paramguard reads all of them, mixed in one file if need be, and compares values, not text.</p>
+          <ul class="st-points">
+            <li>Floats are compared as the float32 the autopilot stores, so <code>0.15</code> and QGroundControl's <code>0.15000000596046448</code> are the same value. Line order never matters.</li>
+            <li>QGroundControl's type column is checked: an integer parameter written with a fraction is refused.</li>
+            <li>Any line it can't read stops the run with the file and line number, and exit code 2. A file that is half read is worse than one that is refused.</li>
+            <li>A name set twice is an error, because which value wins depends on the loader.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-read" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same vehicle, written another way <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="pg-pair" id="pg-pair">
+                <div class="pg-file"><p class="pg-file-name"><code>vehicle.params</code><small>QGroundControl export</small></p><ol class="pg-lines" id="pg-left"></ol></div>
+                <div class="pg-file"><p class="pg-file-name"><code>respelled.params</code><small>three other formats, reordered</small></p><ol class="pg-lines" id="pg-right"></ol></div>
+              </div>
+              <div class="pg-mt" id="pg-read-ok"></div>
+              <p class="pg-k">Files it refuses</p>
+              <div class="pg-mt" id="pg-read-err"></div>
+            </div>
+            <figcaption class="demo-note">The left file is the repository's <code>examples/survey-quad/vehicle.params</code>, first eight of its 24 parameters shown. The right file and the three refused ones were written for this page: the same 24 values in other formats and another order, a name set twice, a word for a value, and an integer with a fraction. paramguard's output and exit codes are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-effective" aria-labelledby="h-effective">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-effective"><span class="num" data-mark="2">2</span>Compare what the vehicle will run, not the lines</h2>
+          <p>Each parameter's effective value is the file's value, or the firmware default when the file doesn't set it. The defaults come from the firmware's own metadata. A change is any parameter whose effective value moved.</p>
+          <ul class="st-points">
+            <li>Deleting a line is a change whenever the deleted value wasn't the default. That is the change a reviewer reads as harmless cleanup.</li>
+            <li>Writing a default out explicitly changes nothing, so tidying a file in either direction is quiet.</li>
+            <li>A file that is new on the branch is compared with the firmware defaults.</li>
+          </ul>
+          <p class="why">In PX4 v1.15.4 the default for <code>NAV_DLL_ACT</code>, the ground-station link-loss failsafe, is 0: disabled. PX4's simulated planes set it to 2 at start-up, which is why a value of 2 looks like a default to anyone who has used them.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-effective" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The 17 lines the cleanup deleted</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="pg-eff-head" aria-hidden="true"><span>Parameter</span><span>In the file</span><span>Firmware default</span><span>Effective change</span></div>
+              <ol class="pg-eff" id="pg-eff"></ol>
+              <div class="pg-mt" id="pg-eff-term"></div>
+            </div>
+            <figcaption class="demo-note">Rows are every line in <code>vehicle.params</code> that <code>cleanup.params</code> doesn't have. Defaults and value names are read from the PX4 v1.15.4 metadata that ships with paramguard. The terminal is the head of paramguard's own report for the pair.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-meta" aria-labelledby="h-meta">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-meta"><span class="num" data-mark="3">3</span>Check every changed line against the firmware's metadata</h2>
+          <p>Every PX4 build generates a <code>parameters.json</code> with each parameter's type, range, enum values, bitmask bits and default. paramguard ships the v1.15.4 SITL build's copy, and <code>--meta</code> points at any other build's, or at ArduPilot's <code>apm.pdef.xml</code>.</p>
+          <ul class="st-points">
+            <li><code>unknown-param</code>: the vehicle has no parameter by that name, so the line sets nothing. It suggests the name you meant.</li>
+            <li><code>out-of-range</code>, <code>not-in-values</code>, <code>not-integer</code> and <code>unknown-bits</code>: PX4 stores such values without complaint. Checked for this page on a fresh PX4 v1.15.4 SITL: it stored and read back <code>MPC_Z_VEL_MAX_DN = 5</code> against a maximum of 4, <code>MC_ROLLRATE_P = -1</code> and <code>NAV_DLL_ACT = 4</code>, and answered <code>MPC_XY_CRUSIE</code> with nothing but an error on its own console.</li>
+            <li>A problem already in the base version is reported as a note, not a block, so adopting paramguard doesn't fail on a vehicle's history.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-meta" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Lines the metadata rejects</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="pg-meta" id="pg-meta"></ol>
+              <div class="legend-row"><span class="key"><i class="pg-sev" data-s="block">BLOCK</i>Fails the check</span><span class="key"><i class="pg-sev" data-s="note">note</i>Already in the base version</span></div>
+            </div>
+            <figcaption class="demo-note">The first two rows are from the repository's <code>tuning.params</code>. The rest come from a copy of the vehicle file edited for this page <span class="tag-ill">Illustrative input</span>: <code>NAV_DLL_ACT</code> set to 4, <code>COM_DL_LOSS_T</code> to 10.5 and <code>EKF2_GPS_CTRL</code> to 31, against a base that already had <code>MPC_TILTMAX_AIR = 95</code>. Every message is paramguard's, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-rules" aria-labelledby="h-rules">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-rules"><span class="num" data-mark="4">4</span>Judge each change against rules that say why</h2>
+          <p>A rule names parameters, a condition and a reason written for the reviewer. The built-in PX4 set covers failsafes, the geofence, circuit breakers, airframe and motor mapping, and tuning steps. Your own TOML rules add to it.</p>
+          <ul class="st-points">
+            <li>Conditions: <code>forbid</code>, <code>allow_only</code>, <code>min</code>, <code>max</code>, <code>no_decrease</code>, <code>no_increase</code>, <code>max_step</code>, <code>no_sign_flip</code>, <code>any_change</code>, <code>no_new_bits</code> and <code>below</code>, on names or globs.</li>
+            <li>Rules are checked against the metadata before anything runs. A misspelt parameter, a glob that matches nothing, an unknown key or a missing reason is an error: a rule that silently never fires is the failure this tool exists to prevent.</li>
+            <li>A rule is <code>block</code> or <code>warn</code>. Only a block fails the check.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-rules" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The tuning pull request, rule by rule</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="pg-rules" id="pg-rules"></ol>
+              <p class="pg-k">A team's own rule, and three ways to get one wrong <span class="tag-ill">Illustrative input</span></p>
+              <pre class="pg-toml" id="pg-toml"></pre>
+              <div class="pg-mt" id="pg-rule-err"></div>
+            </div>
+            <figcaption class="demo-note">The three findings are from <code>paramguard check vehicle.params tuning.params</code>; the step bar is the rule's own arithmetic, 0.15 to 0.25 against a 50% limit. The rule file is the README's example, run against a copy of the vehicle file with <code>MPC_XY_CRUISE</code> at 10. The three broken copies of it were made for this page. Output and exit codes are real.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Allowed</span>Above this line paramguard reads, resolves and checks, and any block fails the pull request. Below it, a block passes only with a committed allowance that names who accepted it and why.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-allow" aria-labelledby="h-allow">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-allow"><span class="num" data-mark="5">5</span>A named person accepts one exact value</h2>
+          <p>Some blocked changes are right: a tethered vehicle doesn't need a link-loss failsafe, and a retune after a prop change does move gains a long way. An allowance in <code>paramguard.allow.toml</code> accepts one finding, and it must say who and why.</p>
+          <ul class="st-points">
+            <li>It covers one rule, one parameter and one value, or <code>"removed"</code>. If a later change moves the gain again, the block comes back.</li>
+            <li>An allowance that no longer matches anything is reported, so a stale one can't be mistaken for one that still covers something.</li>
+            <li>An allowed finding is still printed, with the name and reason, so the decision stays in git next to the parameters.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-allow" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">A roll-rate retune, three times <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="pg-pol-tabs">
+              <div class="seg" id="pg-allow-seg" role="group" aria-label="Run"></div>
+            </div>
+            <div class="pg-pol">
+              <div class="pg-pol-file">
+                <p class="pg-k" id="pg-allow-name"></p>
+                <pre class="pg-toml" id="pg-allow-toml"></pre>
+              </div>
+              <div class="pg-pol-out">
+                <p class="pg-exit" id="pg-exit"><span>exit</span><b>1</b></p>
+                <div class="pg-mt pg-allow-term" id="pg-allow-term" aria-live="polite"></div>
+              </div>
+            </div>
+            <div class="pg-mt pg-noby" id="pg-noby"></div>
+            <figcaption class="demo-note">The vehicle file with <code>MC_ROLLRATE_P</code> changed from 0.15 to 0.25, then to 0.3, and the allowance from the README. All made for this page; every report and exit code is paramguard's own.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ci" aria-labelledby="h-ci">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-ci"><span class="num" data-mark="6">6</span>Run it on every pull request</h2>
+          <p><code>paramguard check --base origin/main vehicles/*.params</code> compares each file with its version on the base branch, read with <code>git show</code>. As a GitHub Action it does the same against the pull request's base, and <code>--format github</code> puts each finding on the diff, on its line.</p>
+          <ul class="st-points">
+            <li>Exit 0 when nothing blocks, 1 when something does, 2 when an input can't be read.</li>
+            <li>Action inputs: <code>files</code>, <code>base</code>, <code>meta</code> for your board's build, <code>rules</code> and <code>allow</code>.</li>
+            <li>The repository runs its own action in CI, and flies the link-loss comparison in PX4 SITL on every push.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-ci" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The tuning branch, as GitHub shows it</p>
+              {{REPLAY}}
+            </div>
+            <div class="pg-diff" id="pg-diff" aria-label="vehicle.params on the pull request, with paramguard's annotations"></div>
+            <div class="pg-ci">
+              <p class="pg-ci-head"><span>CI run 38611811458 on <code>dfc1443</code></span><b>6 jobs, all passed</b></p>
+              <ol class="pg-jobs" id="pg-jobs"></ol>
+            </div>
+            <figcaption class="demo-note">A scratch Git repository whose main branch holds <code>vehicle.params</code> and whose branch replaces it with <code>tuning.params</code>. The annotations are the real <code>--format github</code> output of <code>paramguard check --base main</code>, drawn the way GitHub places them; each shows the finding, and the reason that follows it in the real annotation is left out here. Job names, results and durations are from GitHub's API for that run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The cleanup's deleted line, flown. The repository's SITL script plays a ground station in PX4 v1.15.4 (Gazebo, in Docker): it loads the parameter file, takes off, flies 300 m north, holds for 5 s, then stops sending heartbeats. It keeps listening, so the telemetry after the link loss is still recorded.</p>
+        </div>
+        <figure class="panel pg-fly" id="pg-fly" data-reveal>
+          <div class="pg-fly-head">
+            <p class="demo-title">Distance from home in metres, after the radio link is lost</p>
+            <div class="legend-row"><span class="key"><i class="pg-line" data-r="before"></i><code>vehicle.params</code>, <code>NAV_DLL_ACT</code> 2</span><span class="key"><i class="pg-line" data-r="after"></i>After the cleanup, line deleted</span></div>
+          </div>
+          <svg class="pg-chart" id="pg-chart" viewBox="0 0 720 260" role="img" aria-label="Distance from home against seconds since the link was lost, for both runs"></svg>
+          <figcaption class="demo-note">Logged telemetry from two runs of <code>make sitl</code>'s flight on this machine (2026-10-16), thinned to one point a second; the times are what the repository's <code>analyze.py</code> measured from it, and its <code>--check</code> passed. In the repository's own recorded run Return mode started at 17.4 s and the landing came at 161.5 s. PX4 waits <code>COM_DL_LOSS_T</code> (10 s) after the heartbeats stop, then <code>COM_FAIL_ACT_T</code> (5 s) before acting. Both runs used a separate Docker network, a change to <code>sitl/run.sh</code> made only for this machine.</figcaption>
+        </figure>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Same flight, two endings</h3>
+            <p id="pg-fly-before"></p>
+            <div class="tally" id="pg-fly-tally"></div>
+            <p id="pg-fly-after"></p>
+          </article>
+          <article class="panel m-card">
+            <h3>Typos it names correctly</h3>
+            <p>The suite swaps two neighbouring letters in 300 random PX4 names and asks for a suggestion. In 5 of the 300 the swap gave back the same name.</p>
+            <div class="bars">
+              <div class="bar-row"><span>First guess</span><span class="bar"><i style="--w:98.6%"></i></span><span>291 / 295</span></div>
+              <div class="bar-row"><span>In the top 3</span><span class="bar"><i style="--w:100%"></i></span><span>295 / 295</span></div>
+            </div>
+            <p>The four misses are ambiguous: <code>R1C1_MAX</code> is one edit from <code>RC1_MAX</code> as well as <code>RC11_MAX</code>. The test asserts more than 97% and all within the top three.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The suite, start to end</h3>
+            <p><code>pytest -q</code>, including the Hypothesis property tests over random files drawn from the real PX4 metadata. Three runs in a row on this machine, Python 3.12.3:</p>
+            <div class="tally"><span>9.4 s</span><span>9.2 s</span><span>8.6 s</span></div>
+            <p>66 passed and 1 skipped each time, close to the README's "about 10 s". The slowest test is the typo check, about 4 s; the Hypothesis tests, at 200 or 300 examples each, take most of the rest.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">67 tests, one of them needs ArduPilot's file</h2>
+          <p>Counted with <code>pytest -q</code>: 66 pass and one skips. The skipped test checks the built-in ArduCopter rules against ArduCopter 4.6.3's own metadata, which is GPL-licensed and not bundled; with it downloaded, as <code>make ap-meta</code> and CI do, all 67 pass.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Aimed at the ways a reviewer gets fooled</h3>
+            <ul>
+              <li><strong>Parser, metadata and rules:</strong> every line format, every format error with its line number, every rule-file mistake and rule condition. The built-in rules are checked against the bundled metadata.</li>
+              <li><strong>Both example pull requests</strong> end to end, plus allowances, cross-parameter <code>below</code> rules, notes for problems already in the base, and ArduPilot without defaults.</li>
+              <li><strong>Properties, with Hypothesis:</strong> a file against itself changes nothing; line order never matters; writing out a default never changes the result; the link-loss rule blocks exactly when the value becomes 0; the range check agrees with the metadata; an allowance covers its own value and no other.</li>
+              <li><strong>The CLI:</strong> exit codes, JSON, GitHub annotations, <code>--base</code> against a real Git repository, allowance files, and quiet output when piped into <code>head</code>.</li>
+            </ul>
+            <p>CI runs ruff, mypy and the tests on Python 3.11, 3.12 and 3.13, checks the ArduCopter rules against 4.6.3's metadata, runs the action on the repository's own example, and flies the SITL comparison.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A proof of safety</dt><dd>It catches the kinds of change it has rules for. A file that passes can still fly badly; tuning needs flight testing, and the gain-step rule only stops big jumps between tests.</dd></div>
+              <div><dt>Your vehicle's limits</dt><dd>The built-in thresholds, 20 m return altitude, 3 m/s descent, a 50% gain step, are general multicopter sense. Put your own numbers in your own rule file.</dd></div>
+              <div><dt>Your board's defaults</dt><dd>The bundled metadata is PX4's SITL build. A flight-controller build adds driver parameters and airframe scripts change defaults, so point <code>--meta</code> at your build's <code>parameters.json</code>.</dd></div>
+              <div><dt>A whole new file</dt><dd><code>check</code> judges changes, and a new file is compared with the firmware defaults, so a new vehicle file that never sets <code>NAV_DLL_ACT</code> passes it. <code>paramguard lint</code> judges a file on its own and blocks it.</dd></div>
+              <div><dt>The vehicle itself</dt><dd>It checks files in a repository. A parameter changed from a ground station and never committed is invisible to it, and no real aircraft flew: the flight above is SITL.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/paramguard
+cd paramguard
+python3 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e '.[dev]'
+pytest -q                      <span class="c"># 66 passed, 1 skipped</span>
+
+cd examples/survey-quad
+paramguard check vehicle.params cleanup.params
+paramguard check vehicle.params tuning.params
+paramguard explain NAV_DLL_ACT GF_ACTON
+
+<span class="c"># In CI, against the base branch:</span>
+paramguard check --base origin/main vehicles/*.params</pre>
+            <p>Python 3.11 or newer, nothing else to install. For ArduPilot, download the release's <code>apm.pdef.xml</code> and pass it with <code>--meta</code>. <code>make sitl</code> needs Docker and flies both runs again.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

@@ -1,0 +1,385 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">ops-console</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A real-time operations dashboard in Angular 22: zoneless change detection, signals, standalone components. 5,000 services stream status, metrics and alerts at 10,000 events a second, the screen holds 60 frames a second while you search and sort, and every feature works from the keyboard alone.</p>
+            <p>Live dashboards go wrong in two ways. Work done per event turns into dropped frames and a search box that lags. And accessibility breaks: rows move under the keyboard focus, a screen reader announces every update, nothing can be paused. This repository treats both as claims to measure, with frame timings from Chromium, axe audits, and Playwright tests that only press keys.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/ops-console">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/ops-console#measurements">Measurements</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>TypeScript, Angular 22, zoneless</dd>
+              <dt>Tests</dt><dd>60 passing: 24 Vitest, 8 node:test, 28 Playwright</dd>
+              <dt>Stream</dt><dd>5,000 services, 10,000 events a second, over server-sent events</dd>
+              <dt>Measured</dt><dd>Frames, input delay and data age, in Chromium, four stores, six conditions</dd>
+              <dt>Accessibility</dt><dd>No axe violations in four audits, in both themes</dd>
+              <dt>Dependencies</dt><dd>Angular only: no chart, grid or UI library</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="perf">Perf check</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="test">Unit tests</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="e2e">Playwright</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="sse">The stream</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">node perf/run.mjs --modes batched,naive --rates 10000 --seconds 15 --warmup 5 --check</span>
+<span class="out">batched   10000/s  frames p50 16.7 p95 16.7 ms, dropped 0.2%, long tasks 0 (0 ms), input p50 20.4 p95 38.9 ms, data age p95 24 ms, renders 60/s, received 10004/s</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs at <code>6aedde9</code>, output verbatim. The perf check and the Playwright tests ran in the Playwright container CI uses, the unit tests on Node 22. The machine was busy with other work at the time, which the perf check's last line records.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an event moves through ops-console">
+          <div class="sign-group">
+            <p>Before the line: stream, store, render</p>
+            <ol>
+              <li><a class="sign-link" href="#s-stream"><b>1</b> Stream</a></li>
+              <li><a class="sign-link" href="#s-store"><b>2</b> Stores</a></li>
+              <li><a class="sign-link" href="#s-break"><b>3</b> Breaking point</a></li>
+              <li><a class="sign-link" href="#s-table"><b>4</b> Table</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person at the keyboard</p>
+            <ol>
+              <li><a class="sign-link" href="#s-focus"><b>5</b> Rows hold</a></li>
+              <li><a class="sign-link" href="#s-announce"><b>6</b> Announcements</a></li>
+              <li><a class="sign-link" href="#s-keys"><b>7</b> Keyboard only</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-stream" aria-labelledby="h-stream">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-stream"><span class="num" data-mark="1">1</span>A stream you can replay</h2>
+          <p>A Node server with no dependencies serves the built app and an SSE endpoint that sends one message per event, as most real event sources do. How the client copes with that is the point of the app.</p>
+          <ul class="st-points">
+            <li>The events are a pure function of a seed and the fleet size, so the tests, the perf runs and the demo all see the same stream.</li>
+            <li>Each event is a small array, and the server stamps its send time as the last element. That is how the app measures data age.</li>
+            <li>If the client can't keep up, the socket fills and the server waits for it to drain. Events are delayed, never skipped.</li>
+            <li>A reconnect asks for <code>from=&lt;count&gt;</code>, so the sequence continues instead of restarting.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-stream" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The first tenth of a second at 200 events a second</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="oc-sse" id="oc-sse"></div>
+              <p class="oc-k">What a million events are, seed 1, 5,000 services</p>
+              <div class="oc-mix" id="oc-mix"></div>
+            </div>
+            <figcaption class="demo-note">The stream is curl against the repository's server, verbatim, without the blank line that ends each message; curl stopped after 0.12 s and 22 events. A metric is <code>[0, id, cpu, latency, rps, sent]</code>; <code>[1, id, status, sent]</code> is a status change. The mix was counted for this page by running the repository's generator for 1,000,000 events.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-store" aria-labelledby="h-store">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-store"><span class="num" data-mark="2">2</span>Four ways to apply an event</h2>
+          <p>Four stores implement one interface. The components, the ordering and the stream are shared, so a perf run compares exactly one thing: what a single event does on its way to the screen.</p>
+          <ul class="st-points">
+            <li><b>Batched,</b> the default: newest values go into typed arrays, and once per animation frame they are applied and one signal is bumped.</li>
+            <li><b>Eager:</b> the same store, applying each event and bumping its signals at once.</li>
+            <li><b>Naive:</b> what a straightforward signal store does, a new 5,000-entry list per event, then set the signals.</li>
+            <li><b>Zone:</b> the eager store in a zone.js build, where change detection runs after every event handler.</li>
+          </ul>
+          <p class="why">A unit test feeds the same 30,000 generated events to batched, eager and naive and requires the exact same end state. It caught one real bug: Float32 buffers had turned 43.7 into 43.70000076.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-store" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Renders a second at 10,000 events a second</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="oc-renders" id="oc-renders" role="table" aria-label="Angular renders per second for each store"></div>
+              <p class="oc-scale" aria-hidden="true"><span>1</span><span>10</span><span>100</span><span>1,000</span><span>10,000</span></p>
+              <p class="oc-fold" id="oc-fold"></p>
+            </div>
+            <figcaption class="demo-note">From <code>perf/results-desktop.json</code>, the README's run: Angular's <code>afterEveryRender</code> count over 20 seconds, on a log scale. Eager writes its signals on every event, yet Angular's zoneless scheduler folds those writes into about 100 renders a second.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-break" aria-labelledby="h-break">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-break"><span class="num" data-mark="3">3</span>Find where each one breaks</h2>
+          <p><code>perf/run.mjs</code> drives the production build in Chromium at 1400 by 900. Each condition gets a fresh page, 5 seconds of warm-up and 20 seconds of measurement, while a scripted user types into the search box every 500 ms. The page records its own timings.</p>
+          <ul class="st-points">
+            <li><b>Dropped frames:</b> the frames missed between requestAnimationFrame callbacks.</li>
+            <li><b>Input delay:</b> from each keydown to just after the next frame is drawn.</li>
+            <li><b>Data age:</b> from the server sending an event to the end of the frame that first shows it.</li>
+            <li>"4x slower CPU" is Chrome's CPU throttling, the setting Lighthouse uses for a mid-range phone.</li>
+          </ul>
+          <p class="why">The two collapses are rendering per event and copying per event. Batching per frame isn't what saves the dashboard; eager is within noise of it. What batching buys is a cost per frame that stops growing with the event rate.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-break" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Every store, every condition</p>
+              {{REPLAY}}
+            </div>
+            <div class="oc-break-ctl">
+              <div class="seg" id="oc-cond" role="group" aria-label="Condition"></div>
+              <div class="seg" id="oc-run" role="group" aria-label="Which run"></div>
+            </div>
+            <div class="demo-body">
+              <div class="oc-grid" id="oc-grid" role="table" aria-label="Dropped frames, input delay and data age per store"></div>
+              <p class="oc-env" id="oc-env" aria-live="polite"></p>
+            </div>
+            <figcaption class="demo-note">The README's run is <code>perf/results-desktop.json</code> and <code>results-throttled.json</code> as committed, measured with the machine nearly idle. The busy re-run is the same script on the same machine for this page, at three of the six conditions, while other jobs kept its load average between 13 and 22. Input delay is the 95th percentile, on a log scale.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-table" aria-labelledby="h-table">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-table"><span class="num" data-mark="4">4</span>Only the rows in view exist</h2>
+          <p>The fleet is a real <code>&lt;table&gt;</code>, virtualised by hand. Only the rows in view plus six either side are in the DOM, and hidden spacer rows hold the scroll height.</p>
+          <ul class="st-points">
+            <li><code>aria-rowcount</code> and <code>aria-rowindex</code> tell assistive technology where each row sits in the whole list.</li>
+            <li>Each row's name is a button, and only one is in the tab order. The arrow keys, Page Up, Page Down, Home and End move a roving tabindex, scrolling the row into view first.</li>
+            <li>The visible values re-render from one signal read, once per frame in the batched store, whatever the event rate.</li>
+            <li>Charts are a few lines of canvas, each with a text alternative and its numbers also shown as text.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-table" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The running app at 10,000 events a second</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="oc-shot" id="oc-shot">
+                <img data-shot="light" alt="The ops console in the light theme: summary tiles with 4,595 OK, 184 warning, 191 critical and 30 offline services, 10,043 events per second and a data age of 30 ms; the fleet table sorted by severity; and a details panel for cache-eu-central-0664 with CPU and latency sparklines." width="1200" height="548" decoding="async">
+                <img data-shot="dark" alt="The ops console in the dark theme: 4,879 OK, 58 warning, 56 critical and 7 offline services, 10,022 events per second, data age 19 ms, the fleet table and the alert feed." width="1200" height="548" decoding="async">
+              </div>
+              <dl class="gstats oc-dom" id="oc-dom"></dl>
+            </div>
+            <figcaption class="demo-note">Screenshots of the production build in Chrome at 1400 by 900, cropped, one per theme: the page shows the one that matches yours. The counts were read from the same page: table rows in the DOM, the table's <code>aria-rowcount</code>, and every element in the document. The DOM node range is from the ten-minute soak below.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Rendered</span>Above this line it is the machine's problem: how fast events reach the screen. Below it, a person is using the screen, and the rules change: nothing moves under their focus, nothing talks over them, and everything can be stopped.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-focus" aria-labelledby="h-focus">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-focus"><span class="num" data-mark="5">5</span>Rows hold still under the keyboard</h2>
+          <p>The table re-sorts once a second. While focus is anywhere in it, the order holds, so a row never moves out from under the keyboard. The values keep updating, and a note under the table says so.</p>
+          <ul class="st-points">
+            <li>A new filter still applies at once, even while the order is held.</li>
+            <li>The alert list works the same way: while focus is in it, new alerts wait behind a "Show N new alerts" button.</li>
+            <li>When a pressed button disappears, such as Acknowledge becoming Acknowledged, focus moves to its replacement. Closing details returns focus to whatever opened them.</li>
+          </ul>
+          <p class="why">Scrolling the focused row out of view with a mouse removes it from the DOM, and focus goes back to the page. Keyboard navigation always keeps it in view. The README lists this.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-focus" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The top ten rows, three seconds apart</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body oc-focus" id="oc-focus">
+              <div class="oc-col" data-col="unfocused"><p class="oc-col-head"><b>Focus outside the table</b><span data-note></span></p><div class="oc-pair"><ol data-t="0"></ol><ol data-t="1"></ol></div></div>
+              <div class="oc-col" data-col="focused"><p class="oc-col-head"><b>Keyboard in the table</b><span data-note></span></p><div class="oc-pair"><ol data-t="0"></ol><ol data-t="1"></ol></div></div>
+            </div>
+            <div class="oc-vals" id="oc-vals"></div>
+            <figcaption class="demo-note">Captured from the running app at 10,000 events a second. The keyboard got into the table the way a user would: Tab to the skip link, Enter, then two Down arrows. The notes under each pair are the table's own text, and the row values are the first four rows as rendered, three seconds apart.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-announce" aria-labelledby="h-announce">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-announce"><span class="num" data-mark="6">6</span>One sentence every ten seconds</h2>
+          <p>Two polite live regions. One speaks the result of something the user did, at once. The other sums up new alerts at most once every ten seconds, so a burst of fifty alerts is one sentence, not fifty.</p>
+          <ul class="st-points">
+            <li>The level is a choice: critical alerts only, the default, all alerts, or off.</li>
+            <li>Status is never shown by colour alone. A shape and the word go with it, in the table and the tiles.</li>
+            <li>A Playwright test watches the region for 21 seconds while dozens of alerts arrive, and allows at most three announcements.</li>
+          </ul>
+          <p class="why">Nobody has used it with NVDA, JAWS or VoiceOver yet. The roles, names, live regions and focus order are tested automatically; the README says a screen reader is where the live regions and the virtual table would most likely find something.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-announce" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">31 seconds of the alerts live region, during an incident</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="oc-tl" id="oc-tl">
+                <div class="oc-tl-track"><i class="oc-tl-head" id="oc-tl-head"></i></div>
+                <div class="oc-tl-marks" id="oc-tl-marks"></div>
+                <p class="oc-scale oc-tl-scale" aria-hidden="true"><span>0 s</span><span>10 s</span><span>20 s</span><span>30 s</span></p>
+              </div>
+              <ol class="oc-said" id="oc-said" aria-live="polite"></ol>
+              <dl class="gstats oc-alerts" id="oc-alerts"></dl>
+            </div>
+            <figcaption class="demo-note">Captured from the running app with the default level, critical alerts only, by observing the live region the way the test does. An incident in eu-central was under way, which the generator raises every so often. The sentences are the region's text, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-keys" aria-labelledby="h-keys">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-keys"><span class="num" data-mark="7">7</span>Checked from the keyboard alone</h2>
+          <p>Every feature has a Playwright test that never clicks and never calls <code>focus()</code>: skip link, search, status filters, region and sort, row navigation, details, silence, acknowledge, pause, theme and the shortcuts dialog.</p>
+          <ul class="st-points">
+            <li>axe-core finds no WCAG 2.1 A or AA violations in four audits, in both themes: streaming, details open with an alert acknowledged and updates paused, the shortcuts dialog, and a search with no results.</li>
+            <li><kbd>p</kbd> pauses updates (WCAG 2.2.2), and the single-key shortcuts can be turned off (2.1.4).</li>
+            <li>A node test checks every colour-token pair in both themes. On the first CI run it caught a selected row's name at 4.34:1 in the dark theme, which hadn't shown locally.</li>
+            <li>With reduced motion, a test requires that nothing on the page has a transition or an animation.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-keys" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The 28 browser tests, and the shortcuts dialog</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body oc-keys">
+              <ol class="oc-e2e" id="oc-e2e"></ol>
+              <div class="oc-side">
+                <div class="oc-help"><img data-shot="help" alt="The keyboard shortcuts dialog: slash to search by name, p to pause or resume updates, question mark for this list, arrows, Page Up and Page Down, Home and End in the table, Enter to open a row's details, Escape to close, and a checked box for single-key shortcuts." width="400" height="400" decoding="async"></div>
+                <div class="mini-term" id="oc-pause"></div>
+              </div>
+            </div>
+            <figcaption class="demo-note">The list is <code>npx playwright test</code> in the Playwright 1.64.1 container with two workers, as in CI: 28 passed in 36.3 s, durations verbatim. The dialog is a screenshot after pressing <kbd>?</kbd>. The terminal is what the summary tiles read before and two seconds after pressing <kbd>p</kbd>, captured from the page.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>The README's numbers come from one machine, an i5-12400F with 12 threads, nearly idle, in headless Chromium 156 over loopback. The same machine re-ran the soak and part of the comparison for this page while it was busy with other work, which is a harder test than the README's.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Ten minutes at 10,000 a second</h3>
+            <p>The batched store with details open; every 30 seconds a forced garbage collection, then the heap and the DOM node count.</p>
+            <div class="tally"><span>6.3 million events</span><span>5.06 to 5.20 MB</span><span>1,829 to 1,889 nodes</span></div>
+            <p>After the two-minute warm-up the heap stayed within 0.14 MB and ended at 5.15 MB, so <code>--check</code> passed. Every buffer has a fixed size: two minutes of history per service, the newest 500 alerts, a window of rows.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>On a busy machine</h3>
+            <p>Dropped frames in the re-run, load average 13 to 22.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Batched, 40k/s</span><span class="bar"><i style="--w:0%"></i></span><span>0.0%</span></div>
+              <div class="bar-row"><span>Naive, 40k/s</span><span class="bar"><i style="--w:98.4%"></i></span><span>98.4%</span></div>
+              <div class="bar-row"><span>Batched, 10k/s, 4x</span><span class="bar"><i style="--w:32.9%"></i></span><span>32.9%</span></div>
+              <div class="bar-row"><span>Eager, 10k/s, 4x</span><span class="bar"><i style="--w:10.6%"></i></span><span>10.6%</span></div>
+            </div>
+            <p>At full speed the pattern held. Throttled on a loaded CPU, batched and eager dropped frames too, against 0.1% and 0.5% in the README's quiet run.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Four CI jobs</h3>
+            <p>Run 38671231509 on <code>6aedde9</code>, all passed. Durations from GitHub's API.</p>
+            <div class="bars" id="oc-ci"></div>
+            <p>CI's perf job checks only the batched store, against thresholds well below what the README's machine shows: frame p95 50 ms, dropped 25%, input p95 150 ms.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">60 tests: unit, server and browser</h2>
+          <p>Counted the way CI runs them: <code>npm test</code> runs <code>ng test</code> (Vitest, 24) and <code>node --test</code> on the server and contrast tests (8), and <code>npx playwright test</code> runs 28 against the production build. All passed here.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>What they pin</h3>
+            <ul>
+              <li><strong>The stores:</strong> any number of events folded into one update per frame, status counts, alerts raised, acknowledged, silenced and resolved, pause and catch-up, at most 500 alerts, and three stores ending in the same state on 30,000 events.</li>
+              <li><strong>The view and table:</strong> sort and filter, re-ordering on the tick and not on every change, the held order, a rendered window of rows with each one's position, and exactly one row in the tab order.</li>
+              <li><strong>The server:</strong> a stream that is a pure function of its seed, the rate asked for and a resume where told, and bad parameters and paths outside the app refused.</li>
+              <li><strong>Contrast:</strong> every colour pair in both themes, and the old selected-row colour that would have failed.</li>
+              <li><strong>The browser:</strong> keyboard-only tests for every feature, axe in both themes, batched announcements, reduced motion, and each store streaming without console errors.</li>
+            </ul>
+            <p>CI also runs the perf check at 10,000 events a second and the ten-minute soak on every push.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A screen reader trial</dt><dd>Roles, names, live regions and focus order are tested automatically, but nobody has used it with NVDA, JAWS or VoiceOver.</dd></div>
+              <div><dt>Other browsers and devices</dt><dd>One machine, headless Chromium, loopback. Firefox, Safari, real networks and real phones weren't measured.</dd></div>
+              <div><dt>Real data</dt><dd>The rates, alert mix and incidents are a model, and acknowledgements and silences live only in the page.</dd></div>
+              <div><dt>The worst store</dt><dd>The naive store is one common pattern. One that also re-sorted per event would do worse, and a per-entity signal store would do better.</dd></div>
+              <div><dt>Being a product</dt><dd>No authentication, persistence or alert routing. It is a front end and a test bench.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/ops-console.git
+cd ops-console
+npm ci
+npm start          <span class="c"># http://127.0.0.1:8080</span>
+npm test           <span class="c"># 24 Vitest + 8 node:test</span>
+
+<span class="c"># Or with Docker only:</span>
+make run
+make e2e           <span class="c"># 28 Playwright tests</span>
+make perf-check    <span class="c"># batched at 10,000/s</span></pre>
+            <p>Node 22 or newer. The query string picks what you see: <code>/?rate=40000</code>, <code>/?mode=naive</code>, <code>/zone/</code> for the zone.js build, and <code>/?demo</code> to show each key pressed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

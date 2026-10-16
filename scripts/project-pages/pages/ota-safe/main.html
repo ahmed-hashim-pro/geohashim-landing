@@ -1,0 +1,375 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">ota-safe</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">A/B firmware updates for microcontrollers, with a trial boot and automatic rollback, in <code>no_std</code> Rust with no allocation. Beside it is the tool that checks the design: a NOR flash simulator that cuts power at every erase and program of a device's life, in every way that operation can be left half-done, and checks the device still boots.</p>
+            <p>A firmware update is the riskiest thing a deployed device does. It happens in the field, often on a battery, and a device that can't boot after a power cut needs someone to come and reflash it. Update schemes are usually tested by pulling the plug a few times. A device's update path is a few hundred flash operations, and the dangerous moments are usually one or two of them, so this cuts power at all of them.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/ota-safe">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/ota-safe#how-it-works">How it works</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Rust 1.81 or newer; the core is <code>no_std</code> and forbids <code>unsafe</code></dd>
+              <dt>Tests</dt><dd>33 passing with <code>cargo test</code>, plus the depth-2 search in <code>make deep</code></dd>
+              <dt>Dependencies</dt><dd><code>sha2</code> and <code>ed25519-dalek</code>, without default features</dd>
+              <dt>Searched</dt><dd>998 single power cuts and 356,028 lives with two, every one ok</dd>
+              <dt>Images</dt><dd>SHA-256 hashed, Ed25519 signed, verified before every boot</dd>
+              <dt>Runs on</dt><dd>A Cortex-M3 in QEMU, deciding as the host did on all 998 cut states</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="matrix">Every cut</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="naive">Naive A/B</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="safe">ota-safe</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="mutants">Planted bugs</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">ota-sim matrix</span>
+<span class="out">good: v1 installs v2, v2 installs v3; every version healthy</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of the release build of <code>ota-sim</code>, output verbatim. The middle two tabs cut power at the same operation, op 44, an erase, in two different schemes. The simulated images are signed with a fixed test key, so every run gives the same result.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an update is checked">
+          <div class="sign-group">
+            <p>In the simulator: model, commit, cut</p>
+            <ol>
+              <li><a class="sign-link" href="#s-flash"><b>1</b> Flash</a></li>
+              <li><a class="sign-link" href="#s-commit"><b>2</b> Commit</a></li>
+              <li><a class="sign-link" href="#s-trial"><b>3</b> Trial</a></li>
+              <li><a class="sign-link" href="#s-cut"><b>4</b> Cut</a></li>
+              <li><a class="sign-link" href="#s-plant"><b>5</b> Plant</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: the same code off the host</p>
+            <ol>
+              <li><a class="sign-link" href="#s-m3"><b>6</b> Cortex-M3</a></li>
+              <li><a class="sign-link" href="#s-fw"><b>7</b> Firmware</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-flash" aria-labelledby="h-flash">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-flash"><span class="num" data-mark="1">1</span>Model the flash, and every way a cut leaves it</h2>
+          <p><code>SimFlash</code> models NOR flash. Erasing sets a 4 KiB sector to <code>0xFF</code>. Programming stays inside one 256-byte page and can only clear bits, so programming over data that isn't erased ANDs the two. A power cut is armed at the n-th erase or program after power-on; when it fires, that operation is left torn and every later one fails until power returns.</p>
+          <ul class="st-points">
+            <li>A torn program leaves the first quarter, half or three quarters of its bytes, with the next byte partly programmed, or each bit that should clear done at random.</li>
+            <li>A torn erase leaves each byte either erased or with only some bits set back to 1, in two different patterns.</li>
+            <li><code>before</code> is power going just before the operation, which also covers just after the one before it.</li>
+          </ul>
+          <p class="why">The tears are seeded from the cut, so every result replays exactly.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-flash" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">What a cut leaves in one 32-byte record</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="os-tears" id="os-tears" role="group" aria-label="Tear"></div>
+              <div class="os-bytes" id="os-bytes" aria-label="The 32 bytes at 0x01000"></div>
+              <div class="legend-row" id="os-bytes-key"></div>
+              <p class="os-read" id="os-flash-read" aria-live="polite"></p>
+            </div>
+            <figcaption class="demo-note">The flash at 0x01000 as each cut left it, from the simulator's own snapshot of the good workload: op 48 erases that sector and op 49 programs the record that confirms v2. The record it should have become is the last button. The verdicts are <code>Meta::decode</code> on those bytes and the bootloader's decision at the next power-on.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-commit" aria-labelledby="h-commit">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-commit"><span class="num" data-mark="2">2</span>Commit with one record write</h2>
+          <p>Two metadata sectors hold 32-byte records. A record says which slot is confirmed and at which version, any trial with its boots left, and the last version rolled back, with a sequence number and a CRC-32. The current record is the valid one with the highest sequence number. Every change erases the sector that does not hold it and programs the new record there.</p>
+          <ul class="st-points">
+            <li>If power goes during that erase or program, the old record is still whole in the other sector, and it still wins.</li>
+            <li>The CRC rejects a record that was cut short; the sequence number picks the newer of two whole ones.</li>
+            <li>Each step has exactly one commit point, this write, and the record that was current before it stays valid until the new one is complete.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-commit" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The seven records of one device's life</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="os-secs" id="os-secs"></div>
+              <ol class="os-steps" id="os-steps"></ol>
+            </div>
+            <figcaption class="demo-note">The good workload with no cut: v1 installs v2, v2 confirms and installs v3, v3 confirms. Each record is the simulator's flash read back with <code>read_meta</code> right after the write, and the op numbers are the life's own. The first record is written at provisioning.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-trial" aria-labelledby="h-trial">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-trial"><span class="num" data-mark="3">3</span>Try the new image, and roll back without help</h2>
+          <p>An update refuses an image that is unsigned, not newer than the confirmed version, or the version last rolled back. It erases the slot that isn't confirmed, writes the body and then the header page, reads the slot back and verifies it, and only then writes the record that starts a trial with three boots. The confirmed slot is never touched.</p>
+          <ul class="st-points">
+            <li>The header holds the version, the body length, its SHA-256 and an Ed25519 signature over those 44 bytes. The header page goes last, so a half-written slot never verifies.</li>
+            <li>The bootloader spends a boot <em>before</em> jumping to the trial. If the firmware never confirms, the third boot is the last.</li>
+            <li>Then it writes a record that ends the trial and marks that version rejected, and boots the confirmed slot. A confirmed slot that doesn't verify is reported as a brick, never guessed around.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-trial" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">v3 crashes before it can confirm itself</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body os-trial">
+              <div class="cli"><pre class="os-tab" id="os-trial-pre" aria-live="polite"></pre></div>
+              <div class="os-rec" id="os-trial-rec" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note"><code>ota-sim life --workload bad-update</code>, from where v3 is written, output verbatim. Beside it is the record each line leaves, read back from the simulator's flash.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-cut" aria-labelledby="h-cut">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-cut"><span class="num" data-mark="4">4</span>Cut the power at every operation</h2>
+          <p>The search runs one life per cut: every erase and program of the uncut life, with every tear that operation allows, and the device carries on from whatever its flash says. After every boot the checker reads the flash itself instead of trusting the bootloader, and asks three things: is the booted slot a valid signed image of that version, is it at least the newest confirmed one, and has an unconfirmed version booted more often than the trial allows.</p>
+          <ul class="st-points">
+            <li>Naive in-place rewrites the only slot. Power lost anywhere between its first erase and last page leaves nothing to boot.</li>
+            <li>Naive A/B writes the other slot, then erases and rewrites a one-byte flag. All 14 cuts that brick it fall in those two flag rewrites. With a bad update it has no way back.</li>
+            <li>ota-safe survives all 998 single cuts, and all 356,028 lives where a second cut lands after the device comes back.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-cut" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Worst result of a cut at each operation, v1 to v3</p>
+              <div class="seg" role="group" aria-label="Workload">
+                <button type="button" data-wl="good" aria-pressed="true">Good update</button>
+                <button type="button" data-wl="bad-update" aria-pressed="false">Bad update</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="demo-body">
+              <div class="os-strips" id="os-strips"></div>
+              <div class="legend-row" id="os-strip-key"></div>
+              <p class="os-read" id="os-cut-read" aria-live="polite"></p>
+            </div>
+            <figcaption class="demo-note">Every column is one erase or program of the uncut life, coloured by the worst outcome over its tears, the chart <code>ota-sim chart</code> draws, read from the same search through the crate's own <code>search</code> function. Choose a column to see each tear. The totals are <code>ota-sim matrix</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-plant" aria-labelledby="h-plant">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-plant"><span class="num" data-mark="5">5</span>Plant bugs the search has to catch</h2>
+          <p>This is the line. A search that never fails proves nothing about the search, so six deliberate bugs sit behind a <code>mutants</code> feature that firmware never enables, and the same search runs against each. <code>ota-sim matrix</code> and <code>ota-sim mutants</code> exit 1 if ota-safe fails a cut or a bug goes uncaught, and CI fails with them.</p>
+          <ul class="st-points">
+            <li>Three are logic bugs that an ordinary bad-update test finds with the power on.</li>
+            <li>The other three pass every test with the power on. Only a cut finds <code>single-meta-copy</code>, <code>trial-before-image</code> and <code>no-crc</code>.</li>
+            <li><code>no-crc</code> fails on 3 of 998 cuts. Half of a trial boot's record is believed, a garbage version is marked rejected instead of v3, and v3 gets three fresh boots on top of the one it had.</li>
+          </ul>
+          <p class="why">A test campaign that pulls the plug at random would need luck to find that one.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-plant" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Six planted bugs, and the life that catches each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="os-muts" id="os-muts" role="group" aria-label="Planted bug"></div>
+              <div class="cli"><pre class="os-tab" id="os-mut-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">Rows are <code>ota-sim mutants</code>, both workloads at depth 1, verbatim. Choosing one replays its first failure with <code>ota-sim life</code>; the exit code is the shell's.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Cleared</span>Above this line the update code runs inside the simulator, where every power cut can be tried and every planted bug must be caught. Below it, the same bootloader code leaves the host.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-m3" aria-labelledby="h-m3">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-m3"><span class="num" data-mark="6">6</span>Make the same decision on a Cortex-M3</h2>
+          <p>The core crate is <code>no_std</code>, forbids <code>unsafe</code> code and allocates nothing, so the bootloader decision can run where a bootloader runs. <code>qemu/</code> builds <code>ota_safe::boot</code> for <code>thumbv7m-none-eabi</code> and runs it on QEMU's <code>mps2-an385</code> board.</p>
+          <ul class="st-points">
+            <li><code>scripts/qemu-check.sh</code> writes every depth-1 cut state as a 40 KiB flash image, with the host simulator's decision for each.</li>
+            <li>The board loads each image, decides what to boot, makes any metadata write that needs, and prints the decision and the record over semihosting. The script compares every line.</li>
+            <li>On the board, flash is RAM with the same AND-only programming rule. No real flash controller and no real power cut are involved.</li>
+          </ul>
+          <p class="why">The QEMU build is 55,644 bytes of code at <code>opt-level = "s"</code>, most of it Ed25519 and output formatting.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-m3" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Eight of the 998 cut states, decided twice</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="os-m3" id="os-m3"></ol>
+              <div class="cli"><pre id="os-m3-pre"></pre></div>
+            </div>
+            <figcaption class="demo-note">Each row's host line is from <code>ota-sim states</code> and its board line is <code>qemu-system-arm</code> 8.2.2 running the release ELF on that image, both verbatim. The summary is <code>make qemu</code> over all 998.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-fw" aria-labelledby="h-fw">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-fw"><span class="num" data-mark="7">7</span>Call three functions from firmware</h2>
+          <p>A device implements the <code>Flash</code> trait for its part's driver: read, erase a sector, program within one page. The bootloader calls <code>boot</code> and jumps to the slot it names. The application calls <code>confirm</code> once it is up and healthy, and <code>update</code> with a downloaded image.</p>
+          <ul class="st-points">
+            <li>The simulator drives exactly these calls, so each one's effect can be read off a device's life.</li>
+            <li><code>update</code> takes the whole image as a slice, so the image has to fit in RAM.</li>
+            <li>The bootloader picks a slot and doesn't copy or swap, so each image must be linked for its slot or be position-independent.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-fw" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Each call, and what it did in a life</p>
+              <div class="seg" role="group" aria-label="Call">
+                <button type="button" data-fw="0" aria-pressed="true">boot</button>
+                <button type="button" data-fw="1" aria-pressed="false">confirm</button>
+                <button type="button" data-fw="2" aria-pressed="false">update</button>
+                {{REPLAY}}
+              </div>
+            </div>
+            <div class="demo-body os-fw">
+              <pre class="os-code" id="os-fw-code"></pre>
+              <div class="cli"><pre class="os-tab" id="os-fw-pre" aria-live="polite"></pre></div>
+            </div>
+            <figcaption class="demo-note">The code is the README's sketch of the API, which isn't compiled as part of the build. The lines under it are <code>ota-sim life</code> output for the good and bad-update workloads, verbatim, picked out where that call ran.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Run on one 12-thread Linux machine that other jobs were loading heavily at the time, so these are slower than an idle machine would give. Every count matched the README exactly.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>Two cuts, every pair</h3>
+            <p><code>ota-sim matrix --depth 2</code> runs a second cut at every operation after the device comes back, for all three schemes and both workloads.</p>
+            <div class="tally"><span>356,028 ota-safe lives</span><span>0 failures</span><span>234 s</span></div>
+            <p>The README says about two and a half minutes on 12 cores. Naive A/B, for comparison, bricks in 4,634 of its 153,654 lives in each workload.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Every state on the board</h3>
+            <p><code>make qemu</code>: builds the ELF, writes the 998 images, and boots QEMU once per image.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Decided alike</span><span class="bar"><i style="--w:100%"></i></span><span>998</span></div>
+              <div class="bar-row"><span>Differed</span><span class="bar"><i style="--w:0%"></i></span><span>0</span></div>
+            </div>
+            <p>108 s in all. Of the 998 decisions, 926 boot a confirmed image and 72 a trial; none is a brick.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>The suite, twice</h3>
+            <p><code>cargo test --locked</code> on stable 1.99 and on 1.81, the minimum version CI also tests:</p>
+            <div class="tally"><span>33 passed</span><span>1 ignored</span><span>25 s warm</span></div>
+            <p>The single-cut search in the tests takes most of it. <code>ota-sim matrix</code> alone runs in 0.8 s and <code>ota-sim mutants</code> in 9.2 s.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">33 tests, and one that takes minutes</h2>
+          <p>Counted with <code>cargo test --locked</code>: 33 passed and 1 ignored, the same on Rust 1.81 and stable. The ignored one is the depth-2 search, which <code>make deep</code> and CI run in release mode.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Weighted toward the claim</h3>
+            <ul>
+              <li><strong>The search:</strong> every single cut settles, the naive schemes fail exactly where the README says, every planted bug is caught, three of them only under a cut, and a cut replays exactly.</li>
+              <li><strong>The protocol, power on:</strong> three trial boots then rollback and refusal, the updater's refusals, the confirmed slot never touched, records alternating sectors, any flipped bit failing verification.</li>
+              <li><strong>The flash model:</strong> programming only clears bits and never crosses a page, a cut keeps power off, a torn program never sets a bit, a torn erase leaves a mix.</li>
+              <li><strong>Records:</strong> the CRC-32 check value, and a round trip where every single-bit flip of a record is rejected.</li>
+              <li><strong>The CLI:</strong> the matrix, the mutants, replaying a cut, dumping a flash image, and exit 2 on bad arguments.</li>
+            </ul>
+            <p>CI also runs rustfmt and clippy with warnings as errors on both crates, a check that <code>docs/</code> matches what the code produces, the depth-2 search, and the QEMU check. Run 38657517378 on 79b2335 passed all six jobs; the depth-2 job took 11 minutes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Real hardware</dt><dd>The flash is a model of NOR behaviour, and the Cortex-M3 runs in QEMU with RAM standing in for flash. Marginal erases that lose bits later and slow brown-outs aren't modelled.</dd></div>
+              <div><dt>NAND</dt><dd>No bad blocks, no ECC, no rule against reprogramming a page.</dd></div>
+              <div><dt>Everything else</dt><dd>The search is exhaustive for this life and these tears: one or two cuts at every operation of v1 to v2 to v3. Not three cuts, other update orders or other tear shapes.</dd></div>
+              <div><dt>Secure boot</dt><dd>The signature stops an unsigned image, but nothing protects the bootloader, key or metadata from someone who can write the flash. There is no monotonic hardware counter.</dd></div>
+              <div><dt>Streaming and swapping</dt><dd>The image must be in RAM to update, and it runs from the slot it was written to.</dd></div>
+              <div><dt>Boot time</dt><dd>Every boot hashes and verifies the whole image; on a slow MCU that cost is real, and it isn't measured.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/ota-safe &amp;&amp; cd ota-safe
+cargo build --release
+export PATH=$PWD/target/release:$PATH
+
+ota-sim matrix
+ota-sim life --scheme naive-ab --cut 44:erase-0
+ota-sim life --cut 44:erase-0
+ota-sim mutants
+
+<span class="c"># The suite, two cuts deep, then the Cortex-M3.</span>
+cargo test
+make deep
+make qemu</pre>
+            <p>Rust 1.81 or newer. <code>make qemu</code> also needs <code>rustup target add thumbv7m-none-eabi</code> and <code>qemu-system-arm</code>; <code>make docker-check</code> needs only Docker. Not published to crates.io.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

@@ -1,0 +1,9 @@
+{
+  "title": "deadline · Ahmed Hashim",
+  "description": "A Java 21 library that carries a request's remaining time budget from service to service over HTTP, stops work nobody is waiting for, skips retries that couldn't finish, and reports where the time went. How it works end to end, with real runs.",
+  "tour_seconds": "40",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See the runs on this machine"
+  }
+}

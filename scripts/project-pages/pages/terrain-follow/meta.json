@@ -1,0 +1,9 @@
+{
+  "title": "terrain-follow · Ahmed Hashim",
+  "description": "A checker and planner for drone missions over hills. It proves a lower bound on terrain clearance for every leg, counting DEM, altitude and cross-track error, refuses what it can't prove, and raises the mission until every leg is proven. How it works end to end, with real runs and PX4 SITL flights.",
+  "tour_seconds": "60",
+  "tour_end": {
+    "href": "#measured-sec",
+    "label": "See what the flights measured"
+  }
+}

@@ -1,0 +1,442 @@
+{
+ "demo": [
+  "relay    listening on http://127.0.0.1:33845 (store-and-forward, no authority)",
+  "desk     imports strata's example site: 40 boreholes, 994 operations to the relay",
+  "         pixel-a has 40 holes, pixel-b has 40",
+  "",
+  "-- both phones lose signal --",
+  "pixel-a  logs BH41 at (600, 480), collar 64.62: topsoil to chalk, 14.5 m",
+  "pixel-a  flags BH41 water-strike and notes the levels",
+  "pixel-b  logs a hole it also calls BH41, at (560, 520), collar 63.80, 15.0 m",
+  "pixel-a  types in BH16's notes: \"Clay firm, fissured. \"",
+  "pixel-b  types in BH16's notes at the same time: \"Recheck collar level. \"",
+  "",
+  "-- back in signal: each phone syncs --",
+  "pixel-a  sent 95, received 48 new",
+  "pixel-b  sent 48, received 95 new",
+  "pixel-a  42 holes, state 3d4885b79454",
+  "pixel-b  42 holes, state 3d4885b79454",
+  "         identical, down to the tombstones",
+  "         BH16 notes on both: \"Clay firm, fissured. Recheck collar level.\"",
+  "",
+  "-- export for strata --",
+  "check    refused: BH41: 2 holes have this name; rename one (they were probably logged on two devices)",
+  "pixel-b  renames its hole BH42; both sync",
+  "check    42 boreholes ready; wrote /cap/merged.csv"
+ ],
+ "mutants": [
+  "variant              result   first seed  seeds failed  caught by",
+  "correct              clean    -           0 of 2000     every check held",
+  "lww-by-arrival       caught   1           100%          convergence, order independence",
+  "rga-no-skip          caught   1           100%          convergence, order independence",
+  "no-causal-buffer     caught   1           100%          convergence",
+  "remove-unobserved    caught   1           75%           convergence, order independence",
+  "accept-duplicates    caught   1           100%          convergence, local intent",
+  "clock-no-bump        caught   1           69%           local intent"
+ ],
+ "runs": {
+  "clock-no-bump": [
+   "seed 1 with clock-no-bump: 64 edits, 121 operations, 324 deliveries, 24 dropped, 24 duplicated, 1 times offline",
+   "FAILED: local intent: r1 typed \"BH\" at 0 in 13@r2: wanted \"BH \", sees \" BH\""
+  ],
+  "lww-by-arrival": [
+   "seed 1 with lww-by-arrival: 150 edits, 298 operations, 12701 deliveries, 80 dropped, 57 duplicated, 2 times offline",
+   "FAILED: convergence: r0 and r1 diverged: 1@r0.kind 'outcrop' vs 'borehole'"
+  ],
+  "remove-unobserved": [
+   "seed 1 with remove-unobserved: 150 edits, 298 operations, 12701 deliveries, 80 dropped, 57 duplicated, 2 times offline",
+   "FAILED: order independence: the same 298 operations in another order give a different notebook"
+  ],
+  "rga-no-skip": [
+   "seed 1 with rga-no-skip: 150 edits, 298 operations, 13875 deliveries, 80 dropped, 57 duplicated, 2 times offline",
+   "FAILED: convergence: r0 and r1 diverged: notes of 1@r2: \" µµmmΩrm BH°µmé\\n\\nclaywetaµmyacyclayfirm °\" vs \" °µmé\\n\\nclaywetaµmyaclayfirm °cyµµmmΩrm BH\""
+  ],
+  "correct": [
+   "seed 7: 127 edits, 214 operations, 5401 deliveries, 34 dropped, 19 duplicated, 3 times offline",
+   "ok: every replica converged"
+  ]
+ },
+ "relay": [
+  "$ curl -s localhost:8791/",
+  "fieldlog relay: 0 operations",
+  "$ curl -s --data-binary @five.ops localhost:8791/ops",
+  "added 5 total 5",
+  "$ curl -s --data-binary @five.ops localhost:8791/ops      # the same five again",
+  "added 0 total 5",
+  "$ curl -s --data-binary @bad.ops localhost:8791/ops       # a set with no value",
+  "bad operation: expected 5 fields for 'S', got 4: S\t9@pixel-a\thole/2@desk\tcollar",
+  "400",
+  "$ curl -si \"localhost:8791/ops?since=3\"",
+  "HTTP/1.1 200 OK",
+  "X-fieldlog-next: 5",
+  "Content-type: text/plain; charset=utf-8",
+  "Content-length: 75",
+  "",
+  "fieldlog-ops 1",
+  "S\t5@desk\thole/2@desk\tname\tBH01",
+  "S\t6@desk\thole/2@desk\tx\t658.2",
+  "$ curl -s localhost:8791/ops",
+  "need ?since=<n>",
+  "400"
+ ],
+ "phoneOps": [
+  [
+   "S",
+   "100@pixel-a",
+   "hole/99@pixel-a",
+   "kind",
+   "borehole"
+  ],
+  [
+   "A",
+   "101@pixel-a",
+   "holes",
+   "99@pixel-a"
+  ],
+  [
+   "S",
+   "102@pixel-a",
+   "hole/99@pixel-a",
+   "name",
+   "B"
+  ],
+  [
+   "S",
+   "103@pixel-a",
+   "hole/99@pixel-a",
+   "name",
+   "BH"
+  ],
+  [
+   "S",
+   "104@pixel-a",
+   "hole/99@pixel-a",
+   "name",
+   "BH4"
+  ],
+  [
+   "S",
+   "105@pixel-a",
+   "hole/99@pixel-a",
+   "name",
+   "BH41"
+  ],
+  [
+   "S",
+   "106@pixel-a",
+   "hole/99@pixel-a",
+   "x",
+   "6"
+  ],
+  [
+   "S",
+   "107@pixel-a",
+   "hole/99@pixel-a",
+   "x",
+   "60"
+  ],
+  [
+   "S",
+   "108@pixel-a",
+   "hole/99@pixel-a",
+   "x",
+   "600"
+  ],
+  [
+   "S",
+   "109@pixel-a",
+   "hole/99@pixel-a",
+   "y",
+   "4"
+  ],
+  [
+   "S",
+   "110@pixel-a",
+   "hole/99@pixel-a",
+   "y",
+   "48"
+  ],
+  [
+   "S",
+   "111@pixel-a",
+   "hole/99@pixel-a",
+   "y",
+   "480"
+  ],
+  [
+   "S",
+   "112@pixel-a",
+   "hole/99@pixel-a",
+   "collar",
+   "6"
+  ],
+  [
+   "S",
+   "113@pixel-a",
+   "hole/99@pixel-a",
+   "collar",
+   "64"
+  ],
+  [
+   "S",
+   "114@pixel-a",
+   "hole/99@pixel-a",
+   "collar",
+   "64."
+  ],
+  [
+   "S",
+   "115@pixel-a",
+   "hole/99@pixel-a",
+   "collar",
+   "64.6"
+  ],
+  [
+   "S",
+   "116@pixel-a",
+   "hole/99@pixel-a",
+   "collar",
+   "64.62"
+  ],
+  [
+   "S",
+   "118@pixel-a",
+   "interval/117@pixel-a",
+   "unit",
+   "topsoil"
+  ],
+  [
+   "S",
+   "119@pixel-a",
+   "interval/117@pixel-a",
+   "from",
+   "0"
+  ],
+  [
+   "S",
+   "120@pixel-a",
+   "interval/117@pixel-a",
+   "to",
+   ""
+  ],
+  [
+   "A",
+   "121@pixel-a",
+   "iv/99@pixel-a",
+   "117@pixel-a"
+  ],
+  [
+   "S",
+   "122@pixel-a",
+   "interval/117@pixel-a",
+   "to",
+   "0"
+  ],
+  [
+   "S",
+   "123@pixel-a",
+   "interval/117@pixel-a",
+   "to",
+   "0."
+  ],
+  [
+   "S",
+   "124@pixel-a",
+   "interval/117@pixel-a",
+   "to",
+   "0.9"
+  ],
+  [
+   "S",
+   "126@pixel-a",
+   "interval/125@pixel-a",
+   "unit",
+   "clay"
+  ],
+  [
+   "S",
+   "127@pixel-a",
+   "interval/125@pixel-a",
+   "from",
+   "0.9"
+  ],
+  [
+   "S",
+   "128@pixel-a",
+   "interval/125@pixel-a",
+   "to",
+   ""
+  ],
+  [
+   "A",
+   "129@pixel-a",
+   "iv/99@pixel-a",
+   "125@pixel-a"
+  ],
+  [
+   "S",
+   "130@pixel-a",
+   "interval/125@pixel-a",
+   "to",
+   "6"
+  ],
+  [
+   "S",
+   "131@pixel-a",
+   "interval/125@pixel-a",
+   "to",
+   "6."
+  ],
+  [
+   "S",
+   "132@pixel-a",
+   "interval/125@pixel-a",
+   "to",
+   "6.2"
+  ],
+  [
+   "S",
+   "134@pixel-a",
+   "interval/133@pixel-a",
+   "unit",
+   "sand"
+  ],
+  [
+   "S",
+   "135@pixel-a",
+   "interval/133@pixel-a",
+   "from",
+   "6.2"
+  ],
+  [
+   "S",
+   "136@pixel-a",
+   "interval/133@pixel-a",
+   "to",
+   ""
+  ],
+  [
+   "A",
+   "137@pixel-a",
+   "iv/99@pixel-a",
+   "133@pixel-a"
+  ],
+  [
+   "S",
+   "138@pixel-a",
+   "interval/133@pixel-a",
+   "to",
+   "1"
+  ],
+  [
+   "S",
+   "139@pixel-a",
+   "interval/133@pixel-a",
+   "to",
+   "10"
+  ],
+  [
+   "S",
+   "140@pixel-a",
+   "interval/133@pixel-a",
+   "to",
+   "10."
+  ],
+  [
+   "S",
+   "141@pixel-a",
+   "interval/133@pixel-a",
+   "to",
+   "10.3"
+  ],
+  [
+   "S",
+   "143@pixel-a",
+   "interval/142@pixel-a",
+   "unit",
+   "gravel"
+  ],
+  [
+   "S",
+   "144@pixel-a",
+   "interval/142@pixel-a",
+   "from",
+   "10.3"
+  ],
+  [
+   "S",
+   "145@pixel-a",
+   "interval/142@pixel-a",
+   "to",
+   ""
+  ],
+  [
+   "A",
+   "146@pixel-a",
+   "iv/99@pixel-a",
+   "142@pixel-a"
+  ],
+  [
+   "S",
+   "147@pixel-a",
+   "interval/142@pixel-a",
+   "to",
+   "1"
+  ],
+  [
+   "S",
+   "148@pixel-a",
+   "interval/142@pixel-a",
+   "to",
+   "13"
+  ],
+  [
+   "S",
+   "149@pixel-a",
+   "interval/142@pixel-a",
+   "to",
+   "13."
+  ],
+  [
+   "S",
+   "150@pixel-a",
+   "interval/142@pixel-a",
+   "to",
+   "13.2"
+  ],
+  [
+   "A",
+   "151@pixel-a",
+   "flags/99@pixel-a",
+   "water-strike"
+  ],
+  [
+   "I",
+   "152@pixel-a",
+   "notes/99@pixel-a",
+   "-",
+   "W"
+  ],
+  [
+   "I",
+   "153@pixel-a",
+   "notes/99@pixel-a",
+   "152@pixel-a",
+   "a"
+  ],
+  [
+   "I",
+   "154@pixel-a",
+   "notes/99@pixel-a",
+   "153@pixel-a",
+   "t"
+  ],
+  [
+   "I",
+   "155@pixel-a",
+   "notes/99@pixel-a",
+   "154@pixel-a",
+   "e"
+  ]
+ ]
+}

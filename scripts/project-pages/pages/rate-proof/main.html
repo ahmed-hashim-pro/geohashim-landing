@@ -1,0 +1,332 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">rate-proof</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">Measures what six rate-limiting algorithms actually let through once they are deployed: several nodes behind a load balancer, each with its own clock, sharing state in a store a round trip away, sometimes restarting. Then it checks its own simulator against a real Redis.</p>
+            <p>A limiter is usually tested on one machine: send 150 requests, see that 100 get through. In production its clock is whichever node took the request, its state is a network call away, and the store can come back empty. None of that shows up in a unit test, and each one changes how many requests reach the service behind it.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/rate-proof">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/rate-proof#checking-the-simulator-against-redis">The Redis check</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the six stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Go 1.22 or newer, standard library only</dd>
+              <dt>Tests</dt><dd>33 passing with <code>go test ./...</code> and a Redis; 2 of them skip without one</dd>
+              <dt>Algorithms</dt><dd>Token bucket, leaky bucket, GCRA, fixed window, sliding log, sliding counter</dd>
+              <dt>Simulator</dt><dd>Discrete events in integer microseconds; the same flags print the same numbers</dd>
+              <dt>Store</dt><dd>Redis 7, through six Lua scripts and its own small RESP client</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="table">Table</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="tb">50 ms skew</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="store">Store clock</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="redis">Real Redis</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body rp-term" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">rateproof table</span>
+<span class="out">100 requests/s per key, 20s per run, seeds 1-10. Deployments: 4 nodes, 1 ms round trip to the store.</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of rate-proof at <code>38d4084</code>, output verbatim; <code>rateproof</code> is the binary from <code>go build ./cmd/rateproof</code>. The first three are simulations and print the same numbers every time. The last ran against Redis 7.4 in Docker on this machine, and its live half changes a little from run to run.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How rate-proof tests a limiter">
+          <div class="sign-group">
+            <p>Before the line: simulate, attack, measure</p>
+            <ol>
+              <li><a class="sign-link" href="#s-algos"><b>1</b> Algorithms</a></li>
+              <li><a class="sign-link" href="#s-skew"><b>2</b> Clocks</a></li>
+              <li><a class="sign-link" href="#s-table"><b>3</b> Deployments</a></li>
+              <li><a class="sign-link" href="#s-mutants"><b>4</b> Mutants</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a real Redis has to agree</p>
+            <ol>
+              <li><a class="sign-link" href="#s-diff"><b>5</b> Lua</a></li>
+              <li><a class="sign-link" href="#s-live"><b>6</b> Live</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-algos" aria-labelledby="h-algos">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-algos"><span class="num" data-mark="1">1</span>Six algorithms, written for a store</h2>
+          <p>Each limiter is a function of one key's stored state, the time it is told, and the limit, which is how it runs inside Redis. Every one is configured as 100 requests per second.</p>
+          <ul class="st-points">
+            <li>Times are integer microseconds, and the buckets keep their tokens scaled so a refill is never fractional. The Lua scripts can then do the same arithmetic exactly.</li>
+            <li>Each algorithm states its own promise, and every admit is checked against it at the true time it was decided.</li>
+            <li>"100 per second" means different things. Fixed window allows 200 in one second around a window edge, and the three buckets allow a full burst on top of the refill. Only the sliding log holds 100 in every second.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-algos" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Most admitted in any one second, on one node with a true clock</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="rp-al" id="rp-al"></ol>
+              <div class="legend-row"><span class="key"><i class="rp-key rp-key-lim"></i>The limit, 100 in a second</span><span class="key"><i class="rp-key rp-key-bar"></i>Peak, as a multiple of the limit</span></div>
+            </div>
+            <figcaption class="demo-note">Peaks are the "ideal" column of <code>rateproof table</code>: the worst of ten seeds and all four attack patterns. The promises are from <code>rateproof algos</code>, and the stored state is the README's table, checked against <code>limiter/limiter.go</code>.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-skew" aria-labelledby="h-skew">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-skew"><span class="num" data-mark="2">2</span>Give every node its own clock</h2>
+          <p>Requests land on one of four nodes at random. Each node tells the store the time by its own clock, and the clocks are spread evenly across the skew. The store is a round trip away, each leg jittering by 25%, and a script runs when it arrives, one at a time.</p>
+          <ul class="st-points">
+            <li>The token bucket stores <code>last = now</code> on every call. A node whose clock is behind moves <code>last</code> back, and the next node that is ahead is refilled for the same 50 ms again.</li>
+            <li>The leaky bucket does the same arithmetic mirrored, but keeps <code>last = max(last, now)</code>. GCRA stores one timestamp that only moves forward.</li>
+            <li>At 50 ms of skew the token bucket refuses nothing: the whole flood, five times the limit, gets through. On the flood the other two admit 0.2% more than one node with a true clock would.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-skew" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The same flood, three buckets, clocks 50 ms apart</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="rp-clocks" id="rp-clocks" aria-label="Node clock offsets"></div>
+              <div class="rp-code" id="rp-code"></div>
+              <div class="rp-fl-head" aria-hidden="true"><span>Algorithm</span><span>Flood requests admitted</span><span>Ideal</span><span>Over</span></div>
+              <ol class="rp-fl" id="rp-fl"></ol>
+              <div class="rp-mt" id="rp-skew-term"></div>
+            </div>
+            <figcaption class="demo-note">The code lines are from <code>limiter/limiter.go</code>. The rows are the flood key of three real runs, <code>rateproof run --algo NAME --skew 50ms</code>, seed 1; "ideal" is the same algorithm on one node with a true clock and no latency, fed the same requests. The terminal is the end of the token bucket's run.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-table" aria-labelledby="h-table">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-table"><span class="num" data-mark="3">3</span>Attack every deployment the same way</h2>
+          <p>Every run sends the same four clients, each on its own key, and the arrivals depend only on the seed. So every algorithm and every deployment sees exactly the same requests.</p>
+          <ul class="st-points">
+            <li>A flood at five times the limit; boundary bursts of 100 just before a window edge and 100 just after; the flood switched on for 2 s and off for 3 s; and an honest client sending evenly at 90% of its limit.</li>
+            <li>Deployments: node clocks 50 ms apart, the store's own clock (Redis <code>TIME</code>), a store wiped once, and no store at all, each node enforcing a quarter of the limit and restarting now and then.</li>
+            <li><strong>Over</strong> compares a deployment with the same algorithm on one node, so it separates what the deployment did from what the algorithm does by design.</li>
+          </ul>
+          <p class="why">Reading the store's clock instead brings every peak back to its one-node value. Splitting the limit across nodes fails both ways: 5 to 11% too much gets through, and an honest client is turned away up to 6.6% of the time.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-table" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Peak in any one second, and attack traffic over the ideal</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="rp-hm-wrap">
+                <table class="rp-hm" id="rp-hm"></table>
+              </div>
+              <div class="legend-row"><span class="key"><i class="rp-key rp-hm-k1"></i>Up to 1.25x</span><span class="key"><i class="rp-key rp-hm-k2"></i>Up to 2.05x</span><span class="key"><i class="rp-key rp-hm-k3"></i>Above 2.05x</span></div>
+              <p class="rp-hm-note" id="rp-hm-note"></p>
+            </div>
+            <figcaption class="demo-note">Every cell is from one real run of <code>rateproof table</code>: 100 requests a second per key, 20 s per run, seeds 1 to 10, 4 nodes, 1 ms round trip. Each cell is the worst seed and the worst attack pattern. The honest column is the share of the honest client turned away under local split; in every other column it was never turned away.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-mutants" aria-labelledby="h-mutants">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-mutants"><span class="num" data-mark="4">4</span>Check the checker with planted bugs</h2>
+          <p>A checker that never finds anything proves nothing. <code>rateproof mutants</code> runs where every promise must hold exactly: 4 nodes, a 1 ms round trip, clocks in agreement, nothing restarting.</p>
+          <ul class="st-points">
+            <li>All six correct algorithms, in store-backed and local deployments, must stay clean on every seed.</li>
+            <li>Six planted bugs must each break their promise. Four are one line away from a correct algorithm; two are deployment mistakes: a GET, a decision in the app and a SET, and local limiters each given the full limit.</li>
+            <li>CI runs it on 200 seeds of 12 s each, with all four traffic patterns.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-mutants" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">12 correct deployments and 6 bugs, 200 seeds each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="rp-ok" id="rp-ok"></ol>
+              <ol class="rp-bug" id="rp-bug"></ol>
+            </div>
+            <figcaption class="demo-note">The verdicts, first seeds, counts and reasons are <code>rateproof mutants</code> at its default of 200 seeds, verbatim. It took about 8 s on this machine.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Proven</span>Above this line everything is a model, deterministic by seed. Below it, the same algorithms run as Lua in a real Redis, and the model has to reproduce what Redis did, admit for admit.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-diff" aria-labelledby="h-diff">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-diff"><span class="num" data-mark="5">5</span>The same arithmetic, in Lua, in Redis</h2>
+          <p>Each algorithm is also a Lua script in <code>redisx/lua</code>, sharing a prelude that reads Redis <code>TIME</code>. <code>rateproof redis</code> sends the same calls to the script and to the Go code the simulator runs, and compares every decision and every stored value.</p>
+          <ul class="st-points">
+            <li>The calls step across window edges, sit idle for seconds, and 15% come from a clock up to 60 ms behind.</li>
+            <li>Lua numbers are doubles, so stored values are written with <code>%.0f</code> to stay exact integers past 14 digits.</li>
+            <li>Six algorithms, 20,000 calls each: 120,000 decisions, none different.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-diff" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Leaky bucket, in Go and in Lua, then every algorithm</p>
+              {{REPLAY}}
+            </div>
+            <div class="rp-src">
+              <div class="rp-src-pane"><p class="rp-k">limiter/limiter.go</p><pre id="rp-go"></pre></div>
+              <div class="rp-src-pane"><p class="rp-k">redisx/lua/leaky-bucket.lua</p><pre id="rp-lua"></pre></div>
+            </div>
+            <ol class="rp-dx" id="rp-dx"></ol>
+            <figcaption class="demo-note">Both sources are verbatim, without their comments. The counts are part 1 of the Redis run in the hero, against Redis 7.4.11 in Docker. The test suite runs the same comparison with 5,000 calls per algorithm.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-live" aria-labelledby="h-live">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-live"><span class="num" data-mark="6">6</span>Live traffic, replayed through the simulator</h2>
+          <p>Four goroutines, one connection each, play the simulator's own arrival schedule against Redis in real time, 6 s per case. For every request it records when the node sent it and when Redis ran it, by Redis's clock.</p>
+          <ul class="st-points">
+            <li>The simulator is then handed those timings and recomputes every decision with its own model of the store. <code>--check</code> fails unless the count matches within 0.5% and the peak within 0.02.</li>
+            <li>The last column gives the simulator only each step's mean delay. For atomic scripts that is close; for the non-atomic GET and SET it misses most of the race, because timers wake goroutines in clumps, and clumps race.</li>
+            <li>So the tables above, which model a 1 ms round trip, are a lower bound for the non-atomic race.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-live" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Nine live cases: Redis, the replay, and the mean-delay model</p>
+              {{REPLAY}}
+            </div>
+            <div class="rp-lv-wrap"><table class="rp-lv" id="rp-lv"></table></div>
+            <div class="legend-row rp-lv-legend"><span class="key"><i class="rp-key rp-key-eq"></i>Same as Redis</span><span class="key"><i class="rp-key rp-key-ne"></i>Different from Redis</span></div>
+            <p class="rp-lv-sum" id="rp-lv-sum"></p>
+            <figcaption class="demo-note">Part 2 of the Redis run in the hero, verbatim. "Replay" is the simulator given every request's measured timing, "mean delay" the simulator given only each step's average. Peak is the most admitted in any one second over the limit; over is admits beyond one node with a true clock. Live timing varies: the README's run had the non-atomic case at +23.5% and admitted counts that matched exactly; this one was 747 against 748, inside the check's tolerance.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>What skew does as it grows, how the real-Redis check holds up across runs, and what all of it costs to run. One Linux machine, an i5-12400F that other jobs were also using.</p>
+        </div>
+        <div class="measured rp-measured" id="measured" data-reveal>
+          <article class="panel m-card rp-sweep-card">
+            <h3>Skew, swept from 0 to 200 ms</h3>
+            <p>Most admitted in any one second, as a multiple of the limit, worst of 10 seeds, against the skew between node clocks in ms. 4 nodes, 1 ms round trip.</p>
+            <div class="rp-sweep" id="rp-sweep"></div>
+            <div class="legend-row" id="rp-sweep-legend"></div>
+            <p>The token bucket passes 2.8x at 10 ms and reaches 5.79x at 50 ms, where it refuses nothing. The leaky bucket and GCRA draw the same line and never pass 2.08x. <code>rateproof sweep --svg</code> regenerates the README's chart byte for byte.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Redis, run after run</h3>
+            <p>The live half uses real timing, so its numbers move. What must not move is that the simulator matches each run.</p>
+            <div class="rp-runs" id="rp-runs"></div>
+            <p>The README's run and three here. All passed <code>--check</code>, and the replay matched Redis exactly except once: <sup>*</sup>run 1's non-atomic case, where it said +24.7% and 748 admits against Redis's 747. The differential half was identical every time: 0 mismatches in 120,000 calls.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>What it costs</h3>
+            <p>Wall time on this machine, with a load average around 9 to 14 from other work.</p>
+            <div class="bars" id="rp-cost"></div>
+            <p>The table is 300 simulated runs of 20 s; the mutants are 3,600 runs of 12 s. The Redis run is mostly its nine 6 s live cases. With the machine far busier, a load of 44, the table took 14.9 s.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">33 tests, two of them against Redis</h2>
+          <p>Counted with <code>RATEPROOF_REDIS=localhost:6379 go test -count=1 -json ./...</code>: 33 tests, all passing, no subtests, in 13 to 16 s. Without <code>RATEPROOF_REDIS</code>, 31 pass in a few seconds and the two Redis tests skip. CI runs them on Go 1.22 and stable, and the Redis ones against a <code>redis:7-alpine</code> service.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>Tests that would fail if the claims were wrong</h3>
+            <ul>
+              <li><strong>Algorithms:</strong> a full burst and no more, the refill rate, fixed window's 2x across a boundary, the sliding log holding its window, the token bucket refilling twice when the clock steps back, and each planted bug breaking its promise on some input.</li>
+              <li><strong>Simulator:</strong> the same seed gives the same run, every deployment sees the same traffic, one node with no latency equals the ideal, correct deployments keep their promises, every planted bug is caught.</li>
+              <li><strong>The README's findings:</strong> the token bucket collapses under skew while the leaky bucket holds, local split turns away an honest client, a wiped store hands out a fresh burst, boundary bursts peak at 2x for fixed window.</li>
+              <li><strong>Redis:</strong> every algorithm has a Lua script, the RESP client's replies and errors, the Lua and Go decisions call for call, and live runs the simulator must reproduce.</li>
+            </ul>
+            <p>CI has four jobs: tests on Go 1.22 and stable with <code>-race</code>, the mutants on 200 seeds, the Redis check, and a check that <code>docs/skew.svg</code> is what the current code draws. The run on <code>38d4084</code> passed all five job runs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>Production traffic</dt><dd>All four clients are synthetic. Real traffic has other shapes, and the numbers are for these.</dd></div>
+              <div><dt>Drift</dt><dd>Each node's clock offset is fixed. Clocks that drift or jump, such as an NTP step, are not modelled.</dd></div>
+              <div><dt>Clusters</dt><dd>One store and one key per client: no Redis Cluster, no replication lag, no failover beyond the store losing everything once.</dd></div>
+              <div><dt>Real machines</dt><dd>The Redis check ran clients and Redis on one host, with skew injected into the time sent.</dd></div>
+              <div><dt>Your library</dt><dd>These are the algorithms written plainly, not any library's code. To measure a library, port its script into <code>redisx/lua</code> and <code>limiter/</code>.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/rate-proof
+cd rate-proof
+go build -o rateproof ./cmd/rateproof
+
+./rateproof table
+./rateproof run --algo token-bucket --skew 50ms
+./rateproof mutants
+go test ./...        <span class="c"># 31 pass, 2 skip without Redis</span>
+
+<span class="c"># The real-Redis check, in Docker:</span>
+make redis</pre>
+            <p>Go 1.22 or newer and nothing else. <code>make redis</code> starts a throwaway Redis and runs the check in a Go container. With your own Redis: <code>./rateproof redis --addr localhost:6379</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>

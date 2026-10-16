@@ -1,0 +1,385 @@
+  <div class="ground" id="ground">
+    {{HOLD_MARK}}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        {{CRUMBS}}
+        <h1 class="p-title" id="p-title">fieldlog</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">An offline-first Android notebook for logging boreholes and outcrops on site. Every phone holds the whole site and works with no signal. When phones reach each other again, their edits merge with nothing to resolve by hand and no server deciding who wins.</p>
+            <p>Merging is only half of it. Two loggers can both call their new hole BH41, and a perfect merge keeps both. So the app checks every borehole with the rules <a href="https://github.com/ahmed-hashim-pro/strata">strata</a> uses, in strata's own words, and won't export until a person has fixed what merging can't. The export then goes straight into strata, which turns it into a ground model with error bars.</p>
+            <div class="ctas">
+              {{TOUR_BUTTON}}
+              <a class="btn" href="https://github.com/ahmed-hashim-pro/fieldlog">View on GitHub</a>
+              <a class="cta-link" href="https://github.com/ahmed-hashim-pro/fieldlog#how-it-works">How it works</a>
+            </div>
+            <p class="tour-hint" id="tour-hint">Plays the seven stages below in order, about @@TOUR_SECONDS@@ seconds. Scroll or press Esc to stop.</p>
+            <dl class="facts">
+              <dt>Language</dt><dd>Kotlin 2.0, for the app, the core and the CLI</dd>
+              <dt>App</dt><dd>Jetpack Compose, Android 8.0 or newer</dd>
+              <dt>Tests</dt><dd>39 passing: 33 on the JVM, 3 app unit tests, 3 UI tests on an emulator</dd>
+              <dt>Merge</dt><dd>Three CRDTs on one Lamport clock, no library</dd>
+              <dt>Sync</dt><dd>A relay with no authority, two HTTP calls</dd>
+              <dt>Exports to</dt><dd>strata, checked against the real strata in CI</dd>
+              <dt>License</dt><dd>MIT</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="term" id="term">
+              <div class="term-bar">
+                <div class="term-tabs" role="tablist" aria-label="Terminal sessions">
+                  <button type="button" class="term-tab" role="tab" aria-selected="true" data-scene="demo">Two phones</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="mutants">Six bugs</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="relay">Relay</button>
+                  <button type="button" class="term-tab" role="tab" aria-selected="false" data-scene="strata">strata</button>
+                </div>
+                <button type="button" class="replay" data-replay="term"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8A5.5 5.5 0 1 1 11.9 4.1M12 1.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Replay</button>
+              </div>
+              <div class="term-body" id="term-body" role="tabpanel" aria-label="Terminal output"><span class="cmd">fieldlog demo -o merged.csv</span>
+<span class="out">relay    listening on http://127.0.0.1:33845 (store-and-forward, no authority)</span>
+<span class="out">desk     imports strata's example site: 40 boreholes, 994 operations to the relay</span>
+<span class="out">         pixel-a has 40 holes, pixel-b has 40</span>
+</div>
+            </div>
+            <p class="term-cap">Real runs of fieldlog at <code>bcb9199</code>, output verbatim; <code>fieldlog</code> is the built CLI, run in a Java 17 container. <code>fieldlog demo</code> plays the README's story over real HTTP, with two in-process phones and a relay. The relay tab is curl against a real relay, and the strata tab is strata itself, built from GitHub by the repository's check script.</p>
+          </div>
+        </div>
+
+        <nav class="signs" aria-label="How an edit moves through fieldlog">
+          <div class="sign-group">
+            <p>Before the line: log, merge, prove it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-phone"><b>1</b> Phone</a></li>
+              <li><a class="sign-link" href="#s-ops"><b>2</b> Op log</a></li>
+              <li><a class="sign-link" href="#s-merge"><b>3</b> Merge</a></li>
+              <li><a class="sign-link" href="#s-relay"><b>4</b> Relay</a></li>
+              <li><a class="sign-link" href="#s-fuzz"><b>5</b> Fuzzer</a></li>
+            </ol>
+          </div>
+          <div class="sign-hold" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="sign-group air-signs">
+            <p>Past the line: a person fixes it, strata reads it</p>
+            <ol>
+              <li><a class="sign-link" href="#s-clash"><b>6</b> Name clash</a></li>
+              <li><a class="sign-link" href="#s-strata"><b>7</b> strata</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-phone" aria-labelledby="h-phone">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-phone"><span class="num" data-mark="1">1</span>Log a hole with no signal</h2>
+          <p>The app works the same with sync off. A hole gets a name, a location in metres on the site grid, a collar level, a log of intervals from the site's column, flags such as water strike, and free-text notes.</p>
+          <ul class="st-points">
+            <li>Every change is appended to the notebook's file on the phone at once, so killing the app loses nothing. A UI test checks exactly that.</li>
+            <li>The status line counts what hasn't reached the relay yet: <code>offline · 66 changes not sent</code>.</li>
+            <li>Each borehole is checked while it is typed, in strata's words. A gap, an overlap or a unit out of order shows under the log.</li>
+            <li>Numbers accept a decimal comma: a collar typed as <code>50,5</code> exports as <code>50.5</code>.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-phone" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">BH41 on an Android emulator, and the lines it wrote</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body fl-phone-row">
+              <div class="fl-phones" id="fl-ph1">
+                <figure class="fl-shot" data-shot="editor"><img alt="The BH41 editor: name BH41, x 600, y 480, collar 64.62, the water-strike flag on, four intervals from topsoil to gravel, and the note Water strike 7.4 m." width="440" height="880" decoding="async"><figcaption>Logged offline</figcaption></figure>
+                <figure class="fl-shot" data-shot="gap"><img alt="The same hole after sand's base was changed from 10.3 to 10: a red line under the log reads gap between 10 and 10.3 m." width="440" height="880" decoding="async"><figcaption>A gap, in strata's words</figcaption></figure>
+              </div>
+              <div class="fl-oplog">
+                <p class="fl-k">The phone's op log, as typed</p>
+                <ol class="fl-lines" id="fl-lines" aria-label="Operations the phone wrote while BH41 was typed"></ol>
+              </div>
+            </div>
+            <figcaption class="demo-note">Screenshots of the debug APK, built from the repository, on an API 36 emulator. The typing is the repository's own UI script, <code>DemoScript</code>; the gap was made by hand afterwards, deleting <code>.3</code> from sand's base. The lines on the right are the first ones that phone sent the relay, verbatim, with tabs shown as spaces.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-ops" aria-labelledby="h-ops">
+      <div class="wrap grid st-grid">
+        <div class="st-head">
+          <h2 id="h-ops"><span class="num" data-mark="2">2</span>Every edit is one line of text</h2>
+          <p>An edit becomes an operation with a Lamport timestamp, <code>counter@device</code>, written as one tab-separated line. The op log is the notebook. The app appends to it, the relay stores it, and a sync sends the lines the other side doesn't have yet.</p>
+          <ul class="st-points">
+            <li>Five kinds: set a field, add to a set, remove from a set, insert a character, delete one.</li>
+            <li>Ids are op ids, so two phones can never mint the same hole id. They can still pick the same hole name.</li>
+            <li>The phone's counter starts at 100 here because it had already received the desk's 80 operations, numbered up to 98, and its clock jumps past every id it sees.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-ops" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The five kinds, and what typing does</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="fl-kinds" id="fl-kinds"></ol>
+              <p class="fl-k">Typing <code>BH41</code> into the name field</p>
+              <ol class="fl-keys" id="fl-keys"></ol>
+              <p class="fl-k">Typing the note, one character after another</p>
+              <ol class="fl-chain" id="fl-chain" aria-label="Insert operations, each after the previous character"></ol>
+            </div>
+            <figcaption class="demo-note">Every line and id is from the same phone's log. Remove and delete didn't occur in that run; their formats are from the codec's documentation. A field keystroke is a whole new value, and the higher id wins, so <code>BH41</code> at 105 replaces <code>BH4</code> at 104 everywhere.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-merge" aria-labelledby="h-merge">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-merge"><span class="num" data-mark="3">3</span>Three CRDTs, one clock</h2>
+          <p>Each kind of data merges the way a logger would expect, and all three share the Lamport clock, so "later" means the same thing everywhere.</p>
+          <ul class="st-points">
+            <li><b>Fields are last-writer-wins registers.</b> Name, kind, x, y, collar, and each interval's unit and depths. An edit made after seeing another edit always wins over it.</li>
+            <li><b>Membership is an observed-remove set.</b> Holes on the site, intervals in a hole, flags on a hole. A removal removes only the adds it had seen, so a concurrent flag survives, and Undo brings a hole back with all its data.</li>
+            <li><b>Notes are an RGA sequence.</b> Two people typing at the same spot get both sentences whole, not interleaved letters.</li>
+            <li>An operation that refers to one not yet arrived waits in a buffer indexed by what it waits for, so a whole log arriving shuffled is applied in one pass.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-merge" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">Two phones offline, then one sync each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="fl-two" id="fl-two">
+                <div class="fl-dev" data-dev="a"><p class="fl-dev-head"><b>pixel-a</b><span data-net></span></p><dl class="fl-dev-facts"><div><dt>Holes</dt><dd data-holes></dd></div><div><dt>State</dt><dd data-hash></dd></div></dl><p class="fl-note-l">BH16 notes</p><p class="fl-note" data-note></p></div>
+                <div class="fl-dev" data-dev="b"><p class="fl-dev-head"><b>pixel-b</b><span data-net></span></p><dl class="fl-dev-facts"><div><dt>Holes</dt><dd data-holes></dd></div><div><dt>State</dt><dd data-hash></dd></div></dl><p class="fl-note-l">BH16 notes</p><p class="fl-note" data-note></p></div>
+              </div>
+              <div class="mini-term" id="fl-merge-term"></div>
+            </div>
+            <figcaption class="demo-note">Lines from <code>fieldlog demo</code>, verbatim; the cards show what each phone reports at that point. The state is the first six bytes of a SHA-256 of the replica's full dump, tombstones and set tags included, so equal hashes mean equal state underneath, not just equal text.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-relay" aria-labelledby="h-relay">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-relay"><span class="num" data-mark="4">4</span>A relay with no authority</h2>
+          <p>The relay is an append-only list of lines, deduplicated by operation id and saved to a file. It parses each line and refuses malformed ones, but it never interprets an operation, so it can't resolve a conflict and it can't be the reason two phones disagree.</p>
+          <ul class="st-points">
+            <li>Sync is two calls: POST this phone's new operations, then GET everything after a cursor, which comes back in <code>X-Fieldlog-Next</code>.</li>
+            <li>Losing the cursor costs a bigger transfer, never data: the relay and the phones both ignore operations they already have.</li>
+            <li>A batch with one malformed line is refused whole, with a 400 that names the line.</li>
+          </ul>
+          <p class="why">No authentication and no TLS. Anyone who can reach the relay can read and write the site, so the README says to run it on your own machine or LAN.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-relay" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">curl against a fresh relay <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="fl-relay-term" id="fl-relay-term"></div>
+              <p class="fl-store"><span>Relay holds</span><b id="fl-held">0 operations</b></p>
+            </div>
+            <figcaption class="demo-note">The relay is the repository's, started with <code>fieldlog relay --port 8791 --data relay.ops</code>. <code>five.ops</code> is five lines of an import of <code>examples/small-site.csv</code>, and <code>bad.ops</code> was written for this page. Responses are verbatim; the <code># HTTP</code> lines are curl's status codes, and the date header is left out.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-fuzz" aria-labelledby="h-fuzz">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head">
+          <h2 id="h-fuzz"><span class="num" data-mark="5">5</span>A fuzzer, and six bugs it has to catch</h2>
+          <p>Two to four replicas make 80 to 260 random edits on small pools of names, values and notes, so their writes collide. Meanwhile the network drops 8% of messages, duplicates 8%, delays the rest by 1 to 40 ticks, and phones go offline. Reconnecting sends the whole log in a scrambled order. Then three properties must hold.</p>
+          <ul class="st-points">
+            <li><b>Local intent:</b> every edit shows up at once on the phone that made it.</li>
+            <li><b>Convergence:</b> every replica ends in the same full state, tombstones and set tags included.</li>
+            <li><b>Order independence:</b> a fresh replica given every operation in another random order ends in that state too.</li>
+            <li>A run is a pure function of its seed, so <code>fuzz run --seed 1 --bug clock-no-bump --trace</code> replays a failure step by step.</li>
+          </ul>
+          <p class="why"><code>clock-no-bump</code> is the quiet one: every phone still converges, just not on what you typed. Only the local intent check catches it.</p>
+        </div>
+        <div class="st-demo">
+          <figure class="g-panel demo" id="d-fuzz" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">The correct merge and six deliberate bugs, 2,000 seeds each</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="fl-mut" id="fl-mut" role="table" aria-label="Seeds failed per variant, and which checks caught them"></div>
+              <div class="legend-row" id="fl-mut-legend"></div>
+              <p class="fl-k">Seed 1 under four of the bugs, and a clean seed</p>
+              <div class="seg" id="fl-run-seg" role="group" aria-label="Run"></div>
+              <div class="mini-term fl-run" id="fl-run" aria-live="polite"></div>
+            </div>
+            <figcaption class="demo-note">The table is <code>fieldlog fuzz mutants --seeds 2000</code>, verbatim in the hero's second tab, and identical to the README's. Each bug is one switch in the real merge code, such as keeping a field's last arrival instead of its highest id.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap edge-label" id="edge-label">
+      <p><span>Converged</span>Above this line the merge is automatic, and a fuzzer shows it holds. Below it, a notebook every phone agrees on can still be wrong, and a person fixes it before strata sees it.</p>
+    </div>
+    {{RUNWAY_EDGE}}
+  </div>
+
+  <div class="air">
+    <section class="stage" data-stage id="s-clash" aria-labelledby="h-clash">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-clash"><span class="num" data-mark="6">6</span>Converged is not the same as correct</h2>
+          <p>The CRDT guarantees every phone ends up with the same notebook, not that the notebook makes geological sense. Two loggers can both create a BH41. Two people can edit one interval until it overlaps the next. Quietly picking one version would hide a real problem.</p>
+          <ul class="st-points">
+            <li>Every borehole is checked with strata's rules: gaps and overlaps, units out of order, units missing from the column, invalid names, two holes at one location, two holes with one name.</li>
+            <li>The problem is marked on the hole, and export is refused until it is fixed. Every phone shows the same problems, because they all have the same notebook.</li>
+            <li>Outcrops and boreholes with nothing logged are left out of the export and listed, not refused.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-clash" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title">One phone, from no signal to an export <span class="tag-ill">Illustrative input</span></p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <ol class="fl-seq" id="fl-seq">
+                <li class="fl-shot" data-shot="offline"><img alt="The hole list offline: four holes, four ready for strata, and the status pixel-a, offline, 66 changes not sent." width="440" height="880" decoding="async"><p><b>1</b> Offline, BH41 logged</p></li>
+                <li class="fl-shot" data-shot="clash"><img alt="After syncing: five holes, two of them called BH41, both marked name clash in red." width="440" height="880" decoding="async"><p><b>2</b> Synced: two BH41s</p></li>
+                <li class="fl-shot" data-shot="fixed"><img alt="After the other device renamed its hole: BH41 and BH42, every hole marked ready." width="440" height="880" decoding="async"><p><b>3</b> The other one is renamed</p></li>
+                <li class="fl-shot" data-shot="export"><img alt="The export dialog: Ready for strata, 5 boreholes ready, 0 left out, with the start of the CSV." width="440" height="880" decoding="async"><p><b>4</b> Ready for strata</p></li>
+              </ol>
+              <div class="mini-term" id="fl-clash-term"></div>
+            </div>
+            <figcaption class="demo-note">Frames from one emulator running the repository's <code>DemoScript</code> as pixel-a, captured every 0.6 s. The other BH41 was sent by the fieldlog CLI posing as pixel-b, and its rename to BH42 was one operation POSTed by hand; the README's own recording uses two emulators. The terminal lines are <code>fieldlog demo</code>'s ending, verbatim.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage" data-stage id="s-strata" aria-labelledby="h-strata">
+      <div class="wrap grid st-grid st-wide">
+        <div class="st-head panel" style="padding:24px 26px 26px">
+          <h2 id="h-strata"><span class="num" data-mark="7">7</span>Hand it to strata, and let strata check</h2>
+          <p>The export is strata's borehole-log CSV. <code>make strata-check</code> builds strata from GitHub at a pinned commit and runs it on what fieldlog wrote, and CI runs the same script.</p>
+          <ul class="st-points">
+            <li>strata validates the merged export from the demo, all 42 holes.</li>
+            <li>At (600, 480), where strata refused the base of gravel because the nearest hole was 120 m away, BH41 turns the refusal into an answer.</li>
+            <li>Importing strata's 40-hole example site and exporting it again changes nothing strata can see: <code>strata cv</code> output is byte-identical.</li>
+            <li>A log with a gap is refused by both tools, with the same words.</li>
+          </ul>
+        </div>
+        <div class="st-demo">
+          <figure class="panel demo" id="d-strata" style="margin:0">
+            <div class="demo-head">
+              <p class="demo-title"><code>strata query</code> at (600, 480), before and after the merge</p>
+              {{REPLAY}}
+            </div>
+            <div class="demo-body">
+              <div class="fl-q" id="fl-q" role="table" aria-label="strata's answer at (600, 480) before and after BH41">
+                <div class="fl-q-row fl-q-head" role="row"><span role="columnheader">Surface</span><span role="columnheader">Example site</span><span role="columnheader">After the merge</span></div>
+              </div>
+              <div class="mini-term" id="fl-check-term"></div>
+            </div>
+            <figcaption class="demo-note">Both queries and the four check lines are verbatim output of <code>scripts/strata-check.sh</code> and of strata built by it at <code>047ca52</code>. The ranges are strata's 95% intervals; at a logged hole they collapse to the logged value.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="measured-sec" aria-labelledby="h-measured">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-measured">Measured, not assumed</h2>
+          <p>Everything below was run on one Linux machine from a fresh copy of the repository, while other heavy jobs shared it (load average 10 to 47 on 12 threads). CI's numbers are from GitHub's API for run 38620812427 on <code>bcb9199</code>, where all five jobs passed.</p>
+        </div>
+        <div class="measured" id="measured" data-reveal>
+          <article class="panel m-card">
+            <h3>25,000 seeds, none failed</h3>
+            <p>The correct merge under the fuzzer, in two runs: seeds 1 to 20,000, then 20,001 to 25,000.</p>
+            <div class="tally"><span>82.4 s</span><span>16.3 s</span><span>0 failed</span></div>
+            <p>3.3 to 4.1 ms a seed here, depending on the load. CI's runner did its 20,000 in 40 s. The mutant table, seven variants at 2,000 seeds each, took 53.8 s here.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>On an emulator, three UI tests</h3>
+            <p>Compose tests on the real activity: log a borehole offline until strata would accept it, survive the app being killed, and bring a removed hole back with Undo.</p>
+            <div class="bars">
+              <div class="bar-row"><span>Here, API 36</span><span class="bar"><i style="--w:47.6%"></i></span><span>90.5 s</span></div>
+              <div class="bar-row"><span>CI, API 34</span><span class="bar"><i style="--w:100%"></i></span><span>190 s</span></div>
+            </div>
+            <p>Here is the test run alone. CI's figure is the whole emulator step, including the boot. Nobody has run it on a physical phone yet, and the README says so.</p>
+          </article>
+          <article class="panel m-card">
+            <h3>Five CI jobs</h3>
+            <p>Durations from GitHub's API, rounded to whole seconds.</p>
+            <div class="bars" id="fl-ci"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="tests" aria-labelledby="h-tests">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-tests">39 tests, on the JVM and on a device</h2>
+          <p>Counted the way CI runs them: <code>./gradlew -Pjvm-only :core:test :cli:test</code> (33), <code>:app:testDebugUnitTest</code> (3), and <code>:app:connectedDebugAndroidTest</code> on an emulator (3). A fourth androidTest, the README's two-phone recording script, skips itself unless it is given a role, and isn't counted.</p>
+        </div>
+        <div class="tests">
+          <div class="panel t-cluster">
+            <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+            <ul class="t-legend" id="t-legend"></ul>
+          </div>
+          <div class="panel t-list">
+            <h3>What they pin</h3>
+            <ul>
+              <li><strong>The merge:</strong> a write that saw another wins over it, one winner everywhere for concurrent writes, a concurrent add survives a remove, typing at one spot interleaves by word, characters outside the basic plane stay whole, duplicates ignored, an operation waits for the one it refers to.</li>
+              <li><strong>The fuzzer itself:</strong> 300 seeds of the correct merge per run, every deliberate bug caught, the same result for the same seed, and runs that really do drop, duplicate and reorder.</li>
+              <li><strong>strata:</strong> import then export gives strata the same site, the import rejects what strata rejects, and the export refuses what strata would refuse, with the reason.</li>
+              <li><strong>The relay:</strong> two devices converge over real HTTP, each operation kept once across a restart, malformed operations rejected whole, offline is an <code>IOException</code> that loses nothing.</li>
+              <li><strong>The app:</strong> the notebook and sync position survive a restart, the device name freezes after its first edit, and the three UI tests above.</li>
+            </ul>
+            <p>CI also runs 20,000 fuzz seeds, the mutant table, the demo, <code>make strata-check</code>, and <code>make test</code> and <code>make apk</code> in Docker, as the README says to.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="run" aria-labelledby="h-run">
+      <div class="wrap">
+        <div class="two">
+          <div class="panel box">
+            <h3>Deliberately missing</h3>
+            <dl>
+              <div><dt>A physical phone</dt><dd>It has run on emulators only: API 36, API 34 in CI, and the two-emulator recording. Real radios dropping in and out are untested.</dd></div>
+              <div><dt>GPS</dt><dd>x and y are typed in metres on the site grid, the way strata reads them.</dd></div>
+              <div><dt>Security on the relay</dt><dd>No authentication and no TLS. Run it on your own machine or LAN.</dd></div>
+              <div><dt>A warning on field conflicts</dt><dd>If two people correct the same collar differently while offline, one value wins on every phone and the other isn't flagged. Notes and sets don't lose edits; single-value fields can.</dd></div>
+              <div><dt>Compaction</dt><dd>The log only grows, and every typed character is an operation. Thousands of operations are fine; years of notes in one notebook haven't been tried.</dd></div>
+            </dl>
+          </div>
+          <div class="panel box">
+            <h3 id="h-run">Run it</h3>
+            <pre class="run" id="run-cmds"><button type="button" class="copy" id="copy-run">Copy</button>git clone https://github.com/ahmed-hashim-pro/fieldlog.git
+cd fieldlog
+make test     <span class="c"># 33 JVM tests, in Docker</span>
+make apk      <span class="c"># the debug APK, built in a container</span>
+make cli
+
+B=cli/build/install/fieldlog/bin/fieldlog
+$B demo -o merged.csv
+$B fuzz mutants --seeds 2000
+make strata-check</pre>
+            <p>You need only Docker; the Makefile runs Gradle, the Android SDK and strata in containers. Start a relay with <code>fieldlog relay</code> and install the APK on an emulator: its default relay address, <code>10.0.2.2:8787</code>, is the host as an emulator sees it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {{PREV_NEXT}}
+  </div>
