@@ -424,14 +424,12 @@ export function initLanding() {
     r.panel.addEventListener('focusout', e => { if (!r.panel.contains(e.relatedTarget)) set('pfoc', false); });
   });
 
-  // Repos inside a group's list keep their #repo-<slug> address, so an old link opens the row.
-  const openHashed = () => {
-    const el = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    if (!el || el.tagName !== 'DETAILS' || el.open) return;
-    el.open = true;
-    el.scrollIntoView({ block: 'start' });
-  };
-  addEventListener('hashchange', openHashed);
+  // The page keeps growing above a #repo-<slug> target as the clusters, fonts and route lay out,
+  // so keep the target in view after each layout until the visitor scrolls on their own.
+  let jumpTo = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (jumpTo && !reposWrap.contains(jumpTo)) jumpTo = null;
+  const reJump = () => { if (jumpTo) jumpTo.scrollIntoView({ block: 'start' }); };
+  ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach(type => addEventListener(type, () => { jumpTo = null; }, { passive: true }));
 
   const ms = initMyStream({ colors, raf: requestAnimationFrame, observe: o => scope.observe(o) });
   themeHooks.push(ms.draw);
@@ -463,6 +461,7 @@ export function initLanding() {
     layoutRoute();
     ms.layout();
     stripCue();
+    reJump();
     update(now);
   };
   const requestLayout = () => {
@@ -472,7 +471,6 @@ export function initLanding() {
   };
 
   relayout();
-  openHashed();
   addEventListener('scroll', requestUpdate, { passive: true });
   addEventListener('resize', requestLayout, { passive: true });
   if (document.readyState === 'complete') requestLayout(); else addEventListener('load', requestLayout);

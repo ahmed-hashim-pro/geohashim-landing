@@ -21,7 +21,7 @@
             </li>
             <li>
               <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><circle class="k-dot" r="1.5"/><circle class="k-dot" cx="3.6" r="1.5"/><circle class="k-dot" cx="-3.6" r="1.5"/><circle class="k-dot" cx="1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="3.1" r="1.5"/><circle class="k-dot" cx="1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="-1.8" cy="-3.1" r="1.5"/><circle class="k-dot" cx="5.4" cy="3.1" r="1.5"/><circle class="k-dot" cx="-5.4" cy="-3.1" r="1.5"/></svg>
-              <span>Group of repos: a waypoint with every test in the group. Open a repo in its list for details. One dot is one passing test, and every dot is the same size.</span>
+              <span>Group of repos: a waypoint with every test in the group, and a card for each repo. One dot is one passing test, and every dot is the same size.</span>
             </li>
             <li>
               <svg viewBox="-22 -16 44 32" aria-hidden="true" focusable="false"><path class="k-route" d="M-20 0H20"/></svg>
@@ -114,7 +114,7 @@
             <a class="wp" href="#leg-ai">
               <canvas aria-hidden="true"></canvas>
               <span class="wp-label"><span class="wp-name">AI and agents</span><span class="wp-data">6 repos, 591 tests</span></span>
-              <span class="vh">, list</span>
+              <span class="vh">, repos</span>
             </a>
             <article class="panel repo-panel leg-panel" id="leg-ai" tabindex="-1" aria-labelledby="h-leg-ai">
               <header class="rp-head">
@@ -124,91 +124,42 @@
                 </div>
                 <p class="rp-count"><strong>591</strong> passing tests in six repos</p>
               </header>
-              <ul class="leg-list">
-                <li>
-                  <details class="leg-item" id="repo-bench-mcp">
-                    <summary><span class="li-name">bench-mcp</span><span class="li-tag">Lab instruments for agents, behind interlocks</span><span class="li-n"><strong>140</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>An MCP server that lets an AI agent drive lab instruments over SCPI, with interlocks from a signed-off limits file that the agent cannot override.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>MCP Python SDK, SCPI over TCP, Hypothesis</dd>
-                    <dt>Counted with</dt><dd><code>pytest -q</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/bench-mcp/">How it works<span class="vh">: bench-mcp</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/bench-mcp">View on GitHub<span class="vh">: bench-mcp</span></a></div>
-                    </div>
-                  </details>
+              <ul class="leg-cards">
+                <li class="rc" id="repo-bench-mcp">
+                  <h4><a href="/open-source/bench-mcp/">bench-mcp</a></h4>
+                  <p class="rc-n"><strong>140</strong> tests</p>
+                  <p class="rc-tag">Lab instruments for agents, behind interlocks</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/bench-mcp">GitHub<span class="vh">: bench-mcp</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-agent-replay">
-                    <summary><span class="li-name">agent-replay</span><span class="li-tag">Replays an agent's tool calls on a new model</span><span class="li-n"><strong>78</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Records an AI agent's tool calls, replays them against a new model or prompt, and fails the check when the agent starts making a destructive call it never made before.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Python standard library only (optional Anthropic and MCP SDKs), pytest, Hypothesis</dd>
-                    <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(with the optional Anthropic and MCP SDKs installed, as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/agent-replay/">How it works<span class="vh">: agent-replay</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/agent-replay">View on GitHub<span class="vh">: agent-replay</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-agent-replay">
+                  <h4><a href="/open-source/agent-replay/">agent-replay</a></h4>
+                  <p class="rc-n"><strong>78</strong> tests</p>
+                  <p class="rc-tag">Replays an agent's tool calls on a new model</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/agent-replay">GitHub<span class="vh">: agent-replay</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-mcp-audit">
-                    <summary><span class="li-name">mcp-audit</span><span class="li-tag">Audits MCP servers in a traced sandbox</span><span class="li-n"><strong>65</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>An auditor for MCP servers that connects as a real MCP client, scans what each server tells the model, and calls every tool in a traced, offline sandbox to check it does what its annotations claim.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Official MCP Python SDK, Docker, strace</dd>
-                    <dt>Counted with</dt><dd><code>make images &amp;&amp; pytest -q</code> <span class="note">(4 of them need the Docker sandbox images, as in CI&#x27;s sandbox job)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/mcp-audit/">How it works<span class="vh">: mcp-audit</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/mcp-audit">View on GitHub<span class="vh">: mcp-audit</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-mcp-audit">
+                  <h4><a href="/open-source/mcp-audit/">mcp-audit</a></h4>
+                  <p class="rc-n"><strong>65</strong> tests</p>
+                  <p class="rc-tag">Audits MCP servers in a traced sandbox</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/mcp-audit">GitHub<span class="vh">: mcp-audit</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-rag-knowledge-agent">
-                    <summary><span class="li-name">rag-knowledge-agent</span><span class="li-tag">Cited answers, or a refusal</span><span class="li-n"><strong>109</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A command-line retrieval agent that answers from a folder of documents with citations, and refuses without calling the model when no evidence clears its confidence floor.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Claude, ChromaDB, Pydantic</dd>
-                    <dt>Counted with</dt><dd><code>pytest</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/rag-knowledge-agent/">How it works<span class="vh">: rag-knowledge-agent</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent">View on GitHub<span class="vh">: rag-knowledge-agent</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-rag-knowledge-agent">
+                  <h4><a href="/open-source/rag-knowledge-agent/">rag-knowledge-agent</a></h4>
+                  <p class="rc-n"><strong>109</strong> tests</p>
+                  <p class="rc-tag">Cited answers, or a refusal</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/rag-knowledge-agent">GitHub<span class="vh">: rag-knowledge-agent</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-llm-contract-router">
-                    <summary><span class="li-name">llm-contract-router</span><span class="li-tag">Schema-checked routing across LLM providers</span><span class="li-n"><strong>105</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Routes requests across LLM providers behind one interface, validates each answer against your schema, and re-prompts with the constraint that failed.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>TypeScript</dd>
-                    <dt>Stack</dt><dd>Node.js, Anthropic, OpenAI, zero runtime deps</dd>
-                    <dt>Counted with</dt><dd><code>npm run check</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/llm-contract-router/">How it works<span class="vh">: llm-contract-router</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/llm-contract-router">View on GitHub<span class="vh">: llm-contract-router</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-llm-contract-router">
+                  <h4><a href="/open-source/llm-contract-router/">llm-contract-router</a></h4>
+                  <p class="rc-n"><strong>105</strong> tests</p>
+                  <p class="rc-tag">Schema-checked routing across LLM providers</p>
+                  <p class="rc-meta"><span>TypeScript</span> <a href="https://github.com/ahmed-hashim-pro/llm-contract-router">GitHub<span class="vh">: llm-contract-router</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-local-network-mcp">
-                    <summary><span class="li-name">local-network-mcp</span><span class="li-tag">Network and SSH tools, denied until opted in</span><span class="li-n"><strong>94</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>An MCP server for local network, system and SSH tasks, where shell commands, SSH sessions and process kills stay denied until the operator opts in, and SSH host keys are checked.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>MCP, Paramiko, psutil</dd>
-                    <dt>Gated</dt><dd>4 of its 18 tools: shell, SSH connect and execute, and process kill.</dd>
-                    <dt>Counted with</dt><dd><code>pytest</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/local-network-mcp/">How it works<span class="vh">: local-network-mcp</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/local-network-mcp">View on GitHub<span class="vh">: local-network-mcp</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-local-network-mcp">
+                  <h4><a href="/open-source/local-network-mcp/">local-network-mcp</a></h4>
+                  <p class="rc-n"><strong>94</strong> tests</p>
+                  <p class="rc-tag">Network and SSH tools, denied until opted in</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/local-network-mcp">GitHub<span class="vh">: local-network-mcp</span></a></p>
                 </li>
               </ul>
             </article>
@@ -217,7 +168,7 @@
             <a class="wp" href="#leg-data">
               <canvas aria-hidden="true"></canvas>
               <span class="wp-label"><span class="wp-name">Data and storage</span><span class="wp-data">6 repos, 202 tests</span></span>
-              <span class="vh">, list</span>
+              <span class="vh">, repos</span>
             </a>
             <article class="panel repo-panel leg-panel" id="leg-data" tabindex="-1" aria-labelledby="h-leg-data">
               <header class="rp-head">
@@ -227,90 +178,42 @@
                 </div>
                 <p class="rp-count"><strong>202</strong> passing tests in six repos</p>
               </header>
-              <ul class="leg-list">
-                <li>
-                  <details class="leg-item" id="repo-crdt-notes">
-                    <summary><span class="li-name">crdt-notes</span><span class="li-tag">Local-first notes on a fuzzed CRDT</span><span class="li-n"><strong>39</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A local-first notes app on a from-scratch TypeScript CRDT, with a fuzzer that attacks convergence over a hostile network and six deliberate bugs it must catch.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>TypeScript</dd>
-                    <dt>Stack</dt><dd>Angular, WebSocket relay, Vitest, Playwright</dd>
-                    <dt>Counted with</dt><dd><code>npm test</code> and <code>npm run e2e</code> <span class="note">(37 unit tests plus 2 end-to-end tests in two browsers)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/crdt-notes/">How it works<span class="vh">: crdt-notes</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/crdt-notes">View on GitHub<span class="vh">: crdt-notes</span></a></div>
-                    </div>
-                  </details>
+              <ul class="leg-cards">
+                <li class="rc" id="repo-crdt-notes">
+                  <h4><a href="/open-source/crdt-notes/">crdt-notes</a></h4>
+                  <p class="rc-n"><strong>39</strong> tests</p>
+                  <p class="rc-tag">Local-first notes on a fuzzed CRDT</p>
+                  <p class="rc-meta"><span>TypeScript</span> <a href="https://github.com/ahmed-hashim-pro/crdt-notes">GitHub<span class="vh">: crdt-notes</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-quorum-lab">
-                    <summary><span class="li-name">quorum-lab</span><span class="li-tag">Raft under a deterministic fault simulator</span><span class="li-n"><strong>38</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Raft written from scratch in Go, attacked by a deterministic simulator that partitions, crashes and skews clocks, checks safety after every event, and must catch six deliberate bugs.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go standard library only, deterministic simulation, linearizability checking</dd>
-                    <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(32 tests plus 6 subtests)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/quorum-lab/">How it works<span class="vh">: quorum-lab</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/quorum-lab">View on GitHub<span class="vh">: quorum-lab</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-quorum-lab">
+                  <h4><a href="/open-source/quorum-lab/">quorum-lab</a></h4>
+                  <p class="rc-n"><strong>38</strong> tests</p>
+                  <p class="rc-tag">Raft under a deterministic fault simulator</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/quorum-lab">GitHub<span class="vh">: quorum-lab</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-wal-crash">
-                    <summary><span class="li-name">wal-crash</span><span class="li-tag">Every state a power cut can leave on disk</span><span class="li-n"><strong>35</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Records a program's file-system calls with strace, builds every state a power failure could leave on disk, and runs the program's own recovery on each to find which lost operation broke a promise.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go standard library only, strace, SQLite in a Docker dev image</dd>
-                    <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> <span class="note">(33 tests plus 2 subtests)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/wal-crash/">How it works<span class="vh">: wal-crash</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/wal-crash">View on GitHub<span class="vh">: wal-crash</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-wal-crash">
+                  <h4><a href="/open-source/wal-crash/">wal-crash</a></h4>
+                  <p class="rc-n"><strong>35</strong> tests</p>
+                  <p class="rc-tag">Every state a power cut can leave on disk</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/wal-crash">GitHub<span class="vh">: wal-crash</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-migrate-safe">
-                    <summary><span class="li-name">migrate-safe</span><span class="li-tag">What a PostgreSQL migration will lock</span><span class="li-n"><strong>40</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Shows what a PostgreSQL migration will do to a live database before it ships, by running it on a copy under live traffic, and checks its linter's predictions against the server in CI.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go and PostgreSQL (pgx), Docker</dd>
-                    <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> <span class="note">(28 tests plus 12 subtests, against a live PostgreSQL as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/migrate-safe/">How it works<span class="vh">: migrate-safe</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/migrate-safe">View on GitHub<span class="vh">: migrate-safe</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-migrate-safe">
+                  <h4><a href="/open-source/migrate-safe/">migrate-safe</a></h4>
+                  <p class="rc-n"><strong>40</strong> tests</p>
+                  <p class="rc-tag">What a PostgreSQL migration will lock</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/migrate-safe">GitHub<span class="vh">: migrate-safe</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-schema-drift">
-                    <summary><span class="li-name">schema-drift</span><span class="li-tag">Breaking-change checks for JSON events</span><span class="li-n"><strong>29</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A contract checker for JSON event streams that decides whether a schema change breaks readers or writers, and proves each breaking verdict with a concrete event.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go standard library only, GitHub Actions</dd>
-                    <dt>Counted with</dt><dd><code>go test ./...</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/schema-drift/">How it works<span class="vh">: schema-drift</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/schema-drift">View on GitHub<span class="vh">: schema-drift</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-schema-drift">
+                  <h4><a href="/open-source/schema-drift/">schema-drift</a></h4>
+                  <p class="rc-n"><strong>29</strong> tests</p>
+                  <p class="rc-tag">Breaking-change checks for JSON events</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/schema-drift">GitHub<span class="vh">: schema-drift</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-tsz">
-                    <summary><span class="li-name">tsz</span><span class="li-tag">Time-series compression, best codec per block</span><span class="li-n"><strong>21</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Lossless compression for (i64, f64) time series in Rust that measures Gorilla, Chimp, Chimp128 and a decimal codec on every block and writes the smallest, so values printed as text shrink up to 29 times.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Rust</dd>
-                    <dt>Stack</dt><dd>Rust standard library only, no dependencies, GitHub Actions</dd>
-                    <dt>Counted with</dt><dd><code>cargo test --locked</code> <span class="note">(4 unit, 5 cli, 4 corrupt, 7 roundtrip, 1 doc test; the 1M-series soak test is ignored by default)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/tsz/">How it works<span class="vh">: tsz</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/tsz">View on GitHub<span class="vh">: tsz</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-tsz">
+                  <h4><a href="/open-source/tsz/">tsz</a></h4>
+                  <p class="rc-n"><strong>21</strong> tests</p>
+                  <p class="rc-tag">Time-series compression, best codec per block</p>
+                  <p class="rc-meta"><span>Rust</span> <a href="https://github.com/ahmed-hashim-pro/tsz">GitHub<span class="vh">: tsz</span></a></p>
                 </li>
               </ul>
             </article>
@@ -319,7 +222,7 @@
             <a class="wp" href="#leg-reliability">
               <canvas aria-hidden="true"></canvas>
               <span class="wp-label"><span class="wp-name">Reliability in production</span><span class="wp-data">7 repos, 499 tests</span></span>
-              <span class="vh">, list</span>
+              <span class="vh">, repos</span>
             </a>
             <article class="panel repo-panel leg-panel" id="leg-reliability" tabindex="-1" aria-labelledby="h-leg-reliability">
               <header class="rp-head">
@@ -329,104 +232,48 @@
                 </div>
                 <p class="rp-count"><strong>499</strong> passing tests in seven repos</p>
               </header>
-              <ul class="leg-list">
-                <li>
-                  <details class="leg-item" id="repo-deadline">
-                    <summary><span class="li-name">deadline</span><span class="li-tag">Request time budgets across HTTP services</span><span class="li-n"><strong>49</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A Java 21 library that passes a request's remaining time budget from service to service over HTTP, so each hop stops work nobody is waiting for, skips retries that can't finish, and reports where the time went.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Java</dd>
-                    <dt>Stack</dt><dd>Java 21 standard library only (JDK HttpClient and HttpServer), JUnit 5, Maven</dd>
-                    <dt>Counted with</dt><dd><code>./mvnw -B verify</code> <span class="note">(39 test methods plus 10 parameterised cases)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/deadline/">How it works<span class="vh">: deadline</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/deadline">View on GitHub<span class="vh">: deadline</span></a></div>
-                    </div>
-                  </details>
+              <ul class="leg-cards">
+                <li class="rc" id="repo-deadline">
+                  <h4><a href="/open-source/deadline/">deadline</a></h4>
+                  <p class="rc-n"><strong>49</strong> tests</p>
+                  <p class="rc-tag">Request time budgets across HTTP services</p>
+                  <p class="rc-meta"><span>Java</span> <a href="https://github.com/ahmed-hashim-pro/deadline">GitHub<span class="vh">: deadline</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-rate-proof">
-                    <summary><span class="li-name">rate-proof</span><span class="li-tag">Rate limiters under clock skew and restarts</span><span class="li-n"><strong>33</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Measures what six rate-limiting algorithms let through once deployed across nodes with skewed clocks, a remote store and restarts, and checks its simulator against a real Redis, decision for decision.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go standard library only, Redis and Lua</dd>
-                    <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(2 of them need a real Redis, as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/rate-proof/">How it works<span class="vh">: rate-proof</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/rate-proof">View on GitHub<span class="vh">: rate-proof</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-rate-proof">
+                  <h4><a href="/open-source/rate-proof/">rate-proof</a></h4>
+                  <p class="rc-n"><strong>33</strong> tests</p>
+                  <p class="rc-tag">Rate limiters under clock skew and restarts</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/rate-proof">GitHub<span class="vh">: rate-proof</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-trace-diff">
-                    <summary><span class="li-name">trace-diff</span><span class="li-tag">Before-and-after OpenTelemetry trace diffs</span><span class="li-n"><strong>37</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Compares OpenTelemetry traces from before and after a change and reports the N+1 queries, retry storms and new blocking calls that tests and latency dashboards miss, with trace ids to open.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go, OTLP protobuf types; OpenTelemetry Collector and Postgres demo in Docker</dd>
-                    <dt>Counted with</dt><dd><code>go test -race -count=1 -json ./...</code> and <code>make demo-test</code> <span class="note">(21 tests plus 12 subtests, and 4 demo tests, one of which needs Postgres as in CI&#x27;s demo job)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/trace-diff/">How it works<span class="vh">: trace-diff</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/trace-diff">View on GitHub<span class="vh">: trace-diff</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-trace-diff">
+                  <h4><a href="/open-source/trace-diff/">trace-diff</a></h4>
+                  <p class="rc-n"><strong>37</strong> tests</p>
+                  <p class="rc-tag">Before-and-after OpenTelemetry trace diffs</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/trace-diff">GitHub<span class="vh">: trace-diff</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-slo-proof">
-                    <summary><span class="li-name">slo-proof</span><span class="li-tag">Alert rules replayed against past incidents</span><span class="li-n"><strong>71</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Replays past SLI data through a proposed alert rule and reports which incidents it would have caught, how late, what budget burned first, and how often it would have paged for nothing.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Python standard library only, Hypothesis, Prometheus range-query import</dd>
-                    <dt>Counted with</dt><dd><code>pytest</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/slo-proof/">How it works<span class="vh">: slo-proof</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/slo-proof">View on GitHub<span class="vh">: slo-proof</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-slo-proof">
+                  <h4><a href="/open-source/slo-proof/">slo-proof</a></h4>
+                  <p class="rc-n"><strong>71</strong> tests</p>
+                  <p class="rc-tag">Alert rules replayed against past incidents</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/slo-proof">GitHub<span class="vh">: slo-proof</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-noisefloor">
-                    <summary><span class="li-name">noisefloor</span><span class="li-tag">Regression tests for noisy systems</span><span class="li-n"><strong>202</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A regression harness for non-deterministic systems that measures run-to-run noise before calling a change a regression.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Pydantic, PyYAML</dd>
-                    <dt>Counted with</dt><dd><code>pytest</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/noisefloor/">How it works<span class="vh">: noisefloor</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/noisefloor">View on GitHub<span class="vh">: noisefloor</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-noisefloor">
+                  <h4><a href="/open-source/noisefloor/">noisefloor</a></h4>
+                  <p class="rc-n"><strong>202</strong> tests</p>
+                  <p class="rc-tag">Regression tests for noisy systems</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/noisefloor">GitHub<span class="vh">: noisefloor</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-flaky-hunt">
-                    <summary><span class="li-name">flaky-hunt</span><span class="li-tag">Why each flaky test flakes</span><span class="li-n"><strong>47</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Finds flaky pytest tests and the one factor that makes each fail, confirms it with a significance test in fresh processes, and hands back a plain pytest command that reproduces it.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>pytest plugin, time-machine</dd>
-                    <dt>Counted with</dt><dd><code>pytest -m &quot;not slow&quot;</code> and <code>pytest -m slow</code> <span class="note">(42 fast tests plus 5 slow ones that run whole hunts, as CI splits them)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/flaky-hunt/">How it works<span class="vh">: flaky-hunt</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/flaky-hunt">View on GitHub<span class="vh">: flaky-hunt</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-flaky-hunt">
+                  <h4><a href="/open-source/flaky-hunt/">flaky-hunt</a></h4>
+                  <p class="rc-n"><strong>47</strong> tests</p>
+                  <p class="rc-tag">Why each flaky test flakes</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/flaky-hunt">GitHub<span class="vh">: flaky-hunt</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-ops-console">
-                    <summary><span class="li-name">ops-console</span><span class="li-tag">A real-time dashboard, measured in the browser</span><span class="li-n"><strong>60</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A real-time Angular 22 dashboard that streams 5,000 services at 10,000 events a second, measures its frames, input delay and memory in Chromium, and works from the keyboard alone.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>TypeScript</dd>
-                    <dt>Stack</dt><dd>Angular 22 zoneless with signals, no UI or chart library, Playwright, axe-core</dd>
-                    <dt>Counted with</dt><dd><code>npm test</code> and <code>npx playwright test</code> <span class="note">(32 unit tests plus 28 Playwright tests)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/ops-console/">How it works<span class="vh">: ops-console</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/ops-console">View on GitHub<span class="vh">: ops-console</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-ops-console">
+                  <h4><a href="/open-source/ops-console/">ops-console</a></h4>
+                  <p class="rc-n"><strong>60</strong> tests</p>
+                  <p class="rc-tag">A real-time dashboard, measured in the browser</p>
+                  <p class="rc-meta"><span>TypeScript</span> <a href="https://github.com/ahmed-hashim-pro/ops-console">GitHub<span class="vh">: ops-console</span></a></p>
                 </li>
               </ul>
             </article>
@@ -435,7 +282,7 @@
             <a class="wp" href="#leg-gates">
               <canvas aria-hidden="true"></canvas>
               <span class="wp-label"><span class="wp-name">Change gates and tooling</span><span class="wp-data">4 repos, 523 tests</span></span>
-              <span class="vh">, list</span>
+              <span class="vh">, repos</span>
             </a>
             <article class="panel repo-panel leg-panel" id="leg-gates" tabindex="-1" aria-labelledby="h-leg-gates">
               <header class="rp-head">
@@ -445,62 +292,30 @@
                 </div>
                 <p class="rp-count"><strong>523</strong> passing tests in four repos</p>
               </header>
-              <ul class="leg-list">
-                <li>
-                  <details class="leg-item" id="repo-permit">
-                    <summary><span class="li-name">permit</span><span class="li-tag">What an npm upgrade can newly do</span><span class="li-n"><strong>36</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A CLI and GitHub Action that diffs what an npm upgrade newly gets access to, such as network, install scripts, processes and environment, and blocks it until someone allows it.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>TypeScript</dd>
-                    <dt>Stack</dt><dd>Node.js, acorn, GitHub Actions</dd>
-                    <dt>Counted with</dt><dd><code>npm test</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/permit/">How it works<span class="vh">: permit</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/permit">View on GitHub<span class="vh">: permit</span></a></div>
-                    </div>
-                  </details>
+              <ul class="leg-cards">
+                <li class="rc" id="repo-permit">
+                  <h4><a href="/open-source/permit/">permit</a></h4>
+                  <p class="rc-n"><strong>36</strong> tests</p>
+                  <p class="rc-tag">What an npm upgrade can newly do</p>
+                  <p class="rc-meta"><span>TypeScript</span> <a href="https://github.com/ahmed-hashim-pro/permit">GitHub<span class="vh">: permit</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-admission-replay">
-                    <summary><span class="li-name">admission-replay</span><span class="li-tag">Admission policies replayed on the audit log</span><span class="li-n"><strong>38</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Replays a Kubernetes cluster's audit log through a proposed admission policy, using the API server's own admission code, and reports which legitimate writes it would have blocked and which bad ones it would have let through.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go, Kubernetes apiserver libraries v0.34.1, kind, GitHub Actions</dd>
-                    <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(30 tests plus 8 subtests)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/admission-replay/">How it works<span class="vh">: admission-replay</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/admission-replay">View on GitHub<span class="vh">: admission-replay</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-admission-replay">
+                  <h4><a href="/open-source/admission-replay/">admission-replay</a></h4>
+                  <p class="rc-n"><strong>38</strong> tests</p>
+                  <p class="rc-tag">Admission policies replayed on the audit log</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/admission-replay">GitHub<span class="vh">: admission-replay</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-authz-proof">
-                    <summary><span class="li-name">authz-proof</span><span class="li-tag">Who gains or loses access in a schema change</span><span class="li-n"><strong>27</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A permission engine for SpiceDB schemas that works out who gains and who loses access when a schema or its relationships change, shows the chain behind each change, and fails the pull request when the change isn't expected.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Go</dd>
-                    <dt>Stack</dt><dd>Go standard library only, SpiceDB in Docker, GitHub Actions</dd>
-                    <dt>Counted with</dt><dd><code>go test -count=1 -json ./...</code> <span class="note">(2 of them need a live SpiceDB, as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/authz-proof/">How it works<span class="vh">: authz-proof</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/authz-proof">View on GitHub<span class="vh">: authz-proof</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-authz-proof">
+                  <h4><a href="/open-source/authz-proof/">authz-proof</a></h4>
+                  <p class="rc-n"><strong>27</strong> tests</p>
+                  <p class="rc-tag">Who gains or loses access in a schema change</p>
+                  <p class="rc-meta"><span>Go</span> <a href="https://github.com/ahmed-hashim-pro/authz-proof">GitHub<span class="vh">: authz-proof</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-runon">
-                    <summary><span class="li-name">runon</span><span class="li-tag">Shell programs across servers over SSH</span><span class="li-n"><strong>422</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Runs plain shell-script programs on your machine, one server, or a named group of servers over your own SSH, and is published on PyPI.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>SSH, PyPI, stdlib only on Python 3.11+ (no runtime dependencies)</dd>
-                    <dt>Counted with</dt><dd><code>pytest</code> <span class="note">(3 of them need zsh or csh installed, as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/runon/">How it works<span class="vh">: runon</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/runon">View on GitHub<span class="vh">: runon</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-runon">
+                  <h4><a href="/open-source/runon/">runon</a></h4>
+                  <p class="rc-n"><strong>422</strong> tests</p>
+                  <p class="rc-tag">Shell programs across servers over SSH</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/runon">GitHub<span class="vh">: runon</span></a></p>
                 </li>
               </ul>
             </article>
@@ -509,7 +324,7 @@
             <a class="wp" href="#leg-field">
               <canvas aria-hidden="true"></canvas>
               <span class="wp-label"><span class="wp-name">Drones and field work</span><span class="wp-data">6 repos, 518 tests</span></span>
-              <span class="vh">, list</span>
+              <span class="vh">, repos</span>
             </a>
             <article class="panel repo-panel leg-panel" id="leg-field" tabindex="-1" aria-labelledby="h-leg-field">
               <header class="rp-head">
@@ -519,91 +334,42 @@
                 </div>
                 <p class="rp-count"><strong>518</strong> passing tests in six repos</p>
               </header>
-              <ul class="leg-list">
-                <li>
-                  <details class="leg-item" id="repo-geofence-guard">
-                    <summary><span class="li-name">geofence-guard</span><span class="li-tag">Forwards only setpoints proven inside the envelope</span><span class="li-n"><strong>96</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A ROS 2 node between a setpoint source and the autopilot that forwards a move only when it can show the whole path stays inside the flight envelope.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>C++</dd>
-                    <dt>Stack</dt><dd>C++17, ROS 2 Jazzy, GoogleTest, PX4 SITL</dd>
-                    <dt>Scope</dt><dd>The core and CLI build anywhere with CMake. The ROS 2 node and the PX4 SITL flights run in CI.</dd>
-                    <dt>Counted with</dt><dd><code>make test</code> <span class="note">(87 GoogleTest cases plus 9 CLI tests; the 10 ROS 2 node tests run in CI and are not counted here)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/geofence-guard/">How it works<span class="vh">: geofence-guard</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/geofence-guard">View on GitHub<span class="vh">: geofence-guard</span></a></div>
-                    </div>
-                  </details>
+              <ul class="leg-cards">
+                <li class="rc" id="repo-geofence-guard">
+                  <h4><a href="/open-source/geofence-guard/">geofence-guard</a></h4>
+                  <p class="rc-n"><strong>96</strong> tests</p>
+                  <p class="rc-tag">Forwards only setpoints proven inside the envelope</p>
+                  <p class="rc-meta"><span>C++</span> <a href="https://github.com/ahmed-hashim-pro/geofence-guard">GitHub<span class="vh">: geofence-guard</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-terrain-follow">
-                    <summary><span class="li-name">terrain-follow</span><span class="li-tag">Proves a mission clears the terrain</span><span class="li-n"><strong>237</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>Proves that a drone mission clears the terrain, counting elevation, altitude and cross-track error, refuses any leg it can't prove, and raises the mission until every leg is proven.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Python standard library only, Hypothesis, PX4 SITL in Docker</dd>
-                    <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(38 test functions, 203 of the items parametrised)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/terrain-follow/">How it works<span class="vh">: terrain-follow</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/terrain-follow">View on GitHub<span class="vh">: terrain-follow</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-terrain-follow">
+                  <h4><a href="/open-source/terrain-follow/">terrain-follow</a></h4>
+                  <p class="rc-n"><strong>237</strong> tests</p>
+                  <p class="rc-tag">Proves a mission clears the terrain</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/terrain-follow">GitHub<span class="vh">: terrain-follow</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-paramguard">
-                    <summary><span class="li-name">paramguard</span><span class="li-tag">CI check for PX4 and ArduPilot parameters</span><span class="li-n"><strong>67</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A CI check for PX4 and ArduPilot parameter files that compares what the vehicle will actually run, checks it against the firmware's own metadata and rules, and blocks the pull request until a named person accepts the change.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Python</dd>
-                    <dt>Stack</dt><dd>Python standard library only, composite GitHub Action, PX4 SITL in Docker</dd>
-                    <dt>Counted with</dt><dd><code>pytest -q</code> <span class="note">(1 of them needs ArduCopter 4.6.3&#x27;s parameter metadata from make ap-meta, as in CI)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/paramguard/">How it works<span class="vh">: paramguard</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/paramguard">View on GitHub<span class="vh">: paramguard</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-paramguard">
+                  <h4><a href="/open-source/paramguard/">paramguard</a></h4>
+                  <p class="rc-n"><strong>67</strong> tests</p>
+                  <p class="rc-tag">CI check for PX4 and ArduPilot parameters</p>
+                  <p class="rc-meta"><span>Python</span> <a href="https://github.com/ahmed-hashim-pro/paramguard">GitHub<span class="vh">: paramguard</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-ota-safe">
-                    <summary><span class="li-name">ota-safe</span><span class="li-tag">A/B firmware updates that survive power cuts</span><span class="li-n"><strong>33</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A/B firmware updates for microcontrollers with a trial boot and automatic rollback, checked by cutting power at every flash operation of a device's life and run on a Cortex-M3 in QEMU.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Rust</dd>
-                    <dt>Stack</dt><dd>no_std Rust with sha2 and ed25519-dalek, QEMU Cortex-M3</dd>
-                    <dt>Counted with</dt><dd><code>cargo test --locked</code> <span class="note">(the depth-2 search, run by make deep, is ignored by default)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/ota-safe/">How it works<span class="vh">: ota-safe</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/ota-safe">View on GitHub<span class="vh">: ota-safe</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-ota-safe">
+                  <h4><a href="/open-source/ota-safe/">ota-safe</a></h4>
+                  <p class="rc-n"><strong>33</strong> tests</p>
+                  <p class="rc-tag">A/B firmware updates that survive power cuts</p>
+                  <p class="rc-meta"><span>Rust</span> <a href="https://github.com/ahmed-hashim-pro/ota-safe">GitHub<span class="vh">: ota-safe</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-strata">
-                    <summary><span class="li-name">strata</span><span class="li-tag">Borehole logs to a ground model with intervals</span><span class="li-n"><strong>46</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>A Rust command-line tool that turns borehole logs into a layered ground model, puts a checked 95% interval on every contact, and refuses where that interval would be useless.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Rust</dd>
-                    <dt>Stack</dt><dd>No dependencies, ordinary kriging, leave-one-out calibration</dd>
-                    <dt>Counted with</dt><dd><code>cargo test --locked</code></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/strata/">How it works<span class="vh">: strata</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/strata">View on GitHub<span class="vh">: strata</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-strata">
+                  <h4><a href="/open-source/strata/">strata</a></h4>
+                  <p class="rc-n"><strong>46</strong> tests</p>
+                  <p class="rc-tag">Borehole logs to a ground model with intervals</p>
+                  <p class="rc-meta"><span>Rust</span> <a href="https://github.com/ahmed-hashim-pro/strata">GitHub<span class="vh">: strata</span></a></p>
                 </li>
-                <li>
-                  <details class="leg-item" id="repo-fieldlog">
-                    <summary><span class="li-name">fieldlog</span><span class="li-tag">Offline Android notebook for boreholes</span><span class="li-n"><strong>39</strong> tests</span></summary>
-                    <div class="li-body">
-                      <p>An offline-first Android notebook for logging boreholes, where phones merge their edits through CRDTs with no server deciding, and the merged logs reach strata only once they pass strata's own checks.</p>
-                      <dl class="rp-data">
-                    <dt>Language</dt><dd>Kotlin</dd>
-                    <dt>Stack</dt><dd>Kotlin 2.0, Jetpack Compose, CRDTs with no merge library, Android emulator in CI</dd>
-                    <dt>Counted with</dt><dd><code>./gradlew test</code> and <code>connectedDebugAndroidTest</code> <span class="note">(33 JVM tests, 3 app unit tests and 3 Compose UI tests on an emulator)</span></dd>
-                      </dl>
-                      <div class="rp-actions"><a class="btn btn-ink" href="/open-source/fieldlog/">How it works<span class="vh">: fieldlog</span></a> <a class="btn" href="https://github.com/ahmed-hashim-pro/fieldlog">View on GitHub<span class="vh">: fieldlog</span></a></div>
-                    </div>
-                  </details>
+                <li class="rc" id="repo-fieldlog">
+                  <h4><a href="/open-source/fieldlog/">fieldlog</a></h4>
+                  <p class="rc-n"><strong>39</strong> tests</p>
+                  <p class="rc-tag">Offline Android notebook for boreholes</p>
+                  <p class="rc-meta"><span>Kotlin</span> <a href="https://github.com/ahmed-hashim-pro/fieldlog">GitHub<span class="vh">: fieldlog</span></a></p>
                 </li>
               </ul>
             </article>
