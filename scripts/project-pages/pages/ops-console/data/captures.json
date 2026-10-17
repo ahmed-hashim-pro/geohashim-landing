@@ -1,6 +1,6 @@
 {
  "vitest": [
-  " RUN  v5.0.4 /tmp/claude-1000/-home-medo-projects-My-Stream-geohashim-landing/4868f35b-0320-4ce5-b519-884c0881d75c/scratchpad/ops-console/repo",
+  " RUN  v5.0.4 /work/ops-console",
   " Test Files  6 passed (6)",
   "      Tests  24 passed (24)",
   "   Start at  03:11:49",
