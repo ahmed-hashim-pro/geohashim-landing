@@ -15,6 +15,11 @@ const routes = [
     changefreq: 'monthly',
     priority: '0.7',
   })),
+  ...JSON.parse(readFileSync(resolve(process.cwd(), 'scripts/project-pages/shared/groups.json'), 'utf8')).map((g) => ({
+    path: `/open-source/${g.slug}/`,
+    changefreq: 'monthly',
+    priority: '0.7',
+  })),
 ];
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>

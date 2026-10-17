@@ -69,9 +69,21 @@ const SPOTS = thrice(
   TERRAIN_LABELS.spot.map(([x, y, t]) => `<circle class="c-peak" cx="${x}" cy="${y}" r="2.2"/><text class="c-spot" x="${x + 6}" y="${y + 4}">${t}</text>`).join(''));
 const MEF = thrice(TERRAIN_LABELS.mef.map(([x, y, a, b]) => `<text class="c-mef" x="${x}" y="${y}" text-anchor="middle">${a}<tspan dy="-13" class="c-mef-h">${b}</tspan></text>`).join(''));
 
-function headTags(entry, meta) {
+// The five groups on the landing's open-source route, each with its own page listing its repos.
+const GROUPS = JSON.parse(read(join(SHARED, 'groups.json')));
+const groupOf = slug => GROUPS.find(g => g.repos.some(r => r.slug === slug));
+const groupLink = g => (mockups ? `group-${g.slug}.html` : `/open-source/${g.slug}/`);
+// The group symbols are the landing's, so a page copies the ones it uses from landing.page.html.
+const LANDING = read(join(REPO, 'src/app/pages/landing/landing.page.html'));
+const symbol = id => {
+  const m = LANDING.match(new RegExp(`<symbol id="${id}"[\\s\\S]*?</symbol>`));
+  if (!m) throw new Error(`landing.page.html: symbol ${id} not found`);
+  return m[0];
+};
+
+function headTags(path, meta) {
   if (mockups) return '';
-  const url = SITE + pagePath(entry);
+  const url = SITE + path;
   const title = attr(meta.title), desc = attr(meta.description);
   return `<link rel="canonical" href="${url}">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -93,42 +105,20 @@ function headTags(entry, meta) {
 `;
 }
 
-function build(slug) {
-  const dir = join(PAGES, slug);
-  const meta = JSON.parse(read(join(dir, 'meta.json')));
-  const i = REGISTRY.findIndex(p => p.slug === slug);
-  if (i < 0) throw new Error(`${slug}: missing from shared/projects.json`);
-  const entry = REGISTRY[i], prev = REGISTRY[i - 1], next = REGISTRY[i + 1];
-  const repo = entry.kind === 'repo';
-
-  let main = read(join(dir, 'main.html'));
-  const stages = (main.match(/data-stage/g) || []).length;
-  const crumbs = `<nav class="crumbs" aria-label="Breadcrumb">
+const crumbsOf = items => `<nav class="crumbs" aria-label="Breadcrumb">
           <ol>
-            <li><a href="${BASE}/#${repo ? 'open-source' : 'products'}">${repo ? 'Open source' : 'Products'}</a></li>
-            <li><span aria-current="page"><bdi>${entry.name}</bdi></span></li>
+${items.map(([label, href]) => `            <li>${href ? `<a href="${href}">${label}</a>` : `<span aria-current="page"><bdi>${label}</bdi></span>`}</li>`).join('\n')}
           </ol>
         </nav>`;
-  const tour = '<button type="button" class="btn btn-ink" id="tour-btn" aria-pressed="false" aria-controls="tour-bar" aria-describedby="tour-hint">'
-    + `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg><span>Run all ${stages} stages</span></button>`;
-  const card = (p, cls, label) => `<a class="panel ${cls}" href="${linkTo(p)}"><small>${label}</small><strong><bdi>${p.name}</bdi></strong><span>${p.blurb}</span></a>`;
-  const pn = `<nav class="pn" aria-label="More projects">
-      <div class="wrap pn-grid">
-        ${prev ? card(prev, 'prev', 'Previous project') : '<span></span>'}
-        ${next ? card(next, 'next', 'Next project') : '<span></span>'}
-      </div>
-    </nav>`;
-  const fills = {
-    '{{HOLD_MARK}}': HOLD_MARK, '{{RUNWAY_EDGE}}': RUNWAY_EDGE, '{{REPLAY}}': REPLAY, '{{CRUMBS}}': crumbs,
-    '{{TOUR_BUTTON}}': tour, '{{PREV_NEXT}}': pn, '@@TOUR_SECONDS@@': meta.tour_seconds || ''
-  };
-  for (const [k, v] of Object.entries(fills)) main = main.split(k).join(v);
 
+// Shared by project and group pages: the chrome, styles and runtime around a page's own main, script and CSS.
+function writePage({ name, path, meta, main, pageJs, pageCss, section, dest, defs = '', note }) {
   const top = read(join(SHARED, 'chrome-top.html'))
-    .replace('{{CUR_OS}}', repo ? ' aria-current="page"' : '')
-    .replace('{{CUR_PR}}', repo ? '' : ' aria-current="page"')
+    .replace('{{CUR_OS}}', section === 'open-source' ? ' aria-current="page"' : '')
+    .replace('{{CUR_PR}}', section === 'products' ? ' aria-current="page"' : '')
     .replace('{{TERRAIN_SPOTS}}', SPOTS)
     .replace('{{TERRAIN_MEF}}', MEF)
+    .replace('  </defs>\n</svg>', `  </defs>\n</svg>${defs ? `\n<svg class="defs" aria-hidden="true" focusable="false"><defs>\n${defs}\n</defs></svg>` : ''}`)
     .replaceAll('href="/', `href="${BASE}/`);
   // The tour bar's closing link points at the page's payoff section, if the page names one.
   const end = meta.tour_end;
@@ -136,15 +126,12 @@ function build(slug) {
     .replace('{{TOUR_END}}', end ? `    <a class="tour-ans" id="tour-ans" href="${end.href}" hidden>${end.label}</a>\n` : '')
     .replace('{{FOOT_NOTE}}', FOOT_NOTE);
 
-  let pageJs = read(join(dir, 'page.js'));
-  pageJs = pageJs.replace(/\/\*@@DATA:([\w-]+)@@\*\//g, (_, name) => JSON.stringify(JSON.parse(read(join(dir, 'data', `${name}.json`)))));
   const helpers = read(join(SHARED, 'core-helpers.js'));
   const script = `(() => {\n${helpers}\nconst PAGE = {};\n\n${pageJs}\n${read(join(SHARED, 'core-runtime.js'))}\n})();\n`;
-  new Script(script, { filename: `${slug}/page.js` });
-  if (/<\/script/i.test(script)) throw new Error(`${slug}: script contains "</script", which would end the inline tag early`);
+  new Script(script, { filename: `${name}/page.js` });
+  if (/<\/script/i.test(script)) throw new Error(`${name}: script contains "</script", which would end the inline tag early`);
 
-  const pageCss = existsSync(join(dir, 'page.css')) ? read(join(dir, 'page.css')) : '';
-  const css = `${tokens()}\n${terrainCss()}\n${read(join(SHARED, 'base.css'))}\n/* This project */\n${pageCss}`;
+  const css = `${tokens()}\n${terrainCss()}\n${read(join(SHARED, 'base.css'))}\n/* This page */\n${pageCss}`;
   const head = `<!doctype html>
 <html lang="en">
 <head>
@@ -152,7 +139,7 @@ function build(slug) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${attr(meta.title)}</title>
 <meta name="description" content="${attr(meta.description)}">
-${headTags(entry, meta)}<meta name="color-scheme" content="light dark">
+${headTags(path, meta)}<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#DCDFDB" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1E2328" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -175,16 +162,146 @@ ${css}
 `;
   const html = `${head}${top}${main}${bottom}<script>\n${script}</script>\n</body>\n</html>\n`;
   const left = html.match(/\{\{[A-Z_]+\}\}|@@[A-Z_:]+@@/g);
-  if (left) throw new Error(`${slug}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
-
-  const dest = mockups ? join(REPO, 'docs/mockups', `project-${slug}.html`) : join(REPO, 'www', sectionOf(entry), slug, 'index.html');
+  if (left) throw new Error(`${name}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
   mkdirSync(dirname(dest), { recursive: true });
   writeFileSync(dest, html);
-  console.log(`Wrote ${dest.replace(`${REPO}/`, '')} (${stages} stages)`);
+  console.log(`Wrote ${dest.replace(`${REPO}/`, '')}${note ? ` (${note})` : ''}`);
+}
+
+function build(slug) {
+  const dir = join(PAGES, slug);
+  const meta = JSON.parse(read(join(dir, 'meta.json')));
+  const i = REGISTRY.findIndex(p => p.slug === slug);
+  if (i < 0) throw new Error(`${slug}: missing from shared/projects.json`);
+  const entry = REGISTRY[i], prev = REGISTRY[i - 1], next = REGISTRY[i + 1];
+  const repo = entry.kind === 'repo';
+  const group = repo && groupOf(slug);
+  if (repo && !group) throw new Error(`${slug}: in no group in shared/groups.json`);
+
+  let main = read(join(dir, 'main.html'));
+  const stages = (main.match(/data-stage/g) || []).length;
+  const crumbs = crumbsOf(repo
+    ? [['Open source', `${BASE}/#open-source`], [group.name, groupLink(group)], [entry.name]]
+    : [['Products', `${BASE}/#products`], [entry.name]]);
+  const tour = '<button type="button" class="btn btn-ink" id="tour-btn" aria-pressed="false" aria-controls="tour-bar" aria-describedby="tour-hint">'
+    + `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg><span>Run all ${stages} stages</span></button>`;
+  const card = (p, cls, label) => `<a class="panel ${cls}" href="${linkTo(p)}"><small>${label}</small><strong><bdi>${p.name}</bdi></strong><span>${p.blurb}</span></a>`;
+  const pn = `<nav class="pn" aria-label="More projects">
+      <div class="wrap pn-grid">
+        ${prev ? card(prev, 'prev', 'Previous project') : '<span></span>'}
+        ${next ? card(next, 'next', 'Next project') : '<span></span>'}
+      </div>
+    </nav>`;
+  const fills = {
+    '{{HOLD_MARK}}': HOLD_MARK, '{{RUNWAY_EDGE}}': RUNWAY_EDGE, '{{REPLAY}}': REPLAY, '{{CRUMBS}}': crumbs,
+    '{{TOUR_BUTTON}}': tour, '{{PREV_NEXT}}': pn, '@@TOUR_SECONDS@@': meta.tour_seconds || ''
+  };
+  for (const [k, v] of Object.entries(fills)) main = main.split(k).join(v);
+
+  let pageJs = read(join(dir, 'page.js'));
+  pageJs = pageJs.replace(/\/\*@@DATA:([\w-]+)@@\*\//g, (_, name) => JSON.stringify(JSON.parse(read(join(dir, 'data', `${name}.json`)))));
+  writePage({
+    name: slug, path: pagePath(entry), meta, main, pageJs,
+    pageCss: existsSync(join(dir, 'page.css')) ? read(join(dir, 'page.css')) : '',
+    section: sectionOf(entry), note: `${stages} stages`,
+    dest: mockups ? join(REPO, 'docs/mockups', `project-${slug}.html`) : join(REPO, 'www', sectionOf(entry), slug, 'index.html')
+  });
+}
+
+function buildGroup(g, k) {
+  const prev = GROUPS[k - 1], next = GROUPS[k + 1];
+  const tests = g.repos.reduce((a, r) => a + r.tests, 0);
+  const langs = [...new Set(g.repos.map(r => r.facts.find(([dt]) => dt === 'Language')[1]))];
+  const repoOf = slug => {
+    const p = REGISTRY.find(e => e.slug === slug);
+    if (!p) throw new Error(`groups.json: ${slug} missing from shared/projects.json`);
+    return p;
+  };
+  const cards = g.repos.map(r => {
+    const p = repoOf(r.slug);
+    const dl = r.facts.map(([dt, dd]) => `                <dt>${dt}</dt><dd>${dd}</dd>`).join('\n');
+    return `          <li class="panel gc${r.featured ? ' gc--feat' : ''}" id="repo-${r.slug}">
+            <div class="gc-head">
+              <h3><a class="gc-link" href="${linkTo(p)}">${r.slug}</a></h3>
+              <p class="gc-n"><strong>${r.tests}</strong> passing tests</p>
+            </div>
+            <p class="gc-tag">${r.featured ? '<span class="gc-badge">Featured</span> ' : ''}${r.tag}</p>
+            <p>${p.blurb}</p>
+            <dl class="gc-data">
+${dl}
+            </dl>
+            <p class="gc-actions"><span class="gc-go" aria-hidden="true">How it works</span><a class="gc-gh" href="https://github.com/ahmed-hashim-pro/${r.slug}">GitHub<span class="vh">: ${r.slug}</span></a></p>
+          </li>`;
+  }).join('\n');
+  const card = (o, cls, label) => `<a class="panel ${cls}" href="${groupLink(o)}"><small>${label}</small><strong>${o.name}</strong><span>${o.repos.length} repos, ${o.repos.reduce((a, r) => a + r.tests, 0).toLocaleString('en-US')} passing tests</span></a>`;
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const main = `  <div class="ground" id="ground">
+    ${HOLD_MARK}
+
+    <section class="p-hero" aria-labelledby="p-title">
+      <div class="wrap">
+        ${crumbsOf([['Open source', `${BASE}/#open-source`], [g.name]])}
+        <h1 class="p-title g-title" id="p-title"><svg class="g-sym" aria-hidden="true" focusable="false"><use href="#${g.symbol}"/></svg>${g.name}</h1>
+        <div class="grid p-row">
+          <div class="p-intro">
+            <p class="lede">${g.lead}</p>
+            <p>${g.intro}</p>
+            <div class="ctas">
+              <a class="btn btn-ink" href="#repos">See the ${words[g.repos.length]} repos</a>
+              <a class="btn" href="${BASE}/#leg-${g.key}">On the landing route</a>
+            </div>
+            <dl class="facts">
+              <dt>Repos</dt><dd>${g.repos.length}</dd>
+              <dt>Passing tests</dt><dd>${tests.toLocaleString('en-US')}, one dot each, run in October 2026 the way each repo's CI runs them</dd>
+              <dt>Languages</dt><dd>${langs.join(', ')}</dd>
+            </dl>
+          </div>
+          <div class="term-wrap">
+            <div class="panel t-cluster g-cluster">
+              <canvas id="t-canvas" width="240" height="240" aria-hidden="true"></canvas>
+              <ul class="t-legend" id="t-legend"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    ${RUNWAY_EDGE}
+  </div>
+
+  <div class="air">
+    <section class="sec" id="repos" aria-labelledby="h-repos">
+      <div class="wrap">
+        <div class="sec-head panel">
+          <h2 id="h-repos">The ${words[g.repos.length]} repos</h2>
+          <p>Open a repo for its project page: what it does stage by stage, with real runs.</p>
+        </div>
+        <ul class="g-cards">
+${cards}
+        </ul>
+      </div>
+    </section>
+
+    <nav class="pn" aria-label="More groups">
+      <div class="wrap pn-grid">
+        ${prev ? card(prev, 'prev', 'Previous group') : '<span></span>'}
+        ${next ? card(next, 'next', 'Next group') : '<span></span>'}
+      </div>
+    </nav>
+  </div>
+`;
+  const pageJs = `PAGE.tests = ${JSON.stringify(g.repos.map((r, j) => [r.slug, r.tests, j % 2 ? 'var(--deep)' : 'var(--pass)']))};\n`;
+  const desc = `${g.repos.length} open-source repos by Ahmed Hashim with ${tests.toLocaleString('en-US')} passing tests: ${g.lead.replace(/\.$/, '')}.`;
+  writePage({
+    name: g.slug, path: `/open-source/${g.slug}/`, main, pageJs, section: 'open-source',
+    meta: { title: `${g.name} · Ahmed Hashim`, description: desc },
+    pageCss: read(join(SHARED, 'group.css')), defs: symbol(g.symbol), note: `${g.repos.length} repos`,
+    dest: mockups ? join(REPO, 'docs/mockups', `group-${g.slug}.html`) : join(REPO, 'www', 'open-source', g.slug, 'index.html')
+  });
 }
 
 if (!mockups && !existsSync(join(REPO, 'www', 'index.html'))) {
   throw new Error('www/index.html not found: run ng build first, the project pages are written into its output');
 }
-const slugs = only.length ? only : readdirSync(PAGES).filter(s => existsSync(join(PAGES, s, 'main.html'))).sort();
+const slugs = only.length ? only.filter(s => !GROUPS.some(g => g.slug === s)) : readdirSync(PAGES).filter(s => existsSync(join(PAGES, s, 'main.html'))).sort();
 for (const s of slugs) build(s);
+GROUPS.forEach((g, k) => { if (!only.length || only.includes(g.slug)) buildGroup(g, k); });

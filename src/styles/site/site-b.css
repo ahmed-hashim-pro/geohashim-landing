@@ -56,6 +56,8 @@ h3 { font-size: 30px; line-height: 1.05; margin: 0; }
 .leg-panel h3 { display: flex; align-items: center; gap: 12px; }
 .leg-sym { flex: none; width: 30px; height: 30px; overflow: visible; }
 .leg-lead { margin: 0; max-width: 44ch; color: var(--ink-2); font-size: 15px; line-height: 1.4; }
+.leg-page { justify-self: start; font-weight: 650; font-size: 15px; color: var(--ink); text-underline-offset: 3px; }
+.leg-page:hover { color: var(--blue); }
 .leg-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .rc { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr auto; gap: 4px 10px; padding: 12px 14px 12px; border: 1px solid var(--rule); background: var(--paper); scroll-margin-top: 90px; }
 .rc:target { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }

@@ -1,0 +1,708 @@
+[
+ {
+  "key": "ai",
+  "slug": "ai-and-agents",
+  "name": "AI and agents",
+  "symbol": "s-ai",
+  "lead": "Agents held to hard limits, and tools to check them.",
+  "intro": "Eight repos where an AI agent or model is held to a hard limit: writes and destructive actions wait for a person, answers need evidence, lab instruments stay inside signed-off limits, and model output must match a schema. Two of them check agents themselves, by replaying their tool calls and by auditing MCP servers.",
+  "repos": [
+   {
+    "slug": "triage-graph",
+    "featured": true,
+    "tag": "Incident triage with a human approval gate",
+    "tests": 134,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "LangGraph, CrewAI, Pydantic"
+     ],
+     [
+      "Scope",
+      "Runs on fixture data."
+     ],
+     [
+      "Counted with",
+      "<code>uv run pytest</code> <span class=\"note\">(134 passed, 1 skipped)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "sqlguard-mcp",
+    "featured": true,
+    "tag": "SQL for agents; every write waits for a person",
+    "tests": 139,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "MCP Go SDK, SQLite, Helm"
+     ],
+     [
+      "Approval",
+      "A human runs <code>sqlguard approve &lt;token&gt;</code> out of band. Each approval is single-use and bound to the exact statement. SQLite only."
+     ],
+     [
+      "Counted with",
+      "<code>go test -race -count=1 -json ./...</code> <span class=\"note\">(65 tests plus 74 subtests)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "bench-mcp",
+    "featured": false,
+    "tag": "Lab instruments for agents, behind interlocks",
+    "tests": 140,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "MCP Python SDK, SCPI over TCP, Hypothesis"
+     ],
+     [
+      "Counted with",
+      "<code>pytest -q</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "agent-replay",
+    "featured": false,
+    "tag": "Replays an agent's tool calls on a new model",
+    "tests": 78,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Python standard library only (optional Anthropic and MCP SDKs), pytest, Hypothesis"
+     ],
+     [
+      "Counted with",
+      "<code>pytest -q</code> <span class=\"note\">(with the optional Anthropic and MCP SDKs installed, as in CI)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "mcp-audit",
+    "featured": false,
+    "tag": "Audits MCP servers in a traced sandbox",
+    "tests": 65,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Official MCP Python SDK, Docker, strace"
+     ],
+     [
+      "Counted with",
+      "<code>make images &amp;&amp; pytest -q</code> <span class=\"note\">(4 of them need the Docker sandbox images, as in CI&#x27;s sandbox job)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "rag-knowledge-agent",
+    "featured": false,
+    "tag": "Cited answers, or a refusal",
+    "tests": 109,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Claude, ChromaDB, Pydantic"
+     ],
+     [
+      "Counted with",
+      "<code>pytest</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "llm-contract-router",
+    "featured": false,
+    "tag": "Schema-checked routing across LLM providers",
+    "tests": 105,
+    "facts": [
+     [
+      "Language",
+      "TypeScript"
+     ],
+     [
+      "Stack",
+      "Node.js, Anthropic, OpenAI, zero runtime deps"
+     ],
+     [
+      "Counted with",
+      "<code>npm run check</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "local-network-mcp",
+    "featured": false,
+    "tag": "Network and SSH tools, denied until opted in",
+    "tests": 94,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "MCP, Paramiko, psutil"
+     ],
+     [
+      "Gated",
+      "4 of its 18 tools: shell, SSH connect and execute, and process kill."
+     ],
+     [
+      "Counted with",
+      "<code>pytest</code>"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "key": "data",
+  "slug": "data-and-storage",
+  "name": "Data and storage",
+  "symbol": "s-data",
+  "lead": "Storage, replication and data contracts, checked under faults.",
+  "intro": "Seven repos about keeping data correct: a graph database written from scratch, Raft and a CRDT attacked by fault simulators and fuzzers, a crash-consistency tester for storage code, PostgreSQL migrations tried on a copy under live traffic, contracts for JSON event streams, and lossless time-series compression.",
+  "repos": [
+   {
+    "slug": "atlas-graph-db",
+    "featured": true,
+    "tag": "Storage engine, transactions and its own query language",
+    "tests": 686,
+    "facts": [
+     [
+      "Language",
+      "TypeScript"
+     ],
+     [
+      "Stack",
+      "Node.js, Fastify, Angular"
+     ],
+     [
+      "Counted with",
+      "<code>pnpm test</code> <span class=\"note\">(468 engine and server tests plus 218 web app tests)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "crdt-notes",
+    "featured": false,
+    "tag": "Local-first notes on a fuzzed CRDT",
+    "tests": 39,
+    "facts": [
+     [
+      "Language",
+      "TypeScript"
+     ],
+     [
+      "Stack",
+      "Angular, WebSocket relay, Vitest, Playwright"
+     ],
+     [
+      "Counted with",
+      "<code>npm test</code> and <code>npm run e2e</code> <span class=\"note\">(37 unit tests plus 2 end-to-end tests in two browsers)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "quorum-lab",
+    "featured": false,
+    "tag": "Raft under a deterministic fault simulator",
+    "tests": 38,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go standard library only, deterministic simulation, linearizability checking"
+     ],
+     [
+      "Counted with",
+      "<code>go test -count=1 -json ./...</code> <span class=\"note\">(32 tests plus 6 subtests)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "wal-crash",
+    "featured": false,
+    "tag": "Every state a power cut can leave on disk",
+    "tests": 35,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go standard library only, strace, SQLite in a Docker dev image"
+     ],
+     [
+      "Counted with",
+      "<code>go test -race -count=1 -json ./...</code> <span class=\"note\">(33 tests plus 2 subtests)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "migrate-safe",
+    "featured": false,
+    "tag": "What a PostgreSQL migration will lock",
+    "tests": 40,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go and PostgreSQL (pgx), Docker"
+     ],
+     [
+      "Counted with",
+      "<code>go test -race -count=1 -json ./...</code> <span class=\"note\">(28 tests plus 12 subtests, against a live PostgreSQL as in CI)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "schema-drift",
+    "featured": false,
+    "tag": "Breaking-change checks for JSON events",
+    "tests": 29,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go standard library only, GitHub Actions"
+     ],
+     [
+      "Counted with",
+      "<code>go test ./...</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "tsz",
+    "featured": false,
+    "tag": "Time-series compression, best codec per block",
+    "tests": 21,
+    "facts": [
+     [
+      "Language",
+      "Rust"
+     ],
+     [
+      "Stack",
+      "Rust standard library only, no dependencies, GitHub Actions"
+     ],
+     [
+      "Counted with",
+      "<code>cargo test --locked</code> <span class=\"note\">(4 unit, 5 cli, 4 corrupt, 7 roundtrip, 1 doc test; the 1M-series soak test is ignored by default)</span>"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "key": "reliability",
+  "slug": "reliability-in-production",
+  "name": "Reliability in production",
+  "symbol": "s-tests",
+  "lead": "Latency, limits, alerts and flaky tests, measured instead of assumed.",
+  "intro": "Seven repos that measure how software behaves in production instead of assuming it: request time budgets across services, rate limiters under skewed clocks and restarts, trace diffs that catch N+1 queries, alert rules replayed against past incidents, regression tests for noisy systems, flaky tests diagnosed by cause, and a real-time dashboard measured in the browser.",
+  "repos": [
+   {
+    "slug": "deadline",
+    "featured": false,
+    "tag": "Request time budgets across HTTP services",
+    "tests": 49,
+    "facts": [
+     [
+      "Language",
+      "Java"
+     ],
+     [
+      "Stack",
+      "Java 21 standard library only (JDK HttpClient and HttpServer), JUnit 5, Maven"
+     ],
+     [
+      "Counted with",
+      "<code>./mvnw -B verify</code> <span class=\"note\">(39 test methods plus 10 parameterised cases)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "rate-proof",
+    "featured": false,
+    "tag": "Rate limiters under clock skew and restarts",
+    "tests": 33,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go standard library only, Redis and Lua"
+     ],
+     [
+      "Counted with",
+      "<code>go test -count=1 -json ./...</code> <span class=\"note\">(2 of them need a real Redis, as in CI)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "trace-diff",
+    "featured": false,
+    "tag": "Before-and-after OpenTelemetry trace diffs",
+    "tests": 37,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go, OTLP protobuf types; OpenTelemetry Collector and Postgres demo in Docker"
+     ],
+     [
+      "Counted with",
+      "<code>go test -race -count=1 -json ./...</code> and <code>make demo-test</code> <span class=\"note\">(21 tests plus 12 subtests, and 4 demo tests, one of which needs Postgres as in CI&#x27;s demo job)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "slo-proof",
+    "featured": false,
+    "tag": "Alert rules replayed against past incidents",
+    "tests": 71,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Python standard library only, Hypothesis, Prometheus range-query import"
+     ],
+     [
+      "Counted with",
+      "<code>pytest</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "noisefloor",
+    "featured": false,
+    "tag": "Regression tests for noisy systems",
+    "tests": 202,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Pydantic, PyYAML"
+     ],
+     [
+      "Counted with",
+      "<code>pytest</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "flaky-hunt",
+    "featured": false,
+    "tag": "Why each flaky test flakes",
+    "tests": 47,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "pytest plugin, time-machine"
+     ],
+     [
+      "Counted with",
+      "<code>pytest -m &quot;not slow&quot;</code> and <code>pytest -m slow</code> <span class=\"note\">(42 fast tests plus 5 slow ones that run whole hunts, as CI splits them)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "ops-console",
+    "featured": false,
+    "tag": "A real-time dashboard, measured in the browser",
+    "tests": 60,
+    "facts": [
+     [
+      "Language",
+      "TypeScript"
+     ],
+     [
+      "Stack",
+      "Angular 22 zoneless with signals, no UI or chart library, Playwright, axe-core"
+     ],
+     [
+      "Counted with",
+      "<code>npm test</code> and <code>npx playwright test</code> <span class=\"note\">(32 unit tests plus 28 Playwright tests)</span>"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "key": "gates",
+  "slug": "change-gates-and-tooling",
+  "name": "Change gates and tooling",
+  "symbol": "s-tower",
+  "lead": "Checks that stop a risky change before it merges.",
+  "intro": "Four repos that check a change before it lands or ships: what an npm upgrade can newly do, what a Kubernetes admission policy would have blocked, and who gains or loses access when a permission schema changes. runon, the fourth, runs shell programs across a group of servers over SSH.",
+  "repos": [
+   {
+    "slug": "permit",
+    "featured": false,
+    "tag": "What an npm upgrade can newly do",
+    "tests": 36,
+    "facts": [
+     [
+      "Language",
+      "TypeScript"
+     ],
+     [
+      "Stack",
+      "Node.js, acorn, GitHub Actions"
+     ],
+     [
+      "Counted with",
+      "<code>npm test</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "admission-replay",
+    "featured": false,
+    "tag": "Admission policies replayed on the audit log",
+    "tests": 38,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go, Kubernetes apiserver libraries v0.34.1, kind, GitHub Actions"
+     ],
+     [
+      "Counted with",
+      "<code>go test -count=1 -json ./...</code> <span class=\"note\">(30 tests plus 8 subtests)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "authz-proof",
+    "featured": false,
+    "tag": "Who gains or loses access in a schema change",
+    "tests": 27,
+    "facts": [
+     [
+      "Language",
+      "Go"
+     ],
+     [
+      "Stack",
+      "Go standard library only, SpiceDB in Docker, GitHub Actions"
+     ],
+     [
+      "Counted with",
+      "<code>go test -count=1 -json ./...</code> <span class=\"note\">(2 of them need a live SpiceDB, as in CI)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "runon",
+    "featured": false,
+    "tag": "Shell programs across servers over SSH",
+    "tests": 422,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "SSH, PyPI, stdlib only on Python 3.11+ (no runtime dependencies)"
+     ],
+     [
+      "Counted with",
+      "<code>pytest</code> <span class=\"note\">(3 of them need zsh or csh installed, as in CI)</span>"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "key": "field",
+  "slug": "drones-and-field-work",
+  "name": "Drones and field work",
+  "symbol": "s-field",
+  "lead": "Flight safety, firmware and geology, tested in simulators and on emulators.",
+  "intro": "Six repos for aircraft, firmware and the ground: a ROS 2 guard that forwards only setpoints it can prove safe, terrain clearance proofs for drone missions, CI checks for autopilot parameters, A/B firmware updates that survive power cuts, and a ground model and field notebook for borehole logs.",
+  "repos": [
+   {
+    "slug": "geofence-guard",
+    "featured": false,
+    "tag": "Forwards only setpoints proven inside the envelope",
+    "tests": 96,
+    "facts": [
+     [
+      "Language",
+      "C++"
+     ],
+     [
+      "Stack",
+      "C++17, ROS 2 Jazzy, GoogleTest, PX4 SITL"
+     ],
+     [
+      "Scope",
+      "The core and CLI build anywhere with CMake. The ROS 2 node and the PX4 SITL flights run in CI."
+     ],
+     [
+      "Counted with",
+      "<code>make test</code> <span class=\"note\">(87 GoogleTest cases plus 9 CLI tests; the 10 ROS 2 node tests run in CI and are not counted here)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "terrain-follow",
+    "featured": false,
+    "tag": "Proves a mission clears the terrain",
+    "tests": 237,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Python standard library only, Hypothesis, PX4 SITL in Docker"
+     ],
+     [
+      "Counted with",
+      "<code>pytest -q</code> <span class=\"note\">(38 test functions, 203 of the items parametrised)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "paramguard",
+    "featured": false,
+    "tag": "CI check for PX4 and ArduPilot parameters",
+    "tests": 67,
+    "facts": [
+     [
+      "Language",
+      "Python"
+     ],
+     [
+      "Stack",
+      "Python standard library only, composite GitHub Action, PX4 SITL in Docker"
+     ],
+     [
+      "Counted with",
+      "<code>pytest -q</code> <span class=\"note\">(1 of them needs ArduCopter 4.6.3&#x27;s parameter metadata from make ap-meta, as in CI)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "ota-safe",
+    "featured": false,
+    "tag": "A/B firmware updates that survive power cuts",
+    "tests": 33,
+    "facts": [
+     [
+      "Language",
+      "Rust"
+     ],
+     [
+      "Stack",
+      "no_std Rust with sha2 and ed25519-dalek, QEMU Cortex-M3"
+     ],
+     [
+      "Counted with",
+      "<code>cargo test --locked</code> <span class=\"note\">(the depth-2 search, run by make deep, is ignored by default)</span>"
+     ]
+    ]
+   },
+   {
+    "slug": "strata",
+    "featured": false,
+    "tag": "Borehole logs to a ground model with intervals",
+    "tests": 46,
+    "facts": [
+     [
+      "Language",
+      "Rust"
+     ],
+     [
+      "Stack",
+      "No dependencies, ordinary kriging, leave-one-out calibration"
+     ],
+     [
+      "Counted with",
+      "<code>cargo test --locked</code>"
+     ]
+    ]
+   },
+   {
+    "slug": "fieldlog",
+    "featured": false,
+    "tag": "Offline Android notebook for boreholes",
+    "tests": 39,
+    "facts": [
+     [
+      "Language",
+      "Kotlin"
+     ],
+     [
+      "Stack",
+      "Kotlin 2.0, Jetpack Compose, CRDTs with no merge library, Android emulator in CI"
+     ],
+     [
+      "Counted with",
+      "<code>./gradlew test</code> and <code>connectedDebugAndroidTest</code> <span class=\"note\">(33 JVM tests, 3 app unit tests and 3 Compose UI tests on an emulator)</span>"
+     ]
+    ]
+   }
+  ]
+ }
+]
