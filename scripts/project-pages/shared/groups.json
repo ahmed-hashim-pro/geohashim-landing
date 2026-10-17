@@ -29,7 +29,16 @@
       "Counted with",
       "<code>uv run pytest</code> <span class=\"note\">(134 passed, 1 skipped)</span>"
      ]
-    ]
+    ],
+    "landing": {
+     "side": "left",
+     "x": "--x:76%;--x-md:79%",
+     "ring": "Approval gate",
+     "tag": [
+      "s-ai",
+      "AI systems"
+     ]
+    }
    },
    {
     "slug": "sqlguard-mcp",
@@ -53,7 +62,16 @@
       "Counted with",
       "<code>go test -race -count=1 -json ./...</code> <span class=\"note\">(65 tests plus 74 subtests)</span>"
      ]
-    ]
+    ],
+    "landing": {
+     "side": "right",
+     "x": "--x:24%;--x-md:21%",
+     "ring": "Writes need approval",
+     "tag": [
+      "s-ai",
+      "AI systems"
+     ]
+    }
    },
    {
     "slug": "bench-mcp",
@@ -207,7 +225,16 @@
       "Counted with",
       "<code>pnpm test</code> <span class=\"note\">(468 engine and server tests plus 218 web app tests)</span>"
      ]
-    ]
+    ],
+    "landing": {
+     "side": "left",
+     "x": "--x:75%;--x-md:76%",
+     "ring": "Atomic transactions",
+     "tag": [
+      "s-data",
+      "Data systems"
+     ]
+    }
    },
    {
     "slug": "crdt-notes",
